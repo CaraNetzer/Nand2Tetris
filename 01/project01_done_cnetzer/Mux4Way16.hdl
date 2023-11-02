@@ -1,0 +1,76 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux4Way16.hdl
+
+//project 01 - CNETZER
+
+/**
+ * 4-way 16-bit multiplexor:
+ * out = a if sel == 00
+ *       b if sel == 01
+ *       c if sel == 10
+ *       d if sel == 11
+ *
+ *  Algorithm:
+ *      Not(in=sel[0], out=notSel0); 
+ *      Not(in=sel[1], out=notSel1); 
+ *
+ *      Mux(a=a, b=b, sel=sel[0], out=muxABSel0);
+ *      Mux(a=c, b=d, sel=sel[0], out=muxCDSel0);
+ *
+ *      And(a=muxABSel0, b=notSel1, out=muxAndNotSel1);
+ *      And(a=muxCDSel0, b=sel[1], out=muxAndSel1);
+ *
+ *      Or(a=muxAndNotSel1, b=muxAndSel1, out=out);
+ *
+ *
+ *      //without Mux -- not working:
+ *      a=0 b=0 c=1 d=0 sel=01
+ *      And(a=a[0], b=notSel1, out=a0AndNotSel1);  0  
+ *      And(a=b[0], b=sel[1], out=b0AndSel1);    0
+ *      Or(a=a0AndNotSel1, b=b0AndSel1, out=a0OrB0out);  0  
+ *      And(a=notSel0, b=a0OrB0out, out=leftSide0); 0
+ *
+ *      And(a=c[0], b=notSel1, out=c0AndNotSel1);    1
+ *      And(a=d[0], b=sel[1], out=d0AndSel1);    0
+ *      Or(a=c0AndNotSel1, b=d0AndSel1, out=c0OrD0out); 1   
+ *      And(a=sel[0], b=c0OrD0out, out=rightSide0);  1
+ *
+ *      Or(a=leftSide0, b=rightSide0, out=out[0]);   1
+ */
+
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    Not(in=sel[0], out=notSel0);
+    Not(in=sel[1], out=notSel1);
+
+    //a[0], b[0], c[0], d[0]
+        Mux(a=a[0], b=b[0], sel=sel[0], out=muxA0B0Sel0);    
+        Mux(a=c[0], b=d[0], sel=sel[0], out=muxC0D0Sel0);
+
+        And(a=muxA0B0Sel0, b=notSel1, out=mux0AndNotSel1);    
+        And(a=muxC0D0Sel0, b=sel[1], out=mux0AndSel1);
+
+        Or(a=mux0AndNotSel1, b=mux0AndSel1, out=out[0]);
+
+    //a[1..15], b[1..15], c[1..15], d[1..15]
+        Mux(a=a[1], b=b[1], sel=sel[0], out=muxA1B1Sel0);    Mux(a=c[1], b=d[1], sel=sel[0], out=muxC1D1Sel0);    And(a=muxA1B1Sel0, b=notSel1, out=mux1AndNotSel1);    And(a=muxC1D1Sel0, b=sel[1], out=mux1AndSel1);    Or(a=mux1AndNotSel1, b=mux1AndSel1, out=out[1]);
+        Mux(a=a[2], b=b[2], sel=sel[0], out=muxA2B2Sel0);    Mux(a=c[2], b=d[2], sel=sel[0], out=muxC2D2Sel0);    And(a=muxA2B2Sel0, b=notSel1, out=mux2AndNotSel1);    And(a=muxC2D2Sel0, b=sel[1], out=mux2AndSel1);    Or(a=mux2AndNotSel1, b=mux2AndSel1, out=out[2]);
+        Mux(a=a[3], b=b[3], sel=sel[0], out=muxA3B3Sel0);    Mux(a=c[3], b=d[3], sel=sel[0], out=muxC3D3Sel0);    And(a=muxA3B3Sel0, b=notSel1, out=mux3AndNotSel1);    And(a=muxC3D3Sel0, b=sel[1], out=mux3AndSel1);    Or(a=mux3AndNotSel1, b=mux3AndSel1, out=out[3]);
+        Mux(a=a[4], b=b[4], sel=sel[0], out=muxA4B4Sel0);    Mux(a=c[4], b=d[4], sel=sel[0], out=muxC4D4Sel0);    And(a=muxA4B4Sel0, b=notSel1, out=mux4AndNotSel1);    And(a=muxC4D4Sel0, b=sel[1], out=mux4AndSel1);    Or(a=mux4AndNotSel1, b=mux4AndSel1, out=out[4]);
+        Mux(a=a[5], b=b[5], sel=sel[0], out=muxA5B5Sel0);    Mux(a=c[5], b=d[5], sel=sel[0], out=muxC5D5Sel0);    And(a=muxA5B5Sel0, b=notSel1, out=mux5AndNotSel1);    And(a=muxC5D5Sel0, b=sel[1], out=mux5AndSel1);    Or(a=mux5AndNotSel1, b=mux5AndSel1, out=out[5]);
+        Mux(a=a[6], b=b[6], sel=sel[0], out=muxA6B6Sel0);    Mux(a=c[6], b=d[6], sel=sel[0], out=muxC6D6Sel0);    And(a=muxA6B6Sel0, b=notSel1, out=mux6AndNotSel1);    And(a=muxC6D6Sel0, b=sel[1], out=mux6AndSel1);    Or(a=mux6AndNotSel1, b=mux6AndSel1, out=out[6]);
+        Mux(a=a[7], b=b[7], sel=sel[0], out=muxA7B7Sel0);    Mux(a=c[7], b=d[7], sel=sel[0], out=muxC7D7Sel0);    And(a=muxA7B7Sel0, b=notSel1, out=mux7AndNotSel1);    And(a=muxC7D7Sel0, b=sel[1], out=mux7AndSel1);    Or(a=mux7AndNotSel1, b=mux7AndSel1, out=out[7]);
+        Mux(a=a[8], b=b[8], sel=sel[0], out=muxA8B8Sel0);    Mux(a=c[8], b=d[8], sel=sel[0], out=muxC8D8Sel0);    And(a=muxA8B8Sel0, b=notSel1, out=mux8AndNotSel1);    And(a=muxC8D8Sel0, b=sel[1], out=mux8AndSel1);    Or(a=mux8AndNotSel1, b=mux8AndSel1, out=out[8]);
+        Mux(a=a[9], b=b[9], sel=sel[0], out=muxA9B9Sel0);    Mux(a=c[9], b=d[9], sel=sel[0], out=muxC9D9Sel0);    And(a=muxA9B9Sel0, b=notSel1, out=mux9AndNotSel1);    And(a=muxC9D9Sel0, b=sel[1], out=mux9AndSel1);    Or(a=mux9AndNotSel1, b=mux9AndSel1, out=out[9]);
+        Mux(a=a[10], b=b[10], sel=sel[0], out=muxA10B10Sel0);    Mux(a=c[10], b=d[10], sel=sel[0], out=muxC10D10Sel0);    And(a=muxA10B10Sel0, b=notSel1, out=mux10AndNotSel1);    And(a=muxC10D10Sel0, b=sel[1], out=mux10AndSel1);    Or(a=mux10AndNotSel1, b=mux10AndSel1, out=out[10]);
+        Mux(a=a[11], b=b[11], sel=sel[0], out=muxA11B11Sel0);    Mux(a=c[11], b=d[11], sel=sel[0], out=muxC11D11Sel0);    And(a=muxA11B11Sel0, b=notSel1, out=mux11AndNotSel1);    And(a=muxC11D11Sel0, b=sel[1], out=mux11AndSel1);    Or(a=mux11AndNotSel1, b=mux11AndSel1, out=out[11]);
+        Mux(a=a[12], b=b[12], sel=sel[0], out=muxA12B12Sel0);    Mux(a=c[12], b=d[12], sel=sel[0], out=muxC12D12Sel0);    And(a=muxA12B12Sel0, b=notSel1, out=mux12AndNotSel1);    And(a=muxC12D12Sel0, b=sel[1], out=mux12AndSel1);    Or(a=mux12AndNotSel1, b=mux12AndSel1, out=out[12]);
+        Mux(a=a[13], b=b[13], sel=sel[0], out=muxA13B13Sel0);    Mux(a=c[13], b=d[13], sel=sel[0], out=muxC13D13Sel0);    And(a=muxA13B13Sel0, b=notSel1, out=mux13AndNotSel1);    And(a=muxC13D13Sel0, b=sel[1], out=mux13AndSel1);    Or(a=mux13AndNotSel1, b=mux13AndSel1, out=out[13]);
+        Mux(a=a[14], b=b[14], sel=sel[0], out=muxA14B14Sel0);    Mux(a=c[14], b=d[14], sel=sel[0], out=muxC14D14Sel0);    And(a=muxA14B14Sel0, b=notSel1, out=mux14AndNotSel1);    And(a=muxC14D14Sel0, b=sel[1], out=mux14AndSel1);    Or(a=mux14AndNotSel1, b=mux14AndSel1, out=out[14]);
+        Mux(a=a[15], b=b[15], sel=sel[0], out=muxA15B15Sel0);    Mux(a=c[15], b=d[15], sel=sel[0], out=muxC15D15Sel0);    And(a=muxA15B15Sel0, b=notSel1, out=mux15AndNotSel1);    And(a=muxC15D15Sel0, b=sel[1], out=mux15AndSel1);    Or(a=mux15AndNotSel1, b=mux15AndSel1, out=out[15]);
+}

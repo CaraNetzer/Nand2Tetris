@@ -1,0 +1,35 @@
+// This file is part of www.nand2tetrIs.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Or8Way.hdl
+
+//project 01 - CNETZER
+
+/**
+ * 8-way Or: 
+ * out = (in[0] or in[1] or ... or in[7])
+ */
+
+CHIP Or8Way {
+    IN in[8];
+    OUT out;
+
+    PARTS:   
+    Or(a=in[0], b=in[1], out=in0OrIn1);
+    Or(a=in0OrIn1, b=in[2], out=out1OrIn2);
+    Or(a=out1OrIn2, b=in[3], out=out2OrIn3);
+    Or(a=out2OrIn3, b=in[4], out=out3OrIn4);
+    Or(a=out3OrIn4, b=in[5], out=out4OrIn5);
+    Or(a=out4OrIn5, b=in[6], out=out5OrIn6);
+    Or(a=out5OrIn6, b=in[7], out=out);
+    
+    /*
+    Or(a=in[0], b=in[1], out=in0OrIn1);
+    Or(a=in[2], b=in[3], out=in2OrIn3);
+    Or(a=in[4], b=in[5], out=in4OrIn5);
+    Or(a=in[6], b=in[7], out=in6OrIn7);
+    Or(a=in0OrIn1, b=in2OrIn3, out=out1Or2);
+    Or(a=in4OrIn5, b=in6OrIn7, out=out3Or4);
+    Or(a=out1Or2, b=out3Or4, out=out);
+    */
+}
