@@ -13,33 +13,29 @@
 
 //psuedo code:
 //set i = 0
-//set sum = 0
+//set product/R2 = 0
 //(loop)
 //if i - R1 = 0
   //break
 //else  
-  //sum = sum + R0
+  //product = product + R0
 //loop
-//set R2 = sum
 
   @i
   M=0
-  @sum
+  @R2
   M=0
 (LOOP)
   @i
   D=M 
   @R1
-  D=D-A //i - R1, we want to add R0 to itself, R1 times
+  D=D-M //i - R1, we want to add R0 to itself, R1 times
   @END //set A reg to END
   D;JEQ //jump to END
   @R0
   D=M
-  @sum
-  M=D+M
-  D=M
   @R2
-  M=D //store the current total in R2
+  M=D+M
   @i
   M=M+1  
   @LOOP
