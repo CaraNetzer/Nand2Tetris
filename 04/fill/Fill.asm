@@ -23,18 +23,54 @@
 //loop
 
 (LOOP)
-  @R0
-  D=M //R0 should be 0
-  @KBD
-  D=D-M //if keyboard is pressed, M!=0, so D will be not be 0
-  @WHITE
-  D;JEQ //jump to top of loop if keyboard is not pressed --> D = 0 - 0 = 0
-  @SCREEN
-  M=-1
-  @LOOP
-  0;JMP
-(WHITE)
-  @SCREEN
+  //initialize variables
+  @i
   M=0
-  @LOOP
-  0;JMP
+  @SCREEN
+  D=A
+  @currentWord
+  M=D
+  @8192
+  D=A
+  @totalWords
+  M=D
+
+  @color
+  M=0
+
+  //check for keyboard input
+  @KBD
+  D=M
+  @SCREENLOOP
+  D;JEQ //jump to loop to set all pixels to white if keyboard is not pressed --> D = 0
+  
+  //if KBD <> 0
+  @color
+  M=-1
+
+  (SCREENLOOP)
+    //jump to beginning of program if all pixels have been filled
+    @i
+    D=M
+    @totalWords
+    D=D-M
+    @LOOP
+    D;JEQ 
+
+    //set the word to the color
+    @color
+    D=M
+    @currentWord
+    A=M 
+    M=D
+    
+    //update the current word location    
+    @currentWord
+    M=M+1
+
+    //increment i
+    @i
+    M=M+1
+
+    @SCREENLOOP
+    0;JMP
