@@ -42,10 +42,13 @@ CHIP CPU {
 
     //decode instruction
     And(a=instruction[15], b=instruction[15], out=aOrCInstruction); //i 
-    And(a=instruction[3], b=instruction[3], out=writeM); //d3
+    And(a=instruction[3], b=instruction[15], out=writeM); //d3
 
     Mux16(a=instruction, b=outMForDOrAReg, sel=aOrCInstruction, out=aRegisterIn);
-    ARegister(in=aRegisterIn, load=instruction[5], out[0..14]=addressM, out=fullAddressM);
+
+
+    Mux(a=true, b=instruction[5], sel=aOrCInstruction, out=loadAReg);
+    ARegister(in=aRegisterIn, load=loadAReg, out[0..14]=addressM, out=fullAddressM);
 
 
     Mux16(a=fullAddressM, b=inM, sel=instruction[12], out=aOrMComputation); //a 
@@ -58,11 +61,15 @@ CHIP CPU {
     And(a=outZr, b=instruction[1], out=equalToZero);
     And(a=outNg, b=instruction[2], out=lessThanZero);
     Not(in=outNg, out=notNg); 
-    And(a=notNg, b=instruction[0], out=greaterThanZero);
+    Not(in=outZr, out=notZr); 
+    And(a=notNg, b=instruction[0], out=notLessThanZero);
+    And(a=notZr, b=notLessThanZero, out=greaterThanZero);
     Or(a=lessThanZero, b=greaterThanZero, out=outLTorGT);
     Or(a=outLTorGT, b=equalToZero, out=loadOut);
 
-    PC(in=fullAddressM, load=loadOut, inc=true, reset=reset, out[0..14]=pc);
+    And(a=loadOut, b=instruction[15], out=jump);
+
+    PC(in=fullAddressM, load=jump, inc=true, reset=reset, out[0..14]=pc);
 
 
 }
