@@ -40,7 +40,7 @@ CHIP CPU {
 
     PARTS:
 
-    //decode instruction
+    //decode instruction initial
     And(a=instruction[15], b=instruction[15], out=aOrCInstruction); //i 
     And(a=instruction[3], b=instruction[15], out=writeM); //d3
 
@@ -53,11 +53,12 @@ CHIP CPU {
 
     Mux16(a=fullAddressM, b=inM, sel=instruction[12], out=aOrMComputation); //a 
 
-    DRegister(in=outMForDOrAReg, load=instruction[4], out=dRegisterOut);
+    And(a=instruction[4], b=aOrCInstruction, out=loadRegD); //to make sure the d register can only be loaded by a c instruction
+    DRegister(in=outMForDOrAReg, load=loadRegD, out=dRegisterOut);
     
     ALU(x=dRegisterOut, y=aOrMComputation ,zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=outMForDOrAReg, zr=outZr, ng=outNg);
     
-    //decode load/jump
+    //decode load/jump instruction
     And(a=outZr, b=instruction[1], out=equalToZero);
     And(a=outNg, b=instruction[2], out=lessThanZero);
     Not(in=outNg, out=notNg); 
@@ -70,6 +71,4 @@ CHIP CPU {
     And(a=loadOut, b=instruction[15], out=jump);
 
     PC(in=fullAddressM, load=jump, inc=true, reset=reset, out[0..14]=pc);
-
-
 }
