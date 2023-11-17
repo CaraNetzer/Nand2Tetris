@@ -10,6 +10,40 @@ import java.io.FileWriter;
 public class App {
     public static void main(String[] args) throws Exception {
 
+        try {
+            String filePath = args[0];
+            String[] inFileNameArray = filePath.split("/");
+            String inFileName = inFileNameArray[inFileNameArray.length - 1];
+            String outFileName = inFileName.substring(0, inFileName.length() - 3) + "hack";
+
+            File file = new File(outFileName);
+            file.createNewFile();
+
+            int currentLineNumber = 0;
+
+            Parser parser = new Parser(filePath);
+            while (Parser.br.readLine() != null) {
+                String commandType = parser.commandType();
+                String symbol = parser.symbol();
+                if(commandType == "C_COMMAND") {
+                    String dest = parser.dest();
+                    String comp = parser.comp();
+                    String jump = parser.jump();
+                }
+                currentLineNumber++;
+            }
+
+        } catch (Exception e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+}
+
+/*
+ * OLD MAIN - NON-MODULAR:
+ * public static void main(String[] args) throws Exception {
+
         String filePath = args[0];
         try {
             String[] inFileNameArray = filePath.split("/");
@@ -48,4 +82,4 @@ public class App {
             e.printStackTrace();
         }
     }
-}
+ */
