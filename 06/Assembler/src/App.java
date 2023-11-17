@@ -7,8 +7,10 @@ import java.io.FileWriter;
 //java App ../../add/Add.asm
 public class App {
     public static void main(String[] args) throws Exception {
-        String commandType, textSymbol, textDest, textComp, textJump; //parsed from Assembly code
+        String commandType, textSymbol, textDest, textComp, textJump; // parsed from Assembly code
         String binarySymbol, binaryDest, binaryComp, binaryJump, binaryInstruction; // translated to binary
+        int machineCodeLineNumber = 0;
+        int maxRAMValue = 16;
 
         try {
             String filePath = args[0];
@@ -21,35 +23,66 @@ public class App {
 
             int currentLineNumber = 0;
 
-            Parser parser = new Parser(filePath);
             Code translationCodes = new Code();
+            SymbolTable symbolTable = new SymbolTable();
+
+            Parser parserFirstPass = new Parser(filePath);
+            for (String line; (line = parserFirstPass.br.readLine()) != null; currentLineNumber++) {
+                if (!line.trim().isEmpty() && line.charAt(0) != '/') {
+                    parserFirstPass.currentLine = line;
+                    commandType = parserFirstPass.commandType();
+                    if (commandType == "A_COMMAND" || commandType == "C_COMMAND") {
+                        machineCodeLineNumber++;
+                    } else if (commandType == "L_COMMAND") {
+                        symbolTable.addEntry(parserFirstPass.symbol(), machineCodeLineNumber + 1);
+                    }
+                }
+            }
+            parserFirstPass.br.close();
+
+            machineCodeLineNumber = 0;
+            Parser parserSecondPass = new Parser(filePath);
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(outFileName));) {
-
-                for (String line; (line = Parser.br.readLine()) != null; currentLineNumber++) {
-
+                for (String line; (line = parserSecondPass.br.readLine()) != null; currentLineNumber++) {
                     if (!line.trim().isEmpty() && line.charAt(0) != '/') {
-                        Parser.currentLine = line;
-                        // System.out.println(line);
-                        commandType = Parser.commandType();
-                        if (commandType == "A_COMMAND" || commandType == "L_COMMAND") {
+                        parserSecondPass.currentLine = line;
+                        commandType = parserSecondPass.commandType();
+
+                        if (commandType == "A_COMMAND") {
                             // #region read lines
-                            textSymbol = parser.symbol();
+                            textSymbol = parserSecondPass.symbol();
                             // #endregion
 
                             // #region translate lines
-                            int number = Integer.parseInt(textSymbol);
-                            binarySymbol = "0" + String.format("%15s", Integer.toBinaryString(number)).replace(' ', '0');
+                            int registerNumber = tryParseInt(textSymbol, -1);
+                            if (registerNumber == -1) {
+                                if (!symbolTable.contains(textSymbol)) {
+                                    maxRAMValue++;
+                                    symbolTable.addEntry(textSymbol, maxRAMValue);
+                                }
+                                int variableNameAddress = symbolTable.getAddress(textSymbol);
+                                binarySymbol = "0" + String.format("%15s", Integer.toBinaryString(variableNameAddress))
+                                        .replace(' ', '0');
+                            } else {
+                                binarySymbol = "0" + String.format("%15s", Integer.toBinaryString(registerNumber))
+                                        .replace(' ', '0');
+                            }
                             // #endregion
 
                             // #region write lines
                             bw.write(binarySymbol + "\n");
                             // #endregion
+
+                            machineCodeLineNumber++;
+                        }
+                        if (commandType == "L_COMMAND") {
+
                         }
                         if (commandType == "C_COMMAND") {
                             // #region read lines
-                            textDest = parser.dest();
-                            textComp = parser.comp();
-                            textJump = parser.jump();
+                            textDest = parserSecondPass.dest();
+                            textComp = parserSecondPass.comp();
+                            textJump = parserSecondPass.jump();
                             // System.out.println("dest: " + dest + "; comp: " + comp + "; jump: " + jump);
                             // #endregion
 
@@ -63,17 +96,25 @@ public class App {
                             // #region write lines
                             bw.write(binaryInstruction + "\n");
                             // #endregion
+
+                            machineCodeLineNumber++;
                         }
                     }
-
                 }
             }
+            parserSecondPass.br.close();
 
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
+        }
+    }
+
+    public static int tryParseInt(String value, int defaultVal) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return defaultVal;
         }
     }
 }

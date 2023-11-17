@@ -2,8 +2,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 public class Parser {
-    public static BufferedReader br;
-    public static String currentLine;
+    public BufferedReader br;
+    public String currentLine;
 
     public Parser(String filePath) {
         try {
@@ -22,15 +22,15 @@ public class Parser {
         }
     }
 
-    public static void advance() {
+    public void advance() {
         try {
-            currentLine = br.readLine();
+            this.currentLine = this.br.readLine();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static String commandType() {
+    public String commandType() {
         if(currentLine.charAt(0) == '@') {
             return "A_COMMAND";
         } else if (currentLine.contains("=") || currentLine.contains(";")) {
@@ -43,9 +43,9 @@ public class Parser {
     }
 
     public String symbol() {
-        if (Parser.commandType() == "A_COMMAND") {
+        if (this.commandType() == "A_COMMAND") {
             return currentLine.substring(1).trim();
-        } else if (Parser.commandType() == "L_COMMAND") {
+        } else if (this.commandType() == "L_COMMAND") {
             return currentLine.substring(1, currentLine.length() - 1).trim();
         } else {
             return null;
