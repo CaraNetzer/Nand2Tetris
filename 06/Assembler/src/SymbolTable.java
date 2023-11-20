@@ -1,4 +1,5 @@
 import java.util.Hashtable;
+import java.util.Set;
 
 public class SymbolTable {
     Hashtable<String, Integer> table;
@@ -35,10 +36,14 @@ public class SymbolTable {
     }
     
     public Boolean contains(String symbol) {
-        return this.table.contains(symbol);
+        return this.table.containsKey(symbol);
     }
 
     public int getAddress(String symbol) {
         return this.table.get(symbol);
+    }
+
+    public Set<String> keySet() {
+        return this.table.keySet();
     }
 }

@@ -31,7 +31,7 @@ public class Parser {
     }
 
     public String commandType() {
-        if(currentLine.charAt(0) == '@') {
+        if(currentLine.trim().charAt(0) == '@') {
             return "A_COMMAND";
         } else if (currentLine.contains("=") || currentLine.contains(";")) {
             return "C_COMMAND";
@@ -44,9 +44,9 @@ public class Parser {
 
     public String symbol() {
         if (this.commandType() == "A_COMMAND") {
-            return currentLine.substring(1).trim();
+            return currentLine.trim().substring(1);
         } else if (this.commandType() == "L_COMMAND") {
-            return currentLine.substring(1, currentLine.length() - 1).trim();
+            return currentLine.trim().substring(1, currentLine.length() - 1);
         } else {
             return null;
         }
@@ -55,7 +55,7 @@ public class Parser {
     public String dest() {
         String result = "";
         try {
-            String[] lineParts = currentLine.split("=");
+            String[] lineParts = currentLine.trim().split("=");
             if(lineParts.length > 1) {
                 result = lineParts[0].trim();
             } else if (lineParts.length == 1) {
@@ -69,7 +69,7 @@ public class Parser {
 
     public String comp() {
         try {
-            String[] lineParts = currentLine.split("=");
+            String[] lineParts = currentLine.trim().split("=");
             return lineParts[1].trim();
         } catch (ArrayIndexOutOfBoundsException e) {
             String[] lineParts = currentLine.split(";");
@@ -79,7 +79,7 @@ public class Parser {
 
     public String jump() {
         try {
-            String[] lineParts = currentLine.split(";");
+            String[] lineParts = currentLine.trim().split(";");
             return lineParts[1].trim();
         } catch (ArrayIndexOutOfBoundsException e) {
             return null;
