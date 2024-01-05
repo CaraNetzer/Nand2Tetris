@@ -28,7 +28,7 @@ public class App {
 
             Parser parserFirstPass = new Parser(filePath);
             for (String line; (line = parserFirstPass.br.readLine()) != null; currentLineNumber++) {
-                if (!line.trim().isEmpty() && line.charAt(0) != '/') {
+                if (!line.trim().isEmpty() && line.trim().charAt(0) != '/') {
                     parserFirstPass.currentLine = line;
                     commandType = parserFirstPass.commandType();
                     if (commandType == "A_COMMAND" || commandType == "C_COMMAND") {
@@ -47,7 +47,7 @@ public class App {
             Parser parserSecondPass = new Parser(filePath);
             try (BufferedWriter bw = new BufferedWriter(new FileWriter("../outFiles/" + outFileName));) {
                 for (String line; (line = parserSecondPass.br.readLine()) != null; currentLineNumber++) {
-                    if (!line.trim().isEmpty() && line.charAt(0) != '/') {
+                    if (!line.trim().isEmpty() && line.trim().charAt(0) != '/') {
                         parserSecondPass.currentLine = line;
                         commandType = parserSecondPass.commandType();
 
