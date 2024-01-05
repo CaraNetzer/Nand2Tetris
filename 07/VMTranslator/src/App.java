@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 
 //to run in command line:
 //javac App.java
@@ -38,7 +39,7 @@ public class App {
         }
     }
 
-    public static void Execute(Parser parser, CodeWriter codeWriter) {
+    public static void Execute(Parser parser, CodeWriter codeWriter) throws IOException {
         System.out.println("execute block");
 
         if(parser.hasMoreCommands()) {
