@@ -6,126 +6,390 @@ import java.util.HashMap;
 public class CodeWriter {
     public BufferedWriter bw;
     public String currentLine;
+    public String filename;
 
     public HashMap<String, String> segmentPointers = new HashMap<String, String>() {
         {
             put("local", "LCL"); 
-            put("arguement", "ARG"); 
+            put("argument", "ARG"); 
             put("this", "THIS"); 
             put("that", "THAT"); 
         }
     };
         
-    public CodeWriter(String filePath) throws IOException {        
-        bw = new BufferedWriter(new FileWriter("../outFiles/" + filePath));        
+    public CodeWriter(String filePath) throws IOException {    
+        System.out.println(filePath);    
+        bw = new BufferedWriter(new FileWriter("../outFiles/" + filePath));   
+        filename = filePath.substring(0, filePath.indexOf("."));   
     }
 
     public void writeArithmetic(String command) throws IOException {
-        bw.write("//" + command + "\n");
+        System.out.println(command);  
+        StringBuilder sb = new StringBuilder();
+        sb.append("//" + command + "\n");
         switch (command) {
             case "add":
+                saveArgsAndCompute(sb, "+");                
+                pushBackOntoStack(sb);
+
                 break;
             case "sub":
+                saveArgsAndCompute(sb, "-");                
+                pushBackOntoStack(sb);
+
                 break;
             case "neg":
+                //SP--
+                sb.append("@SP\n");
+                sb.append("M=M-1\n");
+
+                //D=-RAM[SP]
+                sb.append("A=M\n");
+                sb.append("D=-M\n");
+
+                pushBackOntoStack(sb);
+
                 break;
             case "eq":
+                saveArgsAndComputeBool(sb, "eq");
+                pushBackOntoStack(sb);
+
                 break;
             case "lt":
+                saveArgsAndComputeBool(sb, "lt");
+                pushBackOntoStack(sb);
+
                 break;
             case "gt":
+                saveArgsAndComputeBool(sb, "gt");
+                pushBackOntoStack(sb);
+
                 break;
             case "and":
+                saveArgsAndCompute(sb, "&");
+                pushBackOntoStack(sb);
+
                 break;
             case "or":
+                saveArgsAndCompute(sb, "|");
+                pushBackOntoStack(sb);
+
                 break;
             case "not":
+                //SP--
+                sb.append("@SP\n");
+                sb.append("M=M-1\n");
+
+                //D=!RAM[SP]
+                sb.append("A=M\n");
+                sb.append("D=!M\n");
+
+                pushBackOntoStack(sb);
+
                 break;
             default:
                 break;
         }
+        bw.write(sb.toString());
+    }
+
+    public void saveArgsAndCompute(StringBuilder sb, String computation) {
+        //SP--
+        sb.append("@SP\n");
+        sb.append("M=M-1\n");
+
+        //D=RAM[SP]
+        sb.append("A=M\n");
+        sb.append("D=M\n");
+
+        //put first arg in R13
+        sb.append("@R13\n"); 
+        sb.append("M=D\n");  
+        
+        //repeat that
+        //SP--
+        sb.append("@SP\n");
+        sb.append("M=M-1\n");                
+        //D=RAM[SP]
+        sb.append("A=M\n");
+        sb.append("D=M\n");                
+        //put second arg in R14
+        sb.append("@R14\n"); 
+        sb.append("M=D\n");
+        //sb.append("D=M\n");
+
+        // +, -, &, or |
+        sb.append("@R13\n"); 
+        sb.append("D=M" + computation + "D\n");
+    }
+
+    public void saveArgsAndComputeBool(StringBuilder sb, String bool) {
+        //SP--
+        sb.append("@SP\n");
+        sb.append("M=M-1\n");
+
+        //D=RAM[SP]
+        sb.append("A=M\n");
+        sb.append("D=M\n");
+
+        //put first arg in R13
+        sb.append("@R13\n"); 
+        sb.append("M=D\n");  
+        
+        //repeat that
+        //SP--
+        sb.append("@SP\n");
+        sb.append("M=M-1\n");                
+        //D=RAM[SP]
+        sb.append("A=M\n");
+        sb.append("D=M\n");                
+        //put second arg in R14
+        sb.append("@R14\n"); 
+        sb.append("M=D\n");
+        //sb.append("D=M\n");
+
+        // D = first number
+        sb.append("@R14\n");
+        sb.append("D=M\n");  
+
+        // D = x - y
+        sb.append("@R13\n"); 
+        sb.append("D=D-M \n"); 
+
+        // if D (eq/gt/lt) 0 (bool) goto TRUE
+        sb.append("@TRUE\n"); 
+        sb.append("D;J" + bool + "\n");
+
+        // else goto FALSE
+        sb.append("@FALSE\n"); 
+        sb.append("0;JMP\n");
+        
+        sb.append("(TRUE)\n"); 
+        sb.append("D=-1\n");
+        
+        sb.append("(FALSE)\n"); 
+        sb.append("D=0\n"); 
+    }
+
+    public void pushBackOntoStack(StringBuilder sb) {
+        //push that back onto the stack
+        //RAM[SP] = D
+        sb.append("@SP\n");
+        sb.append("A=M\n");
+        sb.append("M=D\n");
+
+        //SP++
+        sb.append("@SP\n");
+        sb.append("M=M+1\n");
+
     }
 
     public void writePushPop(String command, String segment, int index) throws IOException {
-        if (segment == "local" || segment == "arguement" || segment == "this" || segment == "that") {
+        System.out.println(command + "writepushpop");  
+        
+        StringBuilder sb = new StringBuilder();
+
+        if (segment == "local" || segment == "argument" || segment == "this" || segment == "that") {
             if(command == "C_PUSH") {
-                bw.write("//push " + segment + " " + index + "\n");
+                
+                sb.append("//push " + segment + " " + index + "\n");
                 
                 //addr = segmentPointers.get(segment) + index
-                bw.write("@" + segmentPointers.get(segment));
-                bw.write("D=M\n");
-                bw.write("@" + index + "\n");
-                bw.write("D=D+A\n");
+                sb.append("@" + segmentPointers.get(segment) + "\n");
+                sb.append("D=M\n");
+                sb.append("@" + index + "\n");
+                sb.append("D=D+A\n");
                 
                 //RAM[SP] = RAM[addr]
-                bw.write("A=D\n"); //M of this will be addr
-                bw.write("D=M\n"); //RAM[addr]
+                sb.append("A=D\n"); //M of this will be addr
+                sb.append("D=M\n"); //RAM[addr]
 
-                bw.write("@SP\n");
-                bw.write("A=M\n");
-                bw.write("M=D\n");
+                sb.append("@SP\n");
+                sb.append("A=M\n");
+                sb.append("M=D\n");
 
                 //SP++
-                bw.write("@SP\n");
-                bw.write("M=M+1\n");
+                sb.append("@SP\n");
+                sb.append("M=M+1\n");
 
             } else if (command == "C_POP") {
-                bw.write("//pop " + segment + " " + index + "\n");
+                sb.append("//pop " + segment + " " + index + "\n");
                 
                 //addr = segmentPointers.get(segment) + index
-                bw.write("@" + segmentPointers.get(segment));
-                bw.write("D=M\n");
-                bw.write("@" + index + "\n");
-                bw.write("D=D+A\n");
-                bw.write("@R13\n"); 
-                bw.write("M=D\n"); //store address in R13
+                sb.append("@" + segmentPointers.get(segment) + "\n");
+                sb.append("D=M\n");
+                sb.append("@" + index + "\n");
+                sb.append("D=D+A\n");
+                sb.append("@R13\n"); 
+                sb.append("M=D\n"); //store address in R13
                 
                 //SP--
-                bw.write("@SP\n");
-                bw.write("M=M-1\n");
+                sb.append("@SP\n");
+                sb.append("M=M-1\n");
                 
                 //RAM[addr] = RAM[SP]         
-                bw.write("@SP\n"); //do i need this line?
-                bw.write("A=M\n");
-                bw.write("D=M\n");
+                sb.append("@SP\n"); //do i need this line?
+                sb.append("A=M\n");
+                sb.append("D=M\n");
 
-                bw.write("@R13\n"); 
-                bw.write("A=M\n");
-                bw.write("M=D\n");                
+                sb.append("@R13\n"); 
+                sb.append("A=M\n");
+                sb.append("M=D\n");                
             }
         }
         
         switch (segment) {    
             case "constant" :
-                bw.write("//push constant " + index + "\n");
+                sb.append("//push constant " + index + "\n");
 
                 //D=index
-                bw.write("@" + index + "\n");
-                bw.write("D=A\n");
+                sb.append("@" + index + "\n");
+                sb.append("D=A\n");
                 
                 //RAM[SP]=D
-                bw.write("@SP\n");
-                bw.write("A=M\n");
-                bw.write("M=D\n");
+                sb.append("@SP\n");
+                sb.append("A=M\n");
+                sb.append("M=D\n");
                 
                 //SP++
-                bw.write("@SP\n");
-                bw.write("M=M+1\n");
+                sb.append("@SP\n");
+                sb.append("M=M+1\n");
 
 
                 break;
             case "static":
-                
+                if(command == "C_PUSH") {
+                    sb.append("//push " + segment + " " + index + "\n");
+                    
+                    //RAM[SP] = RAM[addr]
+                    sb.append("@" + filename + "." + index + "\n");
+                    sb.append("D=M\n"); //RAM[addr]
+                    
+                    sb.append("@SP\n");
+                    sb.append("A=M\n");
+                    sb.append("M=D\n");
+
+                    //SP++
+                    sb.append("@SP\n");
+                    sb.append("M=M+1\n");                    
+
+                } else if (command == "C_POP") {
+                    sb.append("//pop " + segment + " " + index + "\n");
+                    
+                    //SP--
+                    sb.append("@SP\n");
+                    sb.append("M=M-1\n");
+                    
+                    //RAM[addr] = RAM[SP]         
+                    sb.append("@SP\n"); //do i need this line?
+                    sb.append("A=M\n");
+                    sb.append("D=M\n");
+                    
+                    sb.append("@" + filename + "." + index + "\n");
+                    sb.append("M=D\n");                
+                }
                 break;            
-            case "pointer":
-                
-                break;
             case "temp":
+                if(command == "C_PUSH") {
                 
+                    sb.append("//push " + segment + " " + index + "\n");
+                    
+                    //addr = 5 + index
+                    sb.append("@5\n");
+                    sb.append("D=A\n");
+                    sb.append("@" + index + "\n");
+                    sb.append("D=D+A\n");
+                    
+                    //RAM[SP] = RAM[addr]
+                    sb.append("A=D\n"); 
+                    sb.append("D=M\n"); //RAM[addr]
+
+                    sb.append("@SP\n");
+                    sb.append("A=M\n");
+                    sb.append("M=D\n");
+
+                    //SP++
+                    sb.append("@SP\n");
+                    sb.append("M=M+1\n");
+
+                } else if (command == "C_POP") {
+                    sb.append("//pop " + segment + " " + index + "\n");
+                    
+                    //addr = 5 + index
+                    sb.append("@5\n");
+                    sb.append("D=A\n");
+                    sb.append("@" + index + "\n");
+                    sb.append("D=D+A\n");
+                    sb.append("@R14\n"); 
+                    sb.append("M=D\n"); //store address in R14
+                    
+                    //SP--
+                    sb.append("@SP\n");
+                    sb.append("M=M-1\n");
+                    
+                    //RAM[addr] = RAM[SP]         
+                    sb.append("@SP\n"); //do i need this line?
+                    sb.append("A=M\n");
+                    sb.append("D=M\n");
+
+                    sb.append("@R14\n"); 
+                    sb.append("A=M\n");
+                    sb.append("M=D\n");                
+                }
                 break;        
+            case "pointer":
+                if(command == "C_PUSH") {
+                
+                    sb.append("//push " + segment + " " + index + "\n");
+                    
+                    //addr = 3 + index
+                    sb.append("@3\n");
+                    sb.append("D=A\n");
+                    sb.append("@" + index + "\n");
+                    sb.append("D=D+A\n");
+                    
+                    //RAM[SP] = RAM[addr]
+                    sb.append("A=D\n"); 
+                    sb.append("D=M\n"); //RAM[addr]
+
+                    sb.append("@SP\n");
+                    sb.append("A=M\n");
+                    sb.append("M=D\n");
+
+                    //SP++
+                    sb.append("@SP\n");
+                    sb.append("M=M+1\n");
+
+                } else if (command == "C_POP") {
+                    sb.append("//pop " + segment + " " + index + "\n");
+                    
+                    //addr = 3 + index
+                    sb.append("@3\n");
+                    sb.append("D=A\n");
+                    sb.append("@" + index + "\n");
+                    sb.append("D=D+A\n");
+                    sb.append("@R15\n"); 
+                    sb.append("M=D\n"); //store address in R15
+                    
+                    //SP--
+                    sb.append("@SP\n");
+                    sb.append("M=M-1\n");
+                    
+                    //RAM[addr] = RAM[SP]         
+                    sb.append("@SP\n"); //do i need this line?
+                    sb.append("A=M\n");
+                    sb.append("D=M\n");
+
+                    sb.append("@R15\n"); 
+                    sb.append("A=M\n");
+                    sb.append("M=D\n");           
+                }
+                break;
             default:
                 break;
         }
+
+        bw.write(sb.toString());
     }
 
     public void close() {

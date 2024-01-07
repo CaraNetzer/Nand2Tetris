@@ -20,19 +20,23 @@ public class App {
         File input = new File(inFileName);
         if (input.isDirectory()) {
             File[] files = input.listFiles();
-            String outFileName = inFileName.substring(0, inFileName.length() - 2) + "asm";
-            codeWriter = new CodeWriter(outFileName);
 
             for (File file : files) {
-
                 String filename = file.getName();
                 if (filename.substring(filename.length() - 2) == "vm") {
+
+                    String outFileName = filename.substring(0, inFileName.length() - 2) + "asm";
+                    codeWriter = new CodeWriter(outFileName);
+
                     parser = new Parser(filename);
                     Execute(parser, codeWriter);
                 }
             }
         } else {
-            String outFileName = inFileName.substring(0, inFileName.length() - 2) + "asm";
+
+            String[] inFileNameArray = inFileName.split("/");
+            String filename = inFileNameArray[inFileNameArray.length - 1];
+            String outFileName = filename.substring(0, filename.length() - 2) + "asm";
             parser = new Parser(inFileName);
             codeWriter = new CodeWriter(outFileName);
             Execute(parser, codeWriter);
@@ -44,6 +48,7 @@ public class App {
 
         if(parser.hasMoreCommands()) {
             parser.advance();
+            System.out.println(parser.commandType());  
             if(parser.commandType() == "C_ARITHMETIC") {
                 codeWriter.writeArithmetic(parser.arg1());
             } else if (parser.commandType() == "C_PUSH" || parser.commandType() == "C_POP") {

@@ -7,6 +7,7 @@ public class Parser {
     public String currentLine;
 
     public Parser(String filePath) {
+      System.out.println(filePath + " parser");  
         try {
             br = new BufferedReader(new FileReader(filePath));
         } catch (Exception e) {
@@ -15,6 +16,7 @@ public class Parser {
     }
 
     public boolean hasMoreCommands() {
+      System.out.println("parser");  
       try {
         return br.readLine() != null;
       } catch (IOException e) {
@@ -24,8 +26,10 @@ public class Parser {
     }
 
     public void advance() {
+      System.out.println("advance");  
       try {
         currentLine = br.readLine();
+        System.out.println(currentLine);  
       } catch (IOException e) {
         e.printStackTrace();
       }
