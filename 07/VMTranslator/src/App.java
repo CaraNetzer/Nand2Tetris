@@ -4,8 +4,8 @@ import java.io.IOException;
 //to run in command line:
 //javac App.java
 //javac -d ../classes *.java
-//java App ../../add/Add.asm
-//java -cp ../classes App ../../add/Add.asm
+//java App ../../StackArithmetic/SimpleAdd/SimpleAdd.vm
+//java -cp ../classes App ../../StackArithmetic/SimpleAdd/SimpleAdd.vm
 
 
 public class App {
@@ -45,17 +45,27 @@ public class App {
 
     public static void Execute(Parser parser, CodeWriter codeWriter) throws IOException {
         System.out.println("execute block");
-
-        if(parser.hasMoreCommands()) {
+        
+        while(parser.currentLine != null) {
             parser.advance();
-            System.out.println(parser.commandType());  
-            if(parser.commandType() == "C_ARITHMETIC") {
-                codeWriter.writeArithmetic(parser.arg1());
-            } else if (parser.commandType() == "C_PUSH" || parser.commandType() == "C_POP") {
-                codeWriter.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
+            System.out.println("current line: " + parser.currentLine);
+            if(parser.hasMoreCommands()) {
+                if(parser.currentLine.length() == 0 || 
+                   parser.currentLine.substring(0,1) == "/") {
+                    parser.advance();
+                } else {
+                    System.out.println(parser.commandType());  
+    
+                    if(parser.commandType() == "C_ARITHMETIC") {
+                        codeWriter.writeArithmetic(parser.arg1());
+                    } else if (parser.commandType() == "C_PUSH" || parser.commandType() == "C_POP") {
+                        codeWriter.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
+                    }
+                }            
             }
-        } else {
-            codeWriter.close();
-        }
+        } 
+
+        codeWriter.close();
+        
     }
 }

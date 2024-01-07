@@ -16,6 +16,17 @@ public class CodeWriter {
             put("that", "THAT"); 
         }
     };
+
+    public HashMap<String, String> math = new HashMap<String, String>() {
+        {
+            put("add", "+"); 
+            put("sub", "-"); 
+            put("and", "&"); 
+            put("or", "|"); 
+            put("neg", "-"); 
+            put("not", "!"); 
+        }
+    };
         
     public CodeWriter(String filePath) throws IOException {    
         System.out.println(filePath);    
@@ -24,69 +35,39 @@ public class CodeWriter {
     }
 
     public void writeArithmetic(String command) throws IOException {
-        System.out.println(command);  
         StringBuilder sb = new StringBuilder();
         sb.append("//" + command + "\n");
         switch (command) {
             case "add":
-                saveArgsAndCompute(sb, "+");                
-                pushBackOntoStack(sb);
-
-                break;
             case "sub":
-                saveArgsAndCompute(sb, "-");                
-                pushBackOntoStack(sb);
-
-                break;
-            case "neg":
-                //SP--
-                sb.append("@SP\n");
-                sb.append("M=M-1\n");
-
-                //D=-RAM[SP]
-                sb.append("A=M\n");
-                sb.append("D=-M\n");
-
-                pushBackOntoStack(sb);
-
-                break;
-            case "eq":
-                saveArgsAndComputeBool(sb, "eq");
-                pushBackOntoStack(sb);
-
-                break;
-            case "lt":
-                saveArgsAndComputeBool(sb, "lt");
-                pushBackOntoStack(sb);
-
-                break;
-            case "gt":
-                saveArgsAndComputeBool(sb, "gt");
-                pushBackOntoStack(sb);
-
-                break;
             case "and":
-                saveArgsAndCompute(sb, "&");
-                pushBackOntoStack(sb);
-
-                break;
             case "or":
-                saveArgsAndCompute(sb, "|");
-                pushBackOntoStack(sb);
-
+                saveArgsAndCompute(sb, math.get(command));                
+                pushBackOntoStack(sb);               
                 break;
+
+            case "neg":
             case "not":
                 //SP--
                 sb.append("@SP\n");
                 sb.append("M=M-1\n");
 
-                //D=!RAM[SP]
+                //D=(-/!)RAM[SP]
                 sb.append("A=M\n");
-                sb.append("D=!M\n");
+                sb.append("D=" + math.get(command) + "M\n");
 
                 pushBackOntoStack(sb);
 
                 break;
+
+            case "eq":
+            case "lt":
+            case "gt":
+                saveArgsAndComputeBool(sb, command);
+                pushBackOntoStack(sb);                
+
+                break;                
+            
             default:
                 break;
         }
@@ -158,7 +139,7 @@ public class CodeWriter {
 
         // if D (eq/gt/lt) 0 (bool) goto TRUE
         sb.append("@TRUE\n"); 
-        sb.append("D;J" + bool + "\n");
+        sb.append("D;J" + bool.toUpperCase() + "\n");
 
         // else goto FALSE
         sb.append("@FALSE\n"); 
@@ -184,6 +165,7 @@ public class CodeWriter {
 
     }
 
+    //TO-DO: optimize write-push-pop
     public void writePushPop(String command, String segment, int index) throws IOException {
         System.out.println(command + "writepushpop");  
         

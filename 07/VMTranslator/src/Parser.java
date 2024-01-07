@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class Parser {
     public BufferedReader br;
-    public String currentLine;
+    public String currentLine = "";
 
     public Parser(String filePath) {
       System.out.println(filePath + " parser");  
@@ -16,17 +16,10 @@ public class Parser {
     }
 
     public boolean hasMoreCommands() {
-      System.out.println("parser");  
-      try {
-        return br.readLine() != null;
-      } catch (IOException e) {
-        e.printStackTrace();
-        return false;
-      }
+      return currentLine != null;      
     }
 
     public void advance() {
-      System.out.println("advance");  
       try {
         currentLine = br.readLine();
         System.out.println(currentLine);  
@@ -36,14 +29,20 @@ public class Parser {
     }
 
     public String commandType() {
-      if(currentLine == "add" || currentLine == "sub" || currentLine == "neg" || currentLine == "eq" ||
-         currentLine == "gt"  || currentLine == "lt"  || currentLine == "and" || currentLine == "or" ||
-         currentLine == "not") {
-        return "C_ARITHMETIC";
+      String command = currentLine.trim().split(" ")[0];
 
-      } else if(currentLine.substring(0,3) == "push") {
+      if(command.contains("add") || command.contains("sub") || command.contains("neg") || 
+         command.contains("eq")  || command.contains("gt")  || command.contains("lt")  || 
+         command.contains("and") || command.contains("or")  || command.contains("not")) {
+        System.out.println("cmd type: arithmetic");  
+        return "C_ARITHMETIC";
+           
+      } else if(command.contains("push")) {
+        System.out.println("cmd type: push"); 
         return "C_PUSH";      
-      } else if(currentLine.substring(0,2) == "pop") {
+        
+      } else if(command.contains("pop")) {
+        System.out.println("cmd type: pop"); 
         return "C_POP";      
       } 
       /*else if() {
@@ -64,15 +63,15 @@ public class Parser {
 
     public String arg1() {
       try{
-        return currentLine.split(" ")[1];
+        return currentLine.trim().split(" ")[1];
       } catch(ArrayIndexOutOfBoundsException e) {
-        return currentLine.split(" ")[0];
+        return currentLine.trim().split(" ")[0];
       }
     }
     
     public int arg2() {
       try{
-        return Integer.parseInt(currentLine.split(" ")[2]);
+        return Integer.parseInt(currentLine.trim().split(" ")[2]);
       } catch(NumberFormatException e) {
         return -1;
       }
