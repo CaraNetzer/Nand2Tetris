@@ -7,7 +7,6 @@ public class Parser {
     public String currentLine = "";
 
     public Parser(String filePath) {
-      System.out.println(filePath + " parser");  
         try {
             br = new BufferedReader(new FileReader(filePath));
         } catch (Exception e) {
@@ -21,8 +20,8 @@ public class Parser {
 
     public void advance() {
       try {
-        currentLine = br.readLine();
-        System.out.println(currentLine);  
+        currentLine = br.readLine();        
+        //System.out.println("current line: " + currentLine);
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -31,18 +30,15 @@ public class Parser {
     public String commandType() {
       String command = currentLine.trim().split(" ")[0];
 
-      if(command.contains("add") || command.contains("sub") || command.contains("neg") || 
-         command.contains("eq")  || command.contains("gt")  || command.contains("lt")  || 
-         command.contains("and") || command.contains("or")  || command.contains("not")) {
-        System.out.println("cmd type: arithmetic");  
+      if(command.equals("add") || command.equals("sub") || command.equals("neg") || 
+         command.equals("eq")  || command.equals("gt")  || command.equals("lt")  || 
+         command.equals("and") || command.equals("or")  || command.equals("not")) {
         return "C_ARITHMETIC";
            
-      } else if(command.contains("push")) {
-        System.out.println("cmd type: push"); 
+      } else if(command.equals("push")) {
         return "C_PUSH";      
         
-      } else if(command.contains("pop")) {
-        System.out.println("cmd type: pop"); 
+      } else if(command.equals("pop")) {
         return "C_POP";      
       } 
       /*else if() {

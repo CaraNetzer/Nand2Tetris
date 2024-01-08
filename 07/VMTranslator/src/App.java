@@ -22,7 +22,7 @@ public class App {
 
             for (File file : files) {
                 String filename = file.getName();
-                if (filename.substring(filename.length() - 2) == "vm") {
+                if (filename.substring(filename.length() - 2).equals("vm")) {
 
                     String outFileName = filename.substring(0, inFileName.length() - 2) + "asm";
                     codeWriter = new CodeWriter(outFileName);
@@ -43,22 +43,21 @@ public class App {
     }
 
     public static void Execute(Parser parser, CodeWriter codeWriter) throws IOException {
-        System.out.println("execute block");
         
         while(parser.currentLine != null) {
             parser.advance();
-            System.out.println("current line: " + parser.currentLine);
             if(parser.hasMoreCommands()) {
                 if(parser.currentLine.length() == 0 || 
-                   parser.currentLine.substring(0,1) == "/") {
+                   parser.currentLine.substring(0,1).equals("/")) {
                     parser.advance();
                 } else {
-                    System.out.println(parser.commandType());  
-    
-                    if(parser.commandType() == "C_ARITHMETIC") {
+                    String commandType = parser.commandType();
+                    if(commandType.equals("C_ARITHMETIC")) {
                         codeWriter.writeArithmetic(parser.arg1());
-                    } else if (parser.commandType() == "C_PUSH" || parser.commandType() == "C_POP") {
-                        codeWriter.writePushPop(parser.commandType(), parser.arg1(), parser.arg2());
+                    } else if (commandType.equals("C_PUSH") || commandType.equals("C_POP")) {
+                        codeWriter.writePushPop(commandType, parser.arg1(), parser.arg2());
+                    } else {
+                        //System.out.println("error App line 60: commandType = " + commandType);
                     }
                 }            
             }

@@ -30,7 +30,7 @@ public class CodeWriter {
     };
         
     public CodeWriter(String filePath) throws IOException {    
-        System.out.println(filePath);    
+        //System.out.println(filePath);    
         bw = new BufferedWriter(new FileWriter("../outFiles/" + filePath));   
         filename = filePath.substring(0, filePath.indexOf("."));   
     }
@@ -172,14 +172,12 @@ public class CodeWriter {
 
     }
 
-    //TO-DO: optimize write-push-pop
     public void writePushPop(String command, String segment, int index) throws IOException {
-        System.out.println(command + "writepushpop");  
         
         StringBuilder sb = new StringBuilder();
 
-        if (segment == "local" || segment == "argument" || segment == "this" || segment == "that") {
-            if(command == "C_PUSH") {
+        if (segment.equals("local") || segment.equals("argument") || segment.equals("this") || segment.equals("that")) {
+            if(command.equals("C_PUSH")) {
                 
                 sb.append("//push " + segment + " " + index + "\n");
                 
@@ -188,20 +186,17 @@ public class CodeWriter {
                 sb.append("D=M\n");
                 sb.append("@" + index + "\n");
                 sb.append("D=D+A\n");
-                
-                //RAM[SP] = RAM[addr]
+
                 sb.append("A=D\n"); //M of this will be addr
                 sb.append("D=M\n"); //RAM[addr]
 
-                sb.append("@SP\n");
-                sb.append("A=M\n");
-                sb.append("M=D\n");
+                //RAM[SP] = RAM[addr]
+                push(sb);
 
-                //SP++
-                sb.append("@SP\n");
-                sb.append("M=M+1\n");
+            } else if (command.equals("C_POP")) {
+                
+                //System.out.println("in this C_POP? -- " + segment);
 
-            } else if (command == "C_POP") {
                 sb.append("//pop " + segment + " " + index + "\n");
                 
                 //addr = segmentPointers.get(segment) + index
@@ -212,18 +207,8 @@ public class CodeWriter {
                 sb.append("@R13\n"); 
                 sb.append("M=D\n"); //store address in R13
                 
-                //SP--
-                sb.append("@SP\n");
-                sb.append("M=M-1\n");
-                
-                //RAM[addr] = RAM[SP]         
-                sb.append("@SP\n"); //do i need this line?
-                sb.append("A=M\n");
-                sb.append("D=M\n");
-
-                sb.append("@R13\n"); 
-                sb.append("A=M\n");
-                sb.append("M=D\n");                
+                pop(sb); 
+              
             }
         }
         
@@ -236,33 +221,21 @@ public class CodeWriter {
                 sb.append("D=A\n");
                 
                 //RAM[SP]=D
-                sb.append("@SP\n");
-                sb.append("A=M\n");
-                sb.append("M=D\n");
-                
-                //SP++
-                sb.append("@SP\n");
-                sb.append("M=M+1\n");
+                push(sb);
 
 
                 break;
             case "static":
-                if(command == "C_PUSH") {
+                if(command.equals( "C_PUSH")) {
                     sb.append("//push " + segment + " " + index + "\n");
                     
                     //RAM[SP] = RAM[addr]
                     sb.append("@" + filename + "." + index + "\n");
                     sb.append("D=M\n"); //RAM[addr]
                     
-                    sb.append("@SP\n");
-                    sb.append("A=M\n");
-                    sb.append("M=D\n");
+                    push(sb);               
 
-                    //SP++
-                    sb.append("@SP\n");
-                    sb.append("M=M+1\n");                    
-
-                } else if (command == "C_POP") {
+                } else if (command.equals( "C_POP")) {
                     sb.append("//pop " + segment + " " + index + "\n");
                     
                     //SP--
@@ -270,7 +243,6 @@ public class CodeWriter {
                     sb.append("M=M-1\n");
                     
                     //RAM[addr] = RAM[SP]         
-                    sb.append("@SP\n"); //do i need this line?
                     sb.append("A=M\n");
                     sb.append("D=M\n");
                     
@@ -279,7 +251,7 @@ public class CodeWriter {
                 }
                 break;            
             case "temp":
-                if(command == "C_PUSH") {
+                if(command.equals("C_PUSH")) {
                 
                     sb.append("//push " + segment + " " + index + "\n");
                     
@@ -289,19 +261,13 @@ public class CodeWriter {
                     sb.append("@" + index + "\n");
                     sb.append("D=D+A\n");
                     
-                    //RAM[SP] = RAM[addr]
                     sb.append("A=D\n"); 
                     sb.append("D=M\n"); //RAM[addr]
+                    
+                    //RAM[SP] = RAM[addr]
+                    push(sb);
 
-                    sb.append("@SP\n");
-                    sb.append("A=M\n");
-                    sb.append("M=D\n");
-
-                    //SP++
-                    sb.append("@SP\n");
-                    sb.append("M=M+1\n");
-
-                } else if (command == "C_POP") {
+                } else if (command.equals("C_POP")) {
                     sb.append("//pop " + segment + " " + index + "\n");
                     
                     //addr = 5 + index
@@ -309,25 +275,14 @@ public class CodeWriter {
                     sb.append("D=A\n");
                     sb.append("@" + index + "\n");
                     sb.append("D=D+A\n");
-                    sb.append("@R14\n"); 
-                    sb.append("M=D\n"); //store address in R14
+                    sb.append("@R13\n"); 
+                    sb.append("M=D\n"); //store address in R13
                     
-                    //SP--
-                    sb.append("@SP\n");
-                    sb.append("M=M-1\n");
-                    
-                    //RAM[addr] = RAM[SP]         
-                    sb.append("@SP\n"); //do i need this line?
-                    sb.append("A=M\n");
-                    sb.append("D=M\n");
-
-                    sb.append("@R14\n"); 
-                    sb.append("A=M\n");
-                    sb.append("M=D\n");                
+                    pop(sb);              
                 }
                 break;        
             case "pointer":
-                if(command == "C_PUSH") {
+                if(command.equals("C_PUSH")) {
                 
                     sb.append("//push " + segment + " " + index + "\n");
                     
@@ -337,19 +292,14 @@ public class CodeWriter {
                     sb.append("@" + index + "\n");
                     sb.append("D=D+A\n");
                     
-                    //RAM[SP] = RAM[addr]
                     sb.append("A=D\n"); 
                     sb.append("D=M\n"); //RAM[addr]
+                    
+                    //RAM[SP] = RAM[addr]
+                    push(sb);
 
-                    sb.append("@SP\n");
-                    sb.append("A=M\n");
-                    sb.append("M=D\n");
-
-                    //SP++
-                    sb.append("@SP\n");
-                    sb.append("M=M+1\n");
-
-                } else if (command == "C_POP") {
+                } else if (command.equals("C_POP")) {
+                    
                     sb.append("//pop " + segment + " " + index + "\n");
                     
                     //addr = 3 + index
@@ -357,21 +307,10 @@ public class CodeWriter {
                     sb.append("D=A\n");
                     sb.append("@" + index + "\n");
                     sb.append("D=D+A\n");
-                    sb.append("@R15\n"); 
-                    sb.append("M=D\n"); //store address in R15
+                    sb.append("@R13\n"); 
+                    sb.append("M=D\n"); //store address in R13
                     
-                    //SP--
-                    sb.append("@SP\n");
-                    sb.append("M=M-1\n");
-                    
-                    //RAM[addr] = RAM[SP]         
-                    sb.append("@SP\n"); //do i need this line?
-                    sb.append("A=M\n");
-                    sb.append("D=M\n");
-
-                    sb.append("@R15\n"); 
-                    sb.append("A=M\n");
-                    sb.append("M=D\n");           
+                    pop(sb);     
                 }
                 break;
             default:
@@ -379,6 +318,32 @@ public class CodeWriter {
         }
 
         bw.write(sb.toString());
+    }
+
+    public void push(StringBuilder sb) {
+        //RAM[SP] = RAM[addr]
+        sb.append("@SP\n");
+        sb.append("A=M\n");
+        sb.append("M=D\n");
+
+        //SP++
+        sb.append("@SP\n");
+        sb.append("M=M+1\n");
+    }
+
+    public void pop(StringBuilder sb) {
+        //SP--
+        sb.append("@SP\n");
+        sb.append("M=M-1\n");
+        
+        //RAM[addr] = RAM[SP]         
+        //sb.append("@SP\n"); //do i need this line? --> no
+        sb.append("A=M\n");
+        sb.append("D=M\n");
+
+        sb.append("@R13\n"); //can do want is needed with just one temp register
+        sb.append("A=M\n");
+        sb.append("M=D\n");     
     }
 
     public void close() {
