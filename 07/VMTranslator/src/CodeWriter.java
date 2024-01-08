@@ -7,6 +7,7 @@ public class CodeWriter {
     public BufferedWriter bw;
     public String currentLine;
     public String filename;
+    public int labelCounter = 0;
 
     public HashMap<String, String> segmentPointers = new HashMap<String, String>() {
         {
@@ -101,7 +102,7 @@ public class CodeWriter {
 
         // +, -, &, or |
         sb.append("@R13\n"); 
-        sb.append("D=M" + computation + "D\n");
+        sb.append("D=D" + computation + "M\n");
     }
 
     public void saveArgsAndComputeBool(StringBuilder sb, String bool) {
@@ -138,18 +139,24 @@ public class CodeWriter {
         sb.append("D=D-M \n"); 
 
         // if D (eq/gt/lt) 0 (bool) goto TRUE
-        sb.append("@TRUE\n"); 
+        sb.append("@TRUE." + labelCounter + "\n"); 
         sb.append("D;J" + bool.toUpperCase() + "\n");
 
         // else goto FALSE
-        sb.append("@FALSE\n"); 
+        sb.append("@FALSE." + labelCounter + "\n"); 
         sb.append("0;JMP\n");
         
-        sb.append("(TRUE)\n"); 
+        sb.append("(TRUE." + labelCounter + ")\n"); 
         sb.append("D=-1\n");
+        sb.append("@END." + labelCounter + "\n"); 
+        sb.append("0;JMP\n");
         
-        sb.append("(FALSE)\n"); 
+        sb.append("(FALSE." + labelCounter + ")\n"); 
         sb.append("D=0\n"); 
+
+        sb.append("(END." + labelCounter + ")\n"); 
+
+        labelCounter++;
     }
 
     public void pushBackOntoStack(StringBuilder sb) {

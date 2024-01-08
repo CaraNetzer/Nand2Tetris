@@ -10,8 +10,7 @@ import java.io.IOException;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        System.out.println("asdf.asm".substring("asdf.asm".length() - 3));
-        System.out.println("zero one two".split(" ")[2]);
+        
         String inFileName = args[0];
 
         Parser parser;
