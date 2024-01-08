@@ -44,8 +44,8 @@ public class App {
 
     public static void Execute(Parser parser, CodeWriter codeWriter) throws IOException {
         
+        parser.advance();
         while(parser.currentLine != null) {
-            parser.advance();
             if(parser.hasMoreCommands()) {
                 if(parser.currentLine.length() == 0 || 
                    parser.currentLine.substring(0,1).equals("/")) {
@@ -59,9 +59,10 @@ public class App {
                     } else {
                         //System.out.println("error App line 60: commandType = " + commandType);
                     }
+                    parser.advance();
                 }            
             }
-        } 
+        }
 
         codeWriter.close();
         
