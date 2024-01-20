@@ -296,7 +296,51 @@ class CodeWriter:
 
     def write_init(self):
         self.file.write("// init\n")
-        print("init")
+
+        # initialize the stack pointer to RAM[256]
+        self.file.write("@256\n")
+        self.file.write("D=A\n")
+        self.file.write("@R0\n")
+        self.file.write("M=D\n")
+
+        # call Sys.init 0
+        # push return-address, lcl, arg, this, that
+        self.file.write("@RETURN_ADDRESS\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@LCL\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@ARG\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@THIS\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@THAT\n")
+        self.file.write("D=M\n")
+        self.push()
+
+        # ARG = SP-(n=0)-5
+        self.file.write("@SP\n")
+        self.file.write("D=M\n") # D=sp
+        self.file.write("@5\n")
+        self.file.write("D=D-A\n")
+        self.file.write("@ARG\n")
+        self.file.write("M=D\n") # ARG = sp - 5
+
+        # LCL = SP
+        self.file.write("@SP\n")
+        self.file.write("D=M\n")
+        self.file.write("@LCL\n")
+        self.file.write("M=D\n")
+
+        # goto Sys.init
+        self.file.write("@Sys.Init\n")
+        self.file.write("0;JMP\n")
+
+        # (return_address)
+        self.file.write("(RETURN_ADDRESS)\n")
 
     def write_label(self, label):
         self.file.write("// (" + label + ")\n")
