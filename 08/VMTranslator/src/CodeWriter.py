@@ -1,6 +1,6 @@
 class CodeWriter:
 
-    segmentPointers = {
+    segment_pointers = {
         "local": "LCL",
         "argument": "ARG",
         "this": "THIS",
@@ -16,327 +16,308 @@ class CodeWriter:
         "not": "!"
     }
 
-    def __init__(self, filePath, fileName):
-        self.filename = fileName
-        self.file = open(filePath, "a")
-        self.labelCounter = 0
-
-
-#     public void writeArithmetic(String command) throws IOException {
-#         StringBuilder sb = new StringBuilder();
-#         sb.append("//" + command + "\n");
-#         switch (command) {
-#             case "add":
-#             case "sub":
-#             case "and":
-#             case "or":
-#                 saveArgsAndCompute(sb, math.get(command));
-#                 pushBackOntoStack(sb);
-#                 break;
-
-#             case "neg":
-#             case "not":
-#                 //SP--
-#                 sb.append("@SP\n");
-#                 sb.append("M=M-1\n");
-
-#                 //D=(-/!)RAM[SP]
-#                 sb.append("A=M\n");
-#                 sb.append("D=" + math.get(command) + "M\n");
-
-#                 pushBackOntoStack(sb);
-
-#                 break;
-
-#             case "eq":
-#             case "lt":
-#             case "gt":
-#                 saveArgsAndComputeBool(sb, command);
-#                 pushBackOntoStack(sb);
-
-#                 break;
-
-#             default:
-#                 break;
-#         }
-#         bw.write(sb.toString());
-#     }
-
-#     public void saveArgsAndCompute(StringBuilder sb, String computation) {
-#         //SP--
-#         sb.append("@SP\n");
-#         sb.append("M=M-1\n");
-
-#         //D=RAM[SP]
-#         sb.append("A=M\n");
-#         sb.append("D=M\n");
-
-#         //put first arg in R13
-#         sb.append("@R13\n");
-#         sb.append("M=D\n");
-
-#         //repeat that
-#         //SP--
-#         sb.append("@SP\n");
-#         sb.append("M=M-1\n");
-#         //D=RAM[SP]
-#         sb.append("A=M\n");
-#         sb.append("D=M\n");
-#         //put second arg in R14
-#         sb.append("@R14\n");
-#         sb.append("M=D\n");
-#         //sb.append("D=M\n");
-
-#         // +, -, &, or |
-#         sb.append("@R13\n");
-#         sb.append("D=D" + computation + "M\n");
-#     }
-
-#     public void saveArgsAndComputeBool(StringBuilder sb, String bool) {
-#         //SP--
-#         sb.append("@SP\n");
-#         sb.append("M=M-1\n");
-
-#         //D=RAM[SP]
-#         sb.append("A=M\n");
-#         sb.append("D=M\n");
-
-#         //put first arg in R13
-#         sb.append("@R13\n");
-#         sb.append("M=D\n");
-
-#         //repeat that
-#         //SP--
-#         sb.append("@SP\n");
-#         sb.append("M=M-1\n");
-#         //D=RAM[SP]
-#         sb.append("A=M\n");
-#         sb.append("D=M\n");
-#         //put second arg in R14
-#         sb.append("@R14\n");
-#         sb.append("M=D\n");
-#         //sb.append("D=M\n");
-
-#         // D = first number
-#         sb.append("@R14\n");
-#         sb.append("D=M\n");
+    def __init__(self, file_path, file_name):
+        self.file_name = file_name
+        self.file = open(file_path, "wt", buffering = 1024)
+        self.label_counter = 0
+
+    #region arithmetic
+    def write_arithmetic(self, command):
+
+        self.file.write("// " + command + "\n")
+
+        if command == "add" or command == "sub" or command == "and" or command == "or":
+            self.save_args_and_compute(self.math.get(command))
+            self.push_back_onto_stack()
+        elif command == "neg" or command == "not":
+            # SP--
+            self.file.write("@SP\n")
+            self.file.write("M=M-1\n")
+
+            # D=(-/!)RAM[SP]
+            self.file.write("A=M\n")
+            self.file.write("D=" + self.math.get(command) + "M\n")
+
+            self.push_back_onto_stack()
+        elif command == "eq" or command == "lt" or command == "gt":
+            self.save_args_and_compute_bool(command)
+            self.push_back_onto_stack()
+
+
+    def save_args_and_compute(self, computation):
+        print("save")
+        # SP--
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+
+        # D=RAM[SP]
+        self.file.write("A=M\n")
+        self.file.write("D=M\n")
+
+        # put first arg in R13
+        self.file.write("@R13\n")
+        self.file.write("M=D\n")
+
+        # repeat that
+        # SP--
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+
+        # D=RAM[SP]
+        self.file.write("A=M\n")
+        self.file.write("D=M\n")
+        # put second arg in R14
+        self.file.write("@R14\n")
+        self.file.write("M=D\n")
+
+        #  +, -, &, or |
+        self.file.write("@R13\n")
+        self.file.write("D=D" + computation + "M\n")
+
+    def save_args_and_compute_bool(self, bool):
+        # SP--
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+
+        # D=RAM[SP]
+        self.file.write("A=M\n")
+        self.file.write("D=M\n")
+
+        # put first arg in R13
+        self.file.write("@R13\n")
+        self.file.write("M=D\n")
 
-#         // D = x - y
-#         sb.append("@R13\n");
-#         sb.append("D=D-M \n");
+        # repeat that
+        # SP--
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+        # D=RAM[SP]
+        self.file.write("A=M\n")
+        self.file.write("D=M\n")
+        # put second arg in R14
+        self.file.write("@R14\n")
+        self.file.write("M=D\n")
 
-#         // if D (eq/gt/lt) 0 (bool) goto TRUE
-#         sb.append("@TRUE." + labelCounter + "\n");
-#         sb.append("D;J" + bool.toUpperCase() + "\n");
+        # D = first number
+        self.file.write("@R14\n")
+        self.file.write("D=M\n")
 
-#         // else goto FALSE
-#         sb.append("@FALSE." + labelCounter + "\n");
-#         sb.append("0;JMP\n");
+        # D = x - y
+        self.file.write("@R13\n")
+        self.file.write("D=D-M \n")
 
-#         sb.append("(TRUE." + labelCounter + ")\n");
-#         sb.append("D=-1\n");
-#         sb.append("@END." + labelCounter + "\n");
-#         sb.append("0;JMP\n");
+        # if D (eq/gt/lt) 0 (bool) goto TRUE
+        self.file.write("@TRUE." + self.label_counter + "\n")
+        self.file.write("D J" + bool.toUpperCase() + "\n")
 
-#         sb.append("(FALSE." + labelCounter + ")\n");
-#         sb.append("D=0\n");
+        # else goto FALSE
+        self.file.write("@FALSE." + self.label_counter + "\n")
+        self.file.write("0 JMP\n")
 
-#         sb.append("(END." + labelCounter + ")\n");
+        self.file.write("(TRUE." + self.label_counter + ")\n")
+        self.file.write("D=-1\n")
+        self.file.write("@END." + self.label_counter + "\n")
+        self.file.write("0 JMP\n")
 
-#         labelCounter++;
-#     }
+        self.file.write("(FALSE." + self.label_counter + ")\n")
+        self.file.write("D=0\n")
 
-#     public void pushBackOntoStack(StringBuilder sb) {
-#         //push that back onto the stack
-#         //RAM[SP] = D
-#         sb.append("@SP\n");
-#         sb.append("A=M\n");
-#         sb.append("M=D\n");
+        self.file.write("(END." + self.label_counter + ")\n")
 
-#         //SP++
-#         sb.append("@SP\n");
-#         sb.append("M=M+1\n");
+        self.label_counter += 1
 
-#     }
+    #endregion
 
-#     public void writePushPop(String command, String segment, int index) throws IOException {
+    def push_back_onto_stack(self):
+        # RAM[SP] = D
+        self.file.write("@SP\n")
+        self.file.write("A=M\n")
+        self.file.write("M=D\n")
 
-#         StringBuilder sb = new StringBuilder();
+        # SP++
+        self.file.write("@SP\n")
+        self.file.write("M=M+1\n")
 
-#         if (segment.equals("local") || segment.equals("argument") || segment.equals("this") || segment.equals("that")) {
-#             if(command.equals("C_PUSH")) {
+    def write_push_pop(self, command, segment, index):
 
-#                 sb.append("//push " + segment + " " + index + "\n");
+        if (segment == "local" or segment == "argument" or segment == "this" or segment == "that"):
+            if command == "C_PUSH":
 
-#                 //addr = segmentPointers.get(segment) + index
-#                 sb.append("@" + segmentPointers.get(segment) + "\n");
-#                 sb.append("D=M\n");
-#                 sb.append("@" + index + "\n");
-#                 sb.append("D=D+A\n");
+                self.file.write("// push " + segment + " " + index + "\n")
 
-#                 sb.append("A=D\n"); //M of this will be addr
-#                 sb.append("D=M\n"); //RAM[addr]
+                # addr = segmentPointers.get(segment) + index
+                self.file.write("@" + self.segment_pointers.get(segment) + "\n")
+                self.file.write("D=M\n")
+                self.file.write("@" + index + "\n")
+                self.file.write("D=D+A\n")
 
-#                 //RAM[SP] = RAM[addr]
-#                 push(sb);
+                self.file.write("A=D\n")  # M of this will be addr
+                self.file.write("D=M\n")  # RAM[addr]
 
-#             } else if (command.equals("C_POP")) {
+                # RAM[SP] = RAM[addr]
+                self.push()
 
-#                 //System.out.println("in this C_POP? -- " + segment);
+            elif command == "C_POP":
 
-#                 sb.append("//pop " + segment + " " + index + "\n");
+                # System.out.println("in this C_POP? -- " + segment)
 
-#                 //addr = segmentPointers.get(segment) + index
-#                 sb.append("@" + segmentPointers.get(segment) + "\n");
-#                 sb.append("D=M\n");
-#                 sb.append("@" + index + "\n");
-#                 sb.append("D=D+A\n");
-#                 sb.append("@R13\n");
-#                 sb.append("M=D\n"); //store address in R13
+                self.file.write("// pop " + segment + " " + index + "\n")
 
-#                 pop(sb);
+                # addr = segmentPointers.get(segment) + index
+                self.file.write("@" + self.segment_pointers.get(segment) + "\n")
+                self.file.write("D=M\n")
+                self.file.write("@" + index + "\n")
+                self.file.write("D=D+A\n")
+                self.file.write("@R13\n")
+                self.file.write("M=D\n")  # store address in R13
 
-#             }
-#         }
+                self.pop()
 
-#         switch (segment) {
-#             case "constant" :
-#                 sb.append("//push constant " + index + "\n");
+        elif segment == "constant":
+            self.file.write("// push constant " + index + "\n")
 
-#                 //D=index
-#                 sb.append("@" + index + "\n");
-#                 sb.append("D=A\n");
+            # D=index
+            self.file.write("@" + index + "\n")
+            self.file.write("D=A\n")
 
-#                 //RAM[SP]=D
-#                 push(sb);
+            # RAM[SP]=D
+            self.push()
 
 
-#                 break;
-#             case "static":
-#                 if(command.equals( "C_PUSH")) {
-#                     sb.append("//push " + segment + " " + index + "\n");
+        elif segment == "static":
+            if command == "C_PUSH":
+                self.file.write("// push " + segment + " " + index + "\n")
 
-#                     //RAM[SP] = RAM[addr]
-#                     sb.append("@" + filename + "." + index + "\n");
-#                     sb.append("D=M\n"); //RAM[addr]
+                # RAM[SP] = RAM[addr]
+                self.file.write("@" + self.file_name + "." + index + "\n")
+                self.file.write("D=M\n")  # RAM[addr]
 
-#                     push(sb);
+                self.push()
 
-#                 } else if (command.equals( "C_POP")) {
-#                     sb.append("//pop " + segment + " " + index + "\n");
+            elif command == "C_POP":
+                self.file.write("// pop " + segment + " " + index + "\n")
 
-#                     //SP--
-#                     sb.append("@SP\n");
-#                     sb.append("M=M-1\n");
+                # SP--
+                self.file.write("@SP\n")
+                self.file.write("M=M-1\n")
 
-#                     //RAM[addr] = RAM[SP]
-#                     sb.append("A=M\n");
-#                     sb.append("D=M\n");
+                # RAM[addr] = RAM[SP]
+                self.file.write("A=M\n")
+                self.file.write("D=M\n")
 
-#                     sb.append("@" + filename + "." + index + "\n");
-#                     sb.append("M=D\n");
-#                 }
-#                 break;
-#             case "temp":
-#                 if(command.equals("C_PUSH")) {
+                self.file.write("@" + self.file_name + "." + index + "\n")
+                self.file.write("M=D\n")
 
-#                     sb.append("//push " + segment + " " + index + "\n");
+        elif segment == "temp":
+            if command == "C_PUSH":
 
-#                     //addr = 5 + index
-#                     sb.append("@5\n");
-#                     sb.append("D=A\n");
-#                     sb.append("@" + index + "\n");
-#                     sb.append("D=D+A\n");
+                self.file.write("// push " + segment + " " + index + "\n")
 
-#                     sb.append("A=D\n");
-#                     sb.append("D=M\n"); //RAM[addr]
+                # addr = 5 + index
+                self.file.write("@5\n")
+                self.file.write("D=A\n")
+                self.file.write("@" + index + "\n")
+                self.file.write("D=D+A\n")
 
-#                     //RAM[SP] = RAM[addr]
-#                     push(sb);
+                self.file.write("A=D\n")
+                self.file.write("D=M\n")  # RAM[addr]
 
-#                 } else if (command.equals("C_POP")) {
-#                     sb.append("//pop " + segment + " " + index + "\n");
+                # RAM[SP] = RAM[addr]
+                self.push()
 
-#                     //addr = 5 + index
-#                     sb.append("@5\n");
-#                     sb.append("D=A\n");
-#                     sb.append("@" + index + "\n");
-#                     sb.append("D=D+A\n");
-#                     sb.append("@R13\n");
-#                     sb.append("M=D\n"); //store address in R13
+            elif command == "C_POP":
+                self.file.write("// pop " + segment + " " + index + "\n")
 
-#                     pop(sb);
-#                 }
-#                 break;
-#             case "pointer":
-#                 if(command.equals("C_PUSH")) {
+                # addr = 5 + index
+                self.file.write("@5\n")
+                self.file.write("D=A\n")
+                self.file.write("@" + index + "\n")
+                self.file.write("D=D+A\n")
+                self.file.write("@R13\n")
+                self.file.write("M=D\n")  # store address in R13
 
-#                     sb.append("//push " + segment + " " + index + "\n");
+                self.pop()
 
-#                     //addr = 3 + index
-#                     sb.append("@3\n");
-#                     sb.append("D=A\n");
-#                     sb.append("@" + index + "\n");
-#                     sb.append("D=D+A\n");
+        elif segment == "pointer":
+            if command == "C_PUSH":
 
-#                     sb.append("A=D\n");
-#                     sb.append("D=M\n"); //RAM[addr]
+                self.file.write("// push " + segment + " " + index + "\n")
 
-#                     //RAM[SP] = RAM[addr]
-#                     push(sb);
+                # addr = 3 + index
+                self.file.write("@3\n")
+                self.file.write("D=A\n")
+                self.file.write("@" + index + "\n")
+                self.file.write("D=D+A\n")
 
-#                 } else if (command.equals("C_POP")) {
+                self.file.write("A=D\n")
+                self.file.write("D=M\n")  # RAM[addr]
 
-#                     sb.append("//pop " + segment + " " + index + "\n");
+                # RAM[SP] = RAM[addr]
+                self.push()
 
-#                     //addr = 3 + index
-#                     sb.append("@3\n");
-#                     sb.append("D=A\n");
-#                     sb.append("@" + index + "\n");
-#                     sb.append("D=D+A\n");
-#                     sb.append("@R13\n");
-#                     sb.append("M=D\n"); //store address in R13
+            elif command == "C_POP":
 
-#                     pop(sb);
-#                 }
-#                 break;
-#             default:
-#                 break;
-#         }
+                self.file.write("// pop " + segment + " " + index + "\n")
 
-#         bw.write(sb.toString());
-#     }
+                # addr = 3 + index
+                self.file.write("@3\n")
+                self.file.write("D=A\n")
+                self.file.write("@" + index + "\n")
+                self.file.write("D=D+A\n")
+                self.file.write("@R13\n")
+                self.file.write("M=D\n")  # store address in R13
 
-#     public void push(StringBuilder sb) {
-#         //RAM[SP] = RAM[addr]
-#         sb.append("@SP\n");
-#         sb.append("A=M\n");
-#         sb.append("M=D\n");
+                self.pop()
 
-#         //SP++
-#         sb.append("@SP\n");
-#         sb.append("M=M+1\n");
-#     }
 
-#     public void pop(StringBuilder sb) {
-#         //SP--
-#         sb.append("@SP\n");
-#         sb.append("M=M-1\n");
+    def push(self):
+        # RAM[SP] = RAM[addr]
+        self.file.write("@SP\n")
+        self.file.write("A=M\n")
+        self.file.write("M=D\n")
 
-#         //RAM[addr] = RAM[SP]
-#         //sb.append("@SP\n"); //do i need this line? --> no
-#         sb.append("A=M\n");
-#         sb.append("D=M\n");
+        # SP++
+        self.file.write("@SP\n")
+        self.file.write("M=M+1\n")
 
-#         sb.append("@R13\n"); //can do want is needed with just one temp register
-#         sb.append("A=M\n");
-#         sb.append("M=D\n");
-#     }
+    def pop(self):
 
-#     public void close() {
-#       try {
-#         bw.close();
-#       } catch (IOException e) {
-#         e.printStackTrace();
-#       }
-#     }
+        # SP--
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+
+        # RAM[addr] = RAM[SP]
+        self.file.write("A=M\n")
+        self.file.write("D=M\n")
+
+        self.file.write("@R13\n")
+        self.file.write("A=M\n")
+        self.file.write("M=D\n")
+
+    def write_init(self):
+        self.file.write("// init\n")
+        print("init")
+
+    def write_label(self, label):
+        self.file.write("// (" + label + ")\n")
+        print("writelabel")
+
+    def write_goto(self, label):
+        self.file.write("// (" + label + ")\n")
+        print("writeGoto")
+
+    def write_if(self, label):
+        self.file.write("// " + label + "\n")
+        print("writeIf")
+
+    def write_call(self, function_name, num_args):
+        self.file.write("// function " + function_name + " " + num_args + "\n")
+        print("writeCall")
+
+    def write_return(self):
+        self.file.write("// return\n")
+        print("writeReturn")
+
+    def write_function(self, function_name, num_locals):
+        self.file.write("// function " + function_name + " " + num_locals + "\n")
+        print("writeFunction")

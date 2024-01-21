@@ -1,14 +1,14 @@
 class Parser:
 
-    currentLine = ""
+    current_line = ""
 
-    def __init__(self, filePath):
-        self.file = open(filePath, "rt")
+    def __init__(self, file_path):
+        self.file = open(file_path, "rt")
 
 
-    def commandType(self):
+    def command_type(self):
       try:
-         command = self.currentLine.split(" ")[0]
+         command = self.current_line.split(" ")[0]
       except Exception as e:
         return e
 
@@ -22,8 +22,8 @@ class Parser:
         "label"   : "C_LABEL",
         "goto"    : "C_GOTO",
         "if-goto" : "C_IF",
-        "func"    : "C_FUNCTION",
-        "call"    : "C_CALL",
+        "function": "C_FUNCTION",
+        "call"    : "C_CALL"
       }
 
       return commands.get(command, "command not found")
@@ -31,13 +31,15 @@ class Parser:
 
     def arg1(self):
       try:
-        return self.currentLine.split(" ")[1]
+        return self.current_line.split(" ")[1]
+      except IndexError:
+         return self.current_line.split(" ")[0]
       except Exception as e:
-         return "arg1: " + e
+         return "arg1: " + str(e)
 
 
     def arg2(self):
       try:
-        return self.currentLine.split(" ")[2]
+        return self.current_line.split(" ")[2]
       except Exception as e:
-         return "arg2: " + e
+         return "arg2: " + str(e)
