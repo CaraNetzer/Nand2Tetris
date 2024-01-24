@@ -7,7 +7,7 @@ import os
 
 def execute(parser, code_writer):
 
-    code_writer.write_init()
+    # code_writer.write_init()
 
     for current_line in parser.file:
         current_line = current_line.strip()

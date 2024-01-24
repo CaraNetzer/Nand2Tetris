@@ -108,11 +108,11 @@ class CodeWriter:
 
         # if D (eq/gt/lt) 0 (bool) goto TRUE
         self.file.write("@TRUE." + self.label_counter + "\n")
-        self.file.write("D J" + bool.toUpperCase() + "\n")
+        self.file.write("D;J" + bool.toUpperCase() + "\n")
 
         # else goto FALSE
         self.file.write("@FALSE." + self.label_counter + "\n")
-        self.file.write("0 JMP\n")
+        self.file.write("0;JMP\n")
 
         self.file.write("(TRUE." + self.label_counter + ")\n")
         self.file.write("D=-1\n")
@@ -306,7 +306,7 @@ class CodeWriter:
         # call Sys.init 0
         # push return-address, lcl, arg, this, that
         self.file.write("@RETURN_ADDRESS\n")
-        self.file.write("D=M\n")
+        self.file.write("D=A\n")
         self.push()
         self.file.write("@LCL\n")
         self.file.write("D=M\n")
@@ -343,16 +343,28 @@ class CodeWriter:
         self.file.write("(RETURN_ADDRESS)\n")
 
     def write_label(self, label):
-        self.file.write("// (" + label + ")\n")
-        print("writelabel")
+        self.file.write("// label " + label + "\n")
+        self.file.write("(" + label + ")\n")
 
     def write_goto(self, label):
-        self.file.write("// (" + label + ")\n")
-        print("writeGoto")
+        self.file.write("// goto " + label + "\n")
+        self.file.write("@" + label + "\n")
+        self.file.write("0;JMP\n")
 
     def write_if(self, label):
-        self.file.write("// " + label + "\n")
-        print("writeIf")
+        self.file.write("// if-goto " + label + "\n")
+
+        # SP--
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+
+        # D = RAM[SP]
+        self.file.write("A=M\n")
+        self.file.write("D=M\n")
+
+        # jump to label if D = 0
+        self.file.write("@" + label + "\n")
+        self.file.write("D;JNE\n")
 
     def write_call(self, function_name, num_args):
         self.file.write("// function " + function_name + " " + num_args + "\n")
