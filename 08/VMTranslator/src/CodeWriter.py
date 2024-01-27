@@ -17,7 +17,7 @@ class CodeWriter:
     }
 
     def __init__(self, file_path, file_name):
-        self.file_name = file_name
+        self.file_name = file_name[0:-3]
         self.file = open(file_path, "wt", buffering = 1024)
         self.label_counter = 0
 
@@ -300,12 +300,12 @@ class CodeWriter:
         # initialize the stack pointer to RAM[256]
         self.file.write("@256\n")
         self.file.write("D=A\n")
-        self.file.write("@R0\n")
+        self.file.write("@SP\n")
         self.file.write("M=D\n")
 
         # call Sys.init 0
         # push return-address, lcl, arg, this, that
-        self.file.write("@RETURN_ADDRESS\n")
+        self.file.write("@SYS_INIT_RETURN_ADDRESS\n")
         self.file.write("D=A\n")
         self.push()
         self.file.write("@LCL\n")
@@ -340,19 +340,19 @@ class CodeWriter:
         self.file.write("0;JMP\n")
 
         # (return_address)
-        self.file.write("(RETURN_ADDRESS)\n")
+        self.file.write("(SYS_INIT_RETURN_ADDRESS)\n")
 
     def write_label(self, label):
-        self.file.write("// label " + label + "\n")
-        self.file.write("(" + label + ")\n")
+        self.file.write("// label " + self.file_name + "." + label + "\n")
+        self.file.write("(" + self.file_name + "." + label + ")\n")
 
     def write_goto(self, label):
-        self.file.write("// goto " + label + "\n")
-        self.file.write("@" + label + "\n")
+        self.file.write("// goto " + self.file_name + "." + label + "\n")
+        self.file.write("@" + self.file_name + "." + label + "\n")
         self.file.write("0;JMP\n")
 
     def write_if(self, label):
-        self.file.write("// if-goto " + label + "\n")
+        self.file.write("// if-goto " + self.file_name + "." + label + "\n")
 
         # SP--
         self.file.write("@SP\n")
@@ -363,7 +363,7 @@ class CodeWriter:
         self.file.write("D=M\n")
 
         # jump to label if D = 0
-        self.file.write("@" + label + "\n")
+        self.file.write("@" + self.file_name + "." + label + "\n")
         self.file.write("D;JNE\n")
 
     def write_call(self, function_name, num_args):

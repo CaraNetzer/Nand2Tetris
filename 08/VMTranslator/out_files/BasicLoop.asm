@@ -1,4 +1,3 @@
-//init
 // push constant 0
 @0
 D=A
@@ -21,7 +20,8 @@ D=M
 @R13
 A=M
 M=D
-// ( LOOP)
+// label BasicLoop.LOOP
+(BasicLoop.LOOP)
 // push argument 0
 @ARG
 D=M
@@ -146,7 +146,13 @@ A=M
 M=D
 @SP
 M=M+1
-// LOOP
+// if-goto BasicLoop.LOOP
+@SP
+M=M-1
+A=M
+D=M
+@BasicLoop.LOOP
+D;JNE
 // push local 0
 @LCL
 D=M

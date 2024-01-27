@@ -2,6 +2,7 @@ import Parser
 import CodeWriter
 import sys
 import os
+import re
 
 # python3 main.py ../../ProgramFlow/BasicLoop/BasicLoop.vm
 
@@ -14,6 +15,7 @@ def execute(parser, code_writer):
 
         # if the line is not empty or a comment
         if current_line and not current_line.startswith("/"):
+            current_line = re.split("//", current_line)[0].strip()
             print("line: " + current_line)
             parser.current_line = current_line
             command_type = parser.command_type()
