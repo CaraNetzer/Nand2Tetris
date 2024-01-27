@@ -43,7 +43,6 @@ class CodeWriter:
             self.save_args_and_compute_bool(command)
             self.push_back_onto_stack()
 
-
     def save_args_and_compute(self, computation):
         print("save")
         # SP--
@@ -158,8 +157,6 @@ class CodeWriter:
                 self.push()
 
             elif command == "C_POP":
-
-                # System.out.println("in this C_POP? -- " + segment)
 
                 self.file.write("// pop " + segment + " " + index + "\n")
 
@@ -342,6 +339,7 @@ class CodeWriter:
         # (return_address)
         self.file.write("(SYS_INIT_RETURN_ADDRESS)\n")
 
+    #region program_flow
     def write_label(self, label):
         self.file.write("// label " + self.file_name + "." + label + "\n")
         self.file.write("(" + self.file_name + "." + label + ")\n")
@@ -366,6 +364,8 @@ class CodeWriter:
         self.file.write("@" + self.file_name + "." + label + "\n")
         self.file.write("D;JNE\n")
 
+    #endregion
+
     def write_call(self, function_name, num_args):
         self.file.write("// function " + function_name + " " + num_args + "\n")
         print("writeCall")
@@ -376,4 +376,40 @@ class CodeWriter:
 
     def write_function(self, function_name, num_locals):
         self.file.write("// function " + function_name + " " + num_locals + "\n")
-        print("writeFunction")
+        self.file.write("(" + function_name + ")\n")
+
+        # initialize num_locals and save it at temp[0]
+        self.write_push_pop("C_PUSH", "constant", num_locals)
+        self.write_push_pop("C_POP", "temp", "0")
+
+        # initialize i to 0 and save it at temp[1]
+        self.write_push_pop("C_PUSH", "constant", "0")
+        self.write_push_pop("C_POP", "temp", "1")
+
+        #region beginning of locals loop
+        self.file.write("(" + function_name + ".LOCALS)\n")
+        self.write_push_pop("C_PUSH", "temp", "0")
+        self.write_push_pop("C_PUSH", "temp", "1")
+        self.write_arithmetic("sub")
+
+        # if the difference is not 0, initialize local[i] to 0
+        self.write_if(self.file_name + ".INIT_LOCAL")
+
+        # else the difference is 0, we've set all locals to 0, jump to end
+        self.file.write("@" + function_name + ".LOCALS_END\n")
+        self.file.write("0;JMP\n")
+
+        # initialize local[i-1] to 0 (sp = lcl[i-1])
+        self.file.write("(" + function_name + ".INIT_LOCAL)\n")
+        self.write_push_pop("C_PUSH", "constant", "0")
+         # i++
+        self.write_push_pop("C_PUSH", "temp", "1")
+        self.write_push_pop("C_PUSH", "constant", "1")
+        self.write_arithmetic("add")
+        self.write_push_pop("C_POP", "temp", "1")
+        # go to top of loop
+        self.write_goto(function_name + ".LOCALS")
+
+        # end of locals loop
+        self.file.write("(" + function_name + ".LOCALS_END)\n")
+        #endregion
