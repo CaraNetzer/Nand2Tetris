@@ -23,7 +23,8 @@ class Parser:
         "goto"    : "C_GOTO",
         "if-goto" : "C_IF",
         "function": "C_FUNCTION",
-        "call"    : "C_CALL"
+        "call"    : "C_CALL",
+        "return"  : "C_RETURN"
       }
 
       return commands.get(command, "command not found")

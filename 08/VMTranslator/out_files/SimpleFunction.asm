@@ -44,7 +44,7 @@ D=M
 @R13
 A=M
 M=D
-(SimpleFunction.test.LOCALS)
+(SimpleFunction.test$LOCALS)
 // push temp 0
 @5
 D=A
@@ -89,16 +89,16 @@ A=M
 M=D
 @SP
 M=M+1
-// if-goto SimpleFunction.SimpleFunction.INIT_LOCAL
+// if-goto SimpleFunction.test$INIT_LOCAL
 @SP
 M=M-1
 A=M
 D=M
-@SimpleFunction.SimpleFunction.INIT_LOCAL
+@SimpleFunction.test$INIT_LOCAL
 D;JNE
-@SimpleFunction.test.LOCALS_END
+@SimpleFunction.test$LOCALS_END
 0;JMP
-(SimpleFunction.test.INIT_LOCAL)
+(SimpleFunction.test$INIT_LOCAL)
 // push constant 0
 @0
 D=A
@@ -161,10 +161,10 @@ D=M
 @R13
 A=M
 M=D
-// goto SimpleFunction.SimpleFunction.test.LOCALS
-@SimpleFunction.SimpleFunction.test.LOCALS
+// goto SimpleFunction.test$LOCALS
+@SimpleFunction.test$LOCALS
 0;JMP
-(SimpleFunction.test.LOCALS_END)
+(SimpleFunction.test$LOCALS_END)
 // push local 0
 @LCL
 D=M
@@ -283,3 +283,65 @@ A=M
 M=D
 @SP
 M=M+1
+// return
+@LCL
+D=M
+@R13
+M=D
+@5
+D=A
+@R13
+M=M-D
+D=M
+A=M
+D=M
+@SimpleFunction$RET
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@ARG
+A=M
+M=D
+@ARG
+D=M
+@1
+D=D+A
+@SP
+M=D
+@4
+D=A
+@R13
+M=M+D
+A=M
+D=M
+@THAT
+M=D
+@1
+D=A
+@R13
+M=M-D
+A=M
+D=M
+@THIS
+M=D
+@1
+D=A
+@R13
+M=M-D
+A=M
+D=M
+@ARG
+M=D
+@1
+D=A
+@R13
+M=M-D
+A=M
+D=M
+@LCL
+M=D
+@SimpleFunction$RET
+A=M
+0;JMP

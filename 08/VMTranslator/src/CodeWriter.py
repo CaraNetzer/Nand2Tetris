@@ -285,7 +285,7 @@ class CodeWriter:
 
         # RAM[addr] = RAM[SP]
         self.file.write("A=M\n")
-        self.file.write("D=M\n")
+        self.file.write("D=M\n") # D=RAM[SP]
 
         self.file.write("@R13\n")
         self.file.write("A=M\n")
@@ -345,12 +345,12 @@ class CodeWriter:
         self.file.write("(" + self.file_name + "." + label + ")\n")
 
     def write_goto(self, label):
-        self.file.write("// goto " + self.file_name + "." + label + "\n")
-        self.file.write("@" + self.file_name + "." + label + "\n")
+        self.file.write("// goto " + label + "\n")
+        self.file.write("@" + label + "\n")
         self.file.write("0;JMP\n")
 
     def write_if(self, label):
-        self.file.write("// if-goto " + self.file_name + "." + label + "\n")
+        self.file.write("// if-goto " + label + "\n")
 
         # SP--
         self.file.write("@SP\n")
@@ -361,7 +361,7 @@ class CodeWriter:
         self.file.write("D=M\n")
 
         # jump to label if D = 0
-        self.file.write("@" + self.file_name + "." + label + "\n")
+        self.file.write("@" + label + "\n")
         self.file.write("D;JNE\n")
 
     #endregion
@@ -372,7 +372,95 @@ class CodeWriter:
 
     def write_return(self):
         self.file.write("// return\n")
-        print("writeReturn")
+
+        # FRAME = LCL
+        self.file.write("@LCL\n")
+        self.file.write("D=M\n")
+        self.file.write("@R13\n")
+        self.file.write("M=D\n") # FRAME is stored in R13
+
+
+        # RET = RAM[FRAME - 5]
+        self.file.write("@5\n")
+        self.file.write("D=A\n") # D=5
+
+        self.file.write("@R13\n")
+        self.file.write("M=M-D\n") # [FRAME - 5] is stored in R13
+        self.file.write("D=M\n")
+
+        self.file.write("A=M\n") # [FRAME-5]
+        self.file.write("D=M\n") # D=RAM[FRAME-5]
+        self.file.write("@" + self.file_name + "$RET\n")
+        self.file.write("M=D\n")
+
+        # RAM[ARG] = pop()
+        self.file.write("@SP\n")
+        self.file.write("M=M-1\n")
+
+        self.file.write("A=M\n")
+        self.file.write("D=M\n") # D=RAM[SP]
+
+        self.file.write("@ARG\n")
+        self.file.write("A=M\n")
+        self.file.write("M=D\n")
+
+        # SP = ARG + 1
+        self.file.write("@ARG\n")
+        self.file.write("D=M\n")
+        self.file.write("@1\n")
+        self.file.write("D=D+A\n")
+        self.file.write("@SP\n")
+        self.file.write("M=D\n")
+
+        # THAT = RAM[FRAME - 1]
+        self.file.write("@4\n")
+        self.file.write("D=A\n") # D=4
+        self.file.write("@R13\n") # [FRAME - 5] is stored in R13
+        self.file.write("M=M+D\n") # [FRAME - 1] is stored in R13
+
+        self.file.write("A=M\n")
+        self.file.write("D=M\n") # M = RAM[FRAME - 1] here
+        self.file.write("@THAT\n")
+        self.file.write("M=D\n")
+
+        # THIS = RAM[FRAME - 2]
+        self.file.write("@1\n")
+        self.file.write("D=A\n") # D=1
+        self.file.write("@R13\n") # [FRAME - 1] is stored in R13
+        self.file.write("M=M-D\n") # [FRAME - 2] is stored in R13
+
+        self.file.write("A=M\n")
+        self.file.write("D=M\n") # M = RAM[FRAME - 2] here
+        self.file.write("@THIS\n")
+        self.file.write("M=D\n")
+
+        # ARG = RAM[FRAME - 3]
+        self.file.write("@1\n")
+        self.file.write("D=A\n") # D=1
+        self.file.write("@R13\n") # [FRAME - 2] is stored in R13
+        self.file.write("M=M-D\n") # [FRAME - 3] is stored in R13
+
+        self.file.write("A=M\n")
+        self.file.write("D=M\n") # M = RAM[FRAME - 3] here
+        self.file.write("@ARG\n")
+        self.file.write("M=D\n")
+
+        # LCL = RAM[FRAME - 4]
+        self.file.write("@1\n")
+        self.file.write("D=A\n") # D=1
+        self.file.write("@R13\n") # [FRAME - 3] is stored in R13
+        self.file.write("M=M-D\n") # [FRAME - 4] is stored in R13
+
+        self.file.write("A=M\n")
+        self.file.write("D=M\n") # M = RAM[FRAME - 4] here
+        self.file.write("@LCL\n")
+        self.file.write("M=D\n")
+
+        # goto RET
+        self.file.write("@" + self.file_name + "$RET\n")
+        self.file.write("A=M\n")
+        self.file.write("0;JMP\n")
+
 
     def write_function(self, function_name, num_locals):
         self.file.write("// function " + function_name + " " + num_locals + "\n")
@@ -387,20 +475,20 @@ class CodeWriter:
         self.write_push_pop("C_POP", "temp", "1")
 
         #region beginning of locals loop
-        self.file.write("(" + function_name + ".LOCALS)\n")
+        self.file.write("(" + function_name + "$LOCALS)\n")
         self.write_push_pop("C_PUSH", "temp", "0")
         self.write_push_pop("C_PUSH", "temp", "1")
         self.write_arithmetic("sub")
 
         # if the difference is not 0, initialize local[i] to 0
-        self.write_if(self.file_name + ".INIT_LOCAL")
+        self.write_if(function_name + "$INIT_LOCAL")
 
         # else the difference is 0, we've set all locals to 0, jump to end
-        self.file.write("@" + function_name + ".LOCALS_END\n")
+        self.file.write("@" + function_name + "$LOCALS_END\n")
         self.file.write("0;JMP\n")
 
         # initialize local[i-1] to 0 (sp = lcl[i-1])
-        self.file.write("(" + function_name + ".INIT_LOCAL)\n")
+        self.file.write("(" + function_name + "$INIT_LOCAL)\n")
         self.write_push_pop("C_PUSH", "constant", "0")
          # i++
         self.write_push_pop("C_PUSH", "temp", "1")
@@ -408,8 +496,8 @@ class CodeWriter:
         self.write_arithmetic("add")
         self.write_push_pop("C_POP", "temp", "1")
         # go to top of loop
-        self.write_goto(function_name + ".LOCALS")
+        self.write_goto(function_name + "$LOCALS")
 
         # end of locals loop
-        self.file.write("(" + function_name + ".LOCALS_END)\n")
+        self.file.write("(" + function_name + "$LOCALS_END)\n")
         #endregion
