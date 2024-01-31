@@ -66,10 +66,10 @@ A=M
 M=D
 @SP
 M=M+1
-// pop local 0
+// pop local 0	
 @LCL
 D=M
-@0
+@0	
 D=D+A
 @R13
 M=D
@@ -146,12 +146,12 @@ A=M
 M=D
 @SP
 M=M+1
-// if-goto LOOP
+// if-goto BasicLoop.LOOP
 @SP
 M=M-1
 A=M
 D=M
-@LOOP
+@BasicLoop.LOOP
 D;JNE
 // push local 0
 @LCL

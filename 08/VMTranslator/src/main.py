@@ -50,14 +50,21 @@ def main():
     if os.path.isdir(in_file_path):
         files = os.listdir(in_file_path)
 
+        # TO-DO: handle trailing slash
+        ##########################################
         in_file_name_array = in_file_path.split("/")
         file_name = in_file_name_array[-2]
         out_file_name = file_name + ".asm"
-        out_file_path = "../outFiles/" + out_file_name
+        out_file_path = os.path.join(in_file_path, out_file_name)
+
+        if files.__contains__("Sys.vm"):
+            files.remove("Sys.vm")
+            files.insert(0, "Sys.vm")
+            print(files)
 
         for file_name in files:
             if file_name.endswith("vm"):
-                parser = Parser.Parser(in_file_path + file_name)
+                parser = Parser.Parser(os.path.join(in_file_path, file_name))
                 code_writer = CodeWriter.CodeWriter(out_file_path, file_name)
                 execute(parser, code_writer)
 
@@ -65,7 +72,7 @@ def main():
         in_file_name_array = in_file_path.split("/")
         file_name = in_file_name_array[-1]
         out_file_name = file_name[0:-2] + "asm"
-        out_file_path = "../out_files/" + out_file_name
+        out_file_path = os.path.join(in_file_path, out_file_name)
 
         parser = Parser.Parser(in_file_path)
         code_writer = CodeWriter.CodeWriter(out_file_path, file_name)

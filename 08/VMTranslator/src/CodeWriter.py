@@ -18,8 +18,10 @@ class CodeWriter:
 
     def __init__(self, file_path, file_name):
         self.file_name = file_name[0:-3]
-        self.file = open(file_path, "wt", buffering = 1024)
-        self.label_counter = 0
+        self.file = open(file_path, "at", buffering = 1024)
+        self.bool_label_counter = 0
+        self.return_label_counter = 0
+        self.function_name = ""
 
     #region arithmetic
     def write_arithmetic(self, command):
@@ -44,7 +46,6 @@ class CodeWriter:
             self.push_back_onto_stack()
 
     def save_args_and_compute(self, computation):
-        print("save")
         # SP--
         self.file.write("@SP\n")
         self.file.write("M=M-1\n")
@@ -106,24 +107,24 @@ class CodeWriter:
         self.file.write("D=D-M \n")
 
         # if D (eq/gt/lt) 0 (bool) goto TRUE
-        self.file.write("@TRUE." + self.label_counter + "\n")
-        self.file.write("D;J" + bool.toUpperCase() + "\n")
+        self.file.write("@" + self.function_name + "$TRUE." + str(self.bool_label_counter) + "\n")
+        self.file.write("D;J" + bool.upper() + "\n")
 
         # else goto FALSE
-        self.file.write("@FALSE." + self.label_counter + "\n")
+        self.file.write("@" + self.function_name + "$FALSE." + str(self.bool_label_counter) + "\n")
         self.file.write("0;JMP\n")
 
-        self.file.write("(TRUE." + self.label_counter + ")\n")
+        self.file.write("(" + self.function_name + "$TRUE." + str(self.bool_label_counter) + ")\n")
         self.file.write("D=-1\n")
-        self.file.write("@END." + self.label_counter + "\n")
-        self.file.write("0 JMP\n")
+        self.file.write("@" + self.function_name + "$END." + str(self.bool_label_counter) + "\n")
+        self.file.write("0;JMP\n")
 
-        self.file.write("(FALSE." + self.label_counter + ")\n")
+        self.file.write("(" + self.function_name + "$FALSE." + str(self.bool_label_counter) + ")\n")
         self.file.write("D=0\n")
 
-        self.file.write("(END." + self.label_counter + ")\n")
+        self.file.write("(" + self.function_name + "$END." + str(self.bool_label_counter) + ")\n")
 
-        self.label_counter += 1
+        self.bool_label_counter += 1
 
     #endregion
 
@@ -367,33 +368,75 @@ class CodeWriter:
     #endregion
 
     def write_call(self, function_name, num_args):
-        self.file.write("// function " + function_name + " " + num_args + "\n")
-        print("writeCall")
+        self.function_name = function_name
+        return_label = self.file_name + "$RETURN_ADDRESS." + str(self.return_label_counter)
+
+        print("@" + return_label + "\n")
+        self.file.write("// call " + function_name + " " + num_args + "\n")
+
+        # push return-address, lcl, arg, this, that
+        self.file.write("@" + return_label + "\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@LCL\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@ARG\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@THIS\n")
+        self.file.write("D=M\n")
+        self.push()
+        self.file.write("@THAT\n")
+        self.file.write("D=M\n")
+        self.push()
+
+        # ARG = SP - num_args - 5
+        self.file.write("@SP\n")
+        self.file.write("D=M\n") # D = sp
+        self.file.write("@" + num_args + "\n")
+        self.file.write("D=D-A\n") # D = sp - num_args
+        self.file.write("@5\n")
+        self.file.write("D=D-A\n") # D = sp - num_args - 5
+        self.file.write("@ARG\n")
+        self.file.write("M=D\n") # ARG = sp - num_args - 5
+
+        # LCL = SP
+        self.file.write("@SP\n")
+        self.file.write("D=M\n")
+        self.file.write("@LCL\n")
+        self.file.write("M=D\n")
+
+        # goto function_name
+        self.file.write("@" + function_name + "\n")
+        self.file.write("0;JMP\n")
+
+        # (return_address)
+        self.file.write("(" + return_label + ")\n")
+
+        self.return_label_counter += 1
 
     def write_return(self):
         self.file.write("// return\n")
 
         # FRAME = LCL
+        self.file.write("// FRAME = LCL\n")
         self.file.write("@LCL\n")
-        self.file.write("D=M\n")
-        self.file.write("@R13\n")
-        self.file.write("M=D\n") # FRAME is stored in R13
-
-
-        # RET = RAM[FRAME - 5]
-        self.file.write("@5\n")
-        self.file.write("D=A\n") # D=5
-
-        self.file.write("@R13\n")
-        self.file.write("M=M-D\n") # [FRAME - 5] is stored in R13
-        self.file.write("D=M\n")
-
-        self.file.write("A=M\n") # [FRAME-5]
-        self.file.write("D=M\n") # D=RAM[FRAME-5]
-        self.file.write("@" + self.file_name + "$RET\n")
+        self.file.write("D=M\n") # D = LCL = endFrame
+        self.file.write("@endFrame\n") # endFrame = D
         self.file.write("M=D\n")
 
+        # RET = RAM[FRAME - 5]
+        self.file.write("// RET = RAM[FRAME - 5]\n")
+        self.file.write("@5\n")
+        self.file.write("A=D-A\n")
+        self.file.write("D=M\n") # D = RAM[endFrame - 5]
+
+        self.file.write("@retAddr\n")
+        self.file.write("M=D\n") # return address from stack
+
         # RAM[ARG] = pop()
+        self.file.write("// RAM[ARG] = pop()\n")
         self.file.write("@SP\n")
         self.file.write("M=M-1\n")
 
@@ -405,6 +448,7 @@ class CodeWriter:
         self.file.write("M=D\n")
 
         # SP = ARG + 1
+        self.file.write("//SP = ARG + 1\n")
         self.file.write("@ARG\n")
         self.file.write("D=M\n")
         self.file.write("@1\n")
@@ -413,62 +457,47 @@ class CodeWriter:
         self.file.write("M=D\n")
 
         # THAT = RAM[FRAME - 1]
-        self.file.write("@4\n")
-        self.file.write("D=A\n") # D=4
-        self.file.write("@R13\n") # [FRAME - 5] is stored in R13
-        self.file.write("M=M+D\n") # [FRAME - 1] is stored in R13
-
-        self.file.write("A=M\n")
-        self.file.write("D=M\n") # M = RAM[FRAME - 1] here
-        self.file.write("@THAT\n")
-        self.file.write("M=D\n")
+        self.reset_pointer(1, "THAT")
 
         # THIS = RAM[FRAME - 2]
-        self.file.write("@1\n")
-        self.file.write("D=A\n") # D=1
-        self.file.write("@R13\n") # [FRAME - 1] is stored in R13
-        self.file.write("M=M-D\n") # [FRAME - 2] is stored in R13
-
-        self.file.write("A=M\n")
-        self.file.write("D=M\n") # M = RAM[FRAME - 2] here
-        self.file.write("@THIS\n")
-        self.file.write("M=D\n")
+        self.reset_pointer(2, "THIS")
 
         # ARG = RAM[FRAME - 3]
-        self.file.write("@1\n")
-        self.file.write("D=A\n") # D=1
-        self.file.write("@R13\n") # [FRAME - 2] is stored in R13
-        self.file.write("M=M-D\n") # [FRAME - 3] is stored in R13
-
-        self.file.write("A=M\n")
-        self.file.write("D=M\n") # M = RAM[FRAME - 3] here
-        self.file.write("@ARG\n")
-        self.file.write("M=D\n")
+        self.reset_pointer(3, "ARG")
 
         # LCL = RAM[FRAME - 4]
-        self.file.write("@1\n")
-        self.file.write("D=A\n") # D=1
-        self.file.write("@R13\n") # [FRAME - 3] is stored in R13
-        self.file.write("M=M-D\n") # [FRAME - 4] is stored in R13
-
-        self.file.write("A=M\n")
-        self.file.write("D=M\n") # M = RAM[FRAME - 4] here
-        self.file.write("@LCL\n")
-        self.file.write("M=D\n")
+        self.reset_pointer(4, "LCL")
 
         # goto RET
-        self.file.write("@" + self.file_name + "$RET\n")
+        self.file.write("@retAddr\n")
         self.file.write("A=M\n")
         self.file.write("0;JMP\n")
 
+    def reset_pointer(self, decrement, pointer):
+        self.file.write("@" + str(decrement) + "\n")
+        self.file.write("D=A\n")
+        self.file.write("@endFrame\n")
+        self.file.write("A=M-D\n")
+
+        self.file.write("D=M\n") # D = RAM[FRAME - decrement]
+        self.file.write("@" + pointer + "\n")
+        self.file.write("M=D\n")
 
     def write_function(self, function_name, num_locals):
+        self.function_name = function_name
+
         self.file.write("// function " + function_name + " " + num_locals + "\n")
         self.file.write("(" + function_name + ")\n")
 
         # initialize num_locals and save it at temp[0]
         self.write_push_pop("C_PUSH", "constant", num_locals)
         self.write_push_pop("C_POP", "temp", "0")
+
+        # try decrementing temp 0 instead of counting another variable up to it
+
+
+
+
 
         # initialize i to 0 and save it at temp[1]
         self.write_push_pop("C_PUSH", "constant", "0")
