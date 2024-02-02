@@ -26,11 +26,102 @@ class CodeWriter:
     #region arithmetic
     def write_arithmetic(self, command):
 
+        def save_args_and_compute(computation):
+            # SP--
+            self.file.write("@SP\n")
+            self.file.write("M=M-1\n")
+
+            # D=RAM[SP]
+            self.file.write("A=M\n")
+            self.file.write("D=M\n")
+
+            # put first arg in R13
+            self.file.write("@R13\n")
+            self.file.write("M=D\n")
+
+            # repeat that
+            # SP--
+            self.file.write("@SP\n")
+            self.file.write("M=M-1\n")
+
+            # D=RAM[SP]
+            self.file.write("A=M\n")
+            self.file.write("D=M\n")
+            # put second arg in R14
+            self.file.write("@R14\n")
+            self.file.write("M=D\n")
+
+            #  +, -, &, or |
+            self.file.write("@R13\n")
+            self.file.write("D=D" + computation + "M\n")
+        
+        def save_args_and_compute_bool(bool):
+            # SP--
+            self.file.write("@SP\n")
+            self.file.write("M=M-1\n")
+
+            # D=RAM[SP]
+            self.file.write("A=M\n")
+            self.file.write("D=M\n")
+
+            # put first arg in R13
+            self.file.write("@R13\n")
+            self.file.write("M=D\n")
+
+            # repeat that
+            # SP--
+            self.file.write("@SP\n")
+            self.file.write("M=M-1\n")
+            # D=RAM[SP]
+            self.file.write("A=M\n")
+            self.file.write("D=M\n")
+            # put second arg in R14
+            self.file.write("@R14\n")
+            self.file.write("M=D\n")
+
+            # D = first number
+            self.file.write("@R14\n")
+            self.file.write("D=M\n")
+
+            # D = x - y
+            self.file.write("@R13\n")
+            self.file.write("D=D-M \n")
+
+            # if D (eq/gt/lt) 0 (bool) goto TRUE
+            self.file.write("@" + self.function_name + "$TRUE." + str(self.bool_label_counter) + "\n")
+            self.file.write("D;J" + bool.upper() + "\n")
+
+            # else goto FALSE
+            self.file.write("@" + self.function_name + "$FALSE." + str(self.bool_label_counter) + "\n")
+            self.file.write("0;JMP\n")
+
+            self.file.write("(" + self.function_name + "$TRUE." + str(self.bool_label_counter) + ")\n")
+            self.file.write("D=-1\n")
+            self.file.write("@" + self.function_name + "$END." + str(self.bool_label_counter) + "\n")
+            self.file.write("0;JMP\n")
+
+            self.file.write("(" + self.function_name + "$FALSE." + str(self.bool_label_counter) + ")\n")
+            self.file.write("D=0\n")
+
+            self.file.write("(" + self.function_name + "$END." + str(self.bool_label_counter) + ")\n")
+
+            self.bool_label_counter += 1
+
+        def push_back_onto_stack():
+            # RAM[SP] = D
+            self.file.write("@SP\n")
+            self.file.write("A=M\n")
+            self.file.write("M=D\n")
+
+            # SP++
+            self.file.write("@SP\n")
+            self.file.write("M=M+1\n")
+
         self.file.write("// " + command + "\n")
 
         if command == "add" or command == "sub" or command == "and" or command == "or":
-            self.save_args_and_compute(self.math.get(command))
-            self.push_back_onto_stack()
+            save_args_and_compute(self.math.get(command))
+            push_back_onto_stack()
         elif command == "neg" or command == "not":
             # SP--
             self.file.write("@SP\n")
@@ -42,101 +133,10 @@ class CodeWriter:
 
             self.push_back_onto_stack()
         elif command == "eq" or command == "lt" or command == "gt":
-            self.save_args_and_compute_bool(command)
-            self.push_back_onto_stack()
-
-    def save_args_and_compute(self, computation):
-        # SP--
-        self.file.write("@SP\n")
-        self.file.write("M=M-1\n")
-
-        # D=RAM[SP]
-        self.file.write("A=M\n")
-        self.file.write("D=M\n")
-
-        # put first arg in R13
-        self.file.write("@R13\n")
-        self.file.write("M=D\n")
-
-        # repeat that
-        # SP--
-        self.file.write("@SP\n")
-        self.file.write("M=M-1\n")
-
-        # D=RAM[SP]
-        self.file.write("A=M\n")
-        self.file.write("D=M\n")
-        # put second arg in R14
-        self.file.write("@R14\n")
-        self.file.write("M=D\n")
-
-        #  +, -, &, or |
-        self.file.write("@R13\n")
-        self.file.write("D=D" + computation + "M\n")
-
-    def save_args_and_compute_bool(self, bool):
-        # SP--
-        self.file.write("@SP\n")
-        self.file.write("M=M-1\n")
-
-        # D=RAM[SP]
-        self.file.write("A=M\n")
-        self.file.write("D=M\n")
-
-        # put first arg in R13
-        self.file.write("@R13\n")
-        self.file.write("M=D\n")
-
-        # repeat that
-        # SP--
-        self.file.write("@SP\n")
-        self.file.write("M=M-1\n")
-        # D=RAM[SP]
-        self.file.write("A=M\n")
-        self.file.write("D=M\n")
-        # put second arg in R14
-        self.file.write("@R14\n")
-        self.file.write("M=D\n")
-
-        # D = first number
-        self.file.write("@R14\n")
-        self.file.write("D=M\n")
-
-        # D = x - y
-        self.file.write("@R13\n")
-        self.file.write("D=D-M \n")
-
-        # if D (eq/gt/lt) 0 (bool) goto TRUE
-        self.file.write("@" + self.function_name + "$TRUE." + str(self.bool_label_counter) + "\n")
-        self.file.write("D;J" + bool.upper() + "\n")
-
-        # else goto FALSE
-        self.file.write("@" + self.function_name + "$FALSE." + str(self.bool_label_counter) + "\n")
-        self.file.write("0;JMP\n")
-
-        self.file.write("(" + self.function_name + "$TRUE." + str(self.bool_label_counter) + ")\n")
-        self.file.write("D=-1\n")
-        self.file.write("@" + self.function_name + "$END." + str(self.bool_label_counter) + "\n")
-        self.file.write("0;JMP\n")
-
-        self.file.write("(" + self.function_name + "$FALSE." + str(self.bool_label_counter) + ")\n")
-        self.file.write("D=0\n")
-
-        self.file.write("(" + self.function_name + "$END." + str(self.bool_label_counter) + ")\n")
-
-        self.bool_label_counter += 1
-
+            save_args_and_compute_bool(command)
+            push_back_onto_stack()
+    
     #endregion
-
-    def push_back_onto_stack(self):
-        # RAM[SP] = D
-        self.file.write("@SP\n")
-        self.file.write("A=M\n")
-        self.file.write("M=D\n")
-
-        # SP++
-        self.file.write("@SP\n")
-        self.file.write("M=M+1\n")
 
     def write_push_pop(self, command, segment, index):
 
@@ -296,6 +296,7 @@ class CodeWriter:
         self.file.write("// init\n")
 
         # initialize the stack pointer to RAM[256]
+        self.file.write("// initialize the stack pointer to RAM[256]\n")
         self.file.write("@256\n")
         self.file.write("D=A\n")
         self.file.write("@SP\n")
@@ -303,7 +304,8 @@ class CodeWriter:
 
         # call Sys.init 0
         # push return-address, lcl, arg, this, that
-        self.file.write("@SYS_INIT_RETURN_ADDRESS\n")
+        self.file.write("// push return-address, lcl, arg, this, that\n")
+        self.file.write("@BOOTSTRAP_CODE_RETURN_ADDRESS\n")
         self.file.write("D=A\n")
         self.push()
         self.file.write("@LCL\n")
@@ -320,6 +322,7 @@ class CodeWriter:
         self.push()
 
         # ARG = SP-(n=0)-5
+        self.file.write("// ARG = SP-(n=0)-5\n")
         self.file.write("@SP\n")
         self.file.write("D=M\n") # D=sp
         self.file.write("@5\n")
@@ -328,17 +331,19 @@ class CodeWriter:
         self.file.write("M=D\n") # ARG = sp - 5
 
         # LCL = SP
+        self.file.write("// LCL = SP\n")
         self.file.write("@SP\n")
         self.file.write("D=M\n")
         self.file.write("@LCL\n")
         self.file.write("M=D\n")
 
         # goto Sys.init
-        self.file.write("@Sys.Init\n")
+        self.file.write("// goto Sys.init\n")
+        self.file.write("@Sys.init\n")
         self.file.write("0;JMP\n")
 
         # (return_address)
-        self.file.write("(SYS_INIT_RETURN_ADDRESS)\n")
+        self.file.write("(BOOTSTRAP_CODE_RETURN_ADDRESS)\n")
 
     #region program_flow
     def write_label(self, label):
@@ -368,15 +373,16 @@ class CodeWriter:
     #endregion
 
     def write_call(self, function_name, num_args):
-        self.function_name = function_name
+        # self.function_name = function_name
         return_label = self.file_name + "$RETURN_ADDRESS." + str(self.return_label_counter)
 
         print("@" + return_label + "\n")
         self.file.write("// call " + function_name + " " + num_args + "\n")
 
         # push return-address, lcl, arg, this, that
+        self.file.write("// push return-address, lcl, arg, this, that\n")
         self.file.write("@" + return_label + "\n")
-        self.file.write("D=M\n")
+        self.file.write("D=A\n")
         self.push()
         self.file.write("@LCL\n")
         self.file.write("D=M\n")
@@ -392,6 +398,7 @@ class CodeWriter:
         self.push()
 
         # ARG = SP - num_args - 5
+        self.file.write("// ARG = SP - num_args - 5\n")
         self.file.write("@SP\n")
         self.file.write("D=M\n") # D = sp
         self.file.write("@" + num_args + "\n")
@@ -402,12 +409,14 @@ class CodeWriter:
         self.file.write("M=D\n") # ARG = sp - num_args - 5
 
         # LCL = SP
+        self.file.write("// LCL = SP\n")
         self.file.write("@SP\n")
         self.file.write("D=M\n")
         self.file.write("@LCL\n")
         self.file.write("M=D\n")
 
         # goto function_name
+        self.file.write("// goto function_name\n")
         self.file.write("@" + function_name + "\n")
         self.file.write("0;JMP\n")
 
@@ -417,6 +426,18 @@ class CodeWriter:
         self.return_label_counter += 1
 
     def write_return(self):
+
+        def reset_pointer(decrement, pointer):
+            self.file.write("// (segmentPointer) = RAM[FRAME - (decrement)]\n")
+            self.file.write("@" + str(decrement) + "\n")
+            self.file.write("D=A\n")
+            self.file.write("@endFrame\n")
+            self.file.write("A=M-D\n")
+
+            self.file.write("D=M\n") # D = RAM[FRAME - decrement]
+            self.file.write("@" + pointer + "\n")
+            self.file.write("M=D\n")
+
         self.file.write("// return\n")
 
         # FRAME = LCL
@@ -457,31 +478,22 @@ class CodeWriter:
         self.file.write("M=D\n")
 
         # THAT = RAM[FRAME - 1]
-        self.reset_pointer(1, "THAT")
+        reset_pointer(1, "THAT")
 
         # THIS = RAM[FRAME - 2]
-        self.reset_pointer(2, "THIS")
+        reset_pointer(2, "THIS")
 
         # ARG = RAM[FRAME - 3]
-        self.reset_pointer(3, "ARG")
+        reset_pointer(3, "ARG")
 
         # LCL = RAM[FRAME - 4]
-        self.reset_pointer(4, "LCL")
+        reset_pointer(4, "LCL")
 
         # goto RET
         self.file.write("@retAddr\n")
         self.file.write("A=M\n")
         self.file.write("0;JMP\n")
-
-    def reset_pointer(self, decrement, pointer):
-        self.file.write("@" + str(decrement) + "\n")
-        self.file.write("D=A\n")
-        self.file.write("@endFrame\n")
-        self.file.write("A=M-D\n")
-
-        self.file.write("D=M\n") # D = RAM[FRAME - decrement]
-        self.file.write("@" + pointer + "\n")
-        self.file.write("M=D\n")
+        
 
     def write_function(self, function_name, num_locals):
         self.function_name = function_name
@@ -493,37 +505,26 @@ class CodeWriter:
         self.write_push_pop("C_PUSH", "constant", num_locals)
         self.write_push_pop("C_POP", "temp", "0")
 
-        # try decrementing temp 0 instead of counting another variable up to it
-
-
-
-
-
-        # initialize i to 0 and save it at temp[1]
-        self.write_push_pop("C_PUSH", "constant", "0")
-        self.write_push_pop("C_POP", "temp", "1")
-
         #region beginning of locals loop
         self.file.write("(" + function_name + "$LOCALS)\n")
         self.write_push_pop("C_PUSH", "temp", "0")
-        self.write_push_pop("C_PUSH", "temp", "1")
-        self.write_arithmetic("sub")
 
-        # if the difference is not 0, initialize local[i] to 0
+        # if the value at the top of the stack is not 0, initialize local[numLocalsLeft] to 0
         self.write_if(function_name + "$INIT_LOCAL")
 
         # else the difference is 0, we've set all locals to 0, jump to end
         self.file.write("@" + function_name + "$LOCALS_END\n")
         self.file.write("0;JMP\n")
 
-        # initialize local[i-1] to 0 (sp = lcl[i-1])
+        # initialize local[numLocalsLeft] to 0 
         self.file.write("(" + function_name + "$INIT_LOCAL)\n")
         self.write_push_pop("C_PUSH", "constant", "0")
-         # i++
-        self.write_push_pop("C_PUSH", "temp", "1")
+        
+        # numLocalsLeft--
+        self.write_push_pop("C_PUSH", "temp", "0")
         self.write_push_pop("C_PUSH", "constant", "1")
-        self.write_arithmetic("add")
-        self.write_push_pop("C_POP", "temp", "1")
+        self.write_arithmetic("sub")
+        self.write_push_pop("C_POP", "temp", "0")
         # go to top of loop
         self.write_goto(function_name + "$LOCALS")
 

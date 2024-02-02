@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# note: written by david, not me
 
 import sys
 
