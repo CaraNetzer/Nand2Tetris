@@ -54,7 +54,7 @@ class CodeWriter:
             #  +, -, &, or |
             self.file.write("@R13\n")
             self.file.write("D=D" + computation + "M\n")
-        
+
         def save_args_and_compute_bool(bool):
             # SP--
             self.file.write("@SP\n")
@@ -135,7 +135,7 @@ class CodeWriter:
         elif command == "eq" or command == "lt" or command == "gt":
             save_args_and_compute_bool(command)
             push_back_onto_stack()
-    
+
     #endregion
 
     def write_push_pop(self, command, segment, index):
@@ -347,16 +347,16 @@ class CodeWriter:
 
     #region program_flow
     def write_label(self, label):
-        self.file.write("// label " + self.file_name + "." + label + "\n")
-        self.file.write("(" + self.file_name + "." + label + ")\n")
+        self.file.write("// label " + self.function_name + "$" + label + "\n")
+        self.file.write("(" + self.function_name + "$" + label + ")\n")
 
     def write_goto(self, label):
-        self.file.write("// goto " + label + "\n")
-        self.file.write("@" + label + "\n")
+        self.file.write("// goto " + self.function_name + "$" + label + "\n")
+        self.file.write("@" + self.function_name + "$" + label + "\n")
         self.file.write("0;JMP\n")
 
     def write_if(self, label):
-        self.file.write("// if-goto " + label + "\n")
+        self.file.write("// if-goto " + self.function_name + "$" + label + "\n")
 
         # SP--
         self.file.write("@SP\n")
@@ -367,16 +367,14 @@ class CodeWriter:
         self.file.write("D=M\n")
 
         # jump to label if D = 0
-        self.file.write("@" + label + "\n")
+        self.file.write("@" + self.function_name + "$" + label + "\n")
         self.file.write("D;JNE\n")
 
     #endregion
 
     def write_call(self, function_name, num_args):
-        # self.function_name = function_name
-        return_label = self.file_name + "$RETURN_ADDRESS." + str(self.return_label_counter)
+        return_label = self.function_name + "$RETURN_ADDRESS." + str(self.return_label_counter)
 
-        print("@" + return_label + "\n")
         self.file.write("// call " + function_name + " " + num_args + "\n")
 
         # push return-address, lcl, arg, this, that
@@ -493,7 +491,7 @@ class CodeWriter:
         self.file.write("@retAddr\n")
         self.file.write("A=M\n")
         self.file.write("0;JMP\n")
-        
+
 
     def write_function(self, function_name, num_locals):
         self.function_name = function_name
@@ -510,23 +508,23 @@ class CodeWriter:
         self.write_push_pop("C_PUSH", "temp", "0")
 
         # if the value at the top of the stack is not 0, initialize local[numLocalsLeft] to 0
-        self.write_if(function_name + "$INIT_LOCAL")
+        self.write_if("INIT_LOCAL")
 
         # else the difference is 0, we've set all locals to 0, jump to end
         self.file.write("@" + function_name + "$LOCALS_END\n")
         self.file.write("0;JMP\n")
 
-        # initialize local[numLocalsLeft] to 0 
+        # initialize local[numLocalsLeft] to 0
         self.file.write("(" + function_name + "$INIT_LOCAL)\n")
         self.write_push_pop("C_PUSH", "constant", "0")
-        
+
         # numLocalsLeft--
         self.write_push_pop("C_PUSH", "temp", "0")
         self.write_push_pop("C_PUSH", "constant", "1")
         self.write_arithmetic("sub")
         self.write_push_pop("C_POP", "temp", "0")
         # go to top of loop
-        self.write_goto(function_name + "$LOCALS")
+        self.write_goto("LOCALS")
 
         # end of locals loop
         self.file.write("(" + function_name + "$LOCALS_END)\n")

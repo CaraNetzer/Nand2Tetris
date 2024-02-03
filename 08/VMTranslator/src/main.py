@@ -29,7 +29,7 @@ def execute(parser, code_writer):
             elif command_type == "C_LABEL":
                 code_writer.write_label(parser.arg1())
             elif command_type == "C_GOTO":
-                code_writer.write_goto(code_writer.function_name + "$" + parser.arg1())
+                code_writer.write_goto(parser.arg1())
             elif command_type == "C_IF":
                 code_writer.write_if(parser.arg1())
             elif command_type == "C_CALL":
