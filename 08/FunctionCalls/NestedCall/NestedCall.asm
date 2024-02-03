@@ -169,15 +169,51 @@ M=D
 @Sys.init$LOCALS
 0;JMP
 (Sys.init$LOCALS_END)
-// push constant 4
-@4
+// push constant 4000
+@4000
 D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-// call Main.fibonacci 1
+// pop pointer 0
+@3
+D=A
+@0
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// push constant 5000
+@5000
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop pointer 1
+@3
+D=A
+@1
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// call Sys.main 0
 // push return-address, lcl, arg, this, that
 @Sys.init$RETURN_ADDRESS.0
 D=A
@@ -217,7 +253,7 @@ M=M+1
 // ARG = SP - num_args - 5
 @SP
 D=M
-@1
+@0
 D=D-A
 @5
 D=D-A
@@ -229,18 +265,32 @@ D=M
 @LCL
 M=D
 // goto function_name
-@Main.fibonacci
+@Sys.main
 0;JMP
 (Sys.init$RETURN_ADDRESS.0)
-// label Sys.init$END
-(Sys.init$END)
-// goto Sys.init$END
-@Sys.init$END
+// pop temp 1
+@5
+D=A
+@1
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// label Sys.init$LOOP
+(Sys.init$LOOP)
+// goto Sys.init$LOOP
+@Sys.init$LOOP
 0;JMP
-// function Main.fibonacci 0
-(Main.fibonacci)
-// push constant 0
-@0
+// function Sys.main 5
+(Sys.main)
+// push constant 5
+@5
 D=A
 @SP
 A=M
@@ -261,7 +311,7 @@ D=M
 @R13
 A=M
 M=D
-(Main.fibonacci$LOCALS)
+(Sys.main$LOCALS)
 // push temp 0
 @5
 D=A
@@ -274,16 +324,16 @@ A=M
 M=D
 @SP
 M=M+1
-// if-goto Main.fibonacci$INIT_LOCAL
+// if-goto Sys.main$INIT_LOCAL
 @SP
 M=M-1
 A=M
 D=M
-@Main.fibonacci$INIT_LOCAL
+@Sys.main$INIT_LOCAL
 D;JNE
-@Main.fibonacci$LOCALS_END
+@Sys.main$LOCALS_END
 0;JMP
-(Main.fibonacci$INIT_LOCAL)
+(Sys.main$INIT_LOCAL)
 // push constant 0
 @0
 D=A
@@ -346,82 +396,332 @@ D=M
 @R13
 A=M
 M=D
-// goto Main.fibonacci$LOCALS
-@Main.fibonacci$LOCALS
+// goto Sys.main$LOCALS
+@Sys.main$LOCALS
 0;JMP
-(Main.fibonacci$LOCALS_END)
-// push argument 0
-@ARG
-D=M
-@0
-D=D+A
-A=D
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-// push constant 2
-@2
+(Sys.main$LOCALS_END)
+// push constant 4001
+@4001
 D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-// lt
-@SP
-M=M-1
-A=M
-D=M
+// pop pointer 0
+@3
+D=A
+@0
+D=D+A
 @R13
 M=D
 @SP
 M=M-1
 A=M
 D=M
-@R14
-M=D
-@R14
-D=M
 @R13
-D=D-M 
-@Main.fibonacci$TRUE.0
-D;JLT
-@Main.fibonacci$FALSE.0
-0;JMP
-(Main.fibonacci$TRUE.0)
-D=-1
-@Main.fibonacci$END.0
-0;JMP
-(Main.fibonacci$FALSE.0)
-D=0
-(Main.fibonacci$END.0)
+A=M
+M=D
+// push constant 5001
+@5001
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-// if-goto Main.fibonacci$N_LT_2
+// pop pointer 1
+@3
+D=A
+@1
+D=D+A
+@R13
+M=D
 @SP
 M=M-1
 A=M
 D=M
-@Main.fibonacci$N_LT_2
-D;JNE
-// goto Main.fibonacci$N_GE_2
-@Main.fibonacci$N_GE_2
-0;JMP
-// label Main.fibonacci$N_LT_2
-(Main.fibonacci$N_LT_2)
-// push argument 0
+@R13
+A=M
+M=D
+// push constant 200
+@200
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop local 1
+@LCL
+D=M
+@1
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// push constant 40
+@40
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop local 2
+@LCL
+D=M
+@2
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// push constant 6
+@6
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop local 3
+@LCL
+D=M
+@3
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// push constant 123
+@123
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// call Sys.add12 1
+// push return-address, lcl, arg, this, that
+@Sys.main$RETURN_ADDRESS.1
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
 @ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// ARG = SP - num_args - 5
+@SP
+D=M
+@1
+D=D-A
+@5
+D=D-A
+@ARG
+M=D
+// LCL = SP
+@SP
+D=M
+@LCL
+M=D
+// goto function_name
+@Sys.add12
+0;JMP
+(Sys.main$RETURN_ADDRESS.1)
+// pop temp 0
+@5
+D=A
+@0
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// push local 0
+@LCL
 D=M
 @0
 D=D+A
 A=D
 D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push local 1
+@LCL
+D=M
+@1
+D=D+A
+A=D
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push local 2
+@LCL
+D=M
+@2
+D=D+A
+A=D
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push local 3
+@LCL
+D=M
+@3
+D=D+A
+A=D
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push local 4
+@LCL
+D=M
+@4
+D=D+A
+A=D
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R14
+M=D
+@R13
+D=D+M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R14
+M=D
+@R13
+D=D+M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R14
+M=D
+@R13
+D=D+M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@SP
+M=M-1
+A=M
+D=M
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R14
+M=D
+@R13
+D=D+M
 @SP
 A=M
 M=D
@@ -489,11 +789,34 @@ M=D
 @retAddr
 A=M
 0;JMP
-// label Main.fibonacci$N_GE_2
-(Main.fibonacci$N_GE_2)
-// push argument 0
-@ARG
+// function Sys.add12 0
+(Sys.add12)
+// push constant 0
+@0
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// pop temp 0
+@5
+D=A
+@0
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
 D=M
+@R13
+A=M
+M=D
+(Sys.add12$LOCALS)
+// push temp 0
+@5
+D=A
 @0
 D=D+A
 A=D
@@ -503,92 +826,27 @@ A=M
 M=D
 @SP
 M=M+1
-// push constant 2
-@2
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-// sub
+// if-goto Sys.add12$INIT_LOCAL
 @SP
 M=M-1
 A=M
 D=M
-@R13
-M=D
-@SP
-M=M-1
-A=M
-D=M
-@R14
-M=D
-@R13
-D=D-M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-// call Main.fibonacci 1
-// push return-address, lcl, arg, this, that
-@Main.fibonacci$RETURN_ADDRESS.0
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@LCL
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@ARG
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-// ARG = SP - num_args - 5
-@SP
-D=M
-@1
-D=D-A
-@5
-D=D-A
-@ARG
-M=D
-// LCL = SP
-@SP
-D=M
-@LCL
-M=D
-// goto function_name
-@Main.fibonacci
+@Sys.add12$INIT_LOCAL
+D;JNE
+@Sys.add12$LOCALS_END
 0;JMP
-(Main.fibonacci$RETURN_ADDRESS.0)
-// push argument 0
-@ARG
-D=M
+(Sys.add12$INIT_LOCAL)
+// push constant 0
+@0
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push temp 0
+@5
+D=A
 @0
 D=D+A
 A=D
@@ -626,61 +884,88 @@ A=M
 M=D
 @SP
 M=M+1
-// call Main.fibonacci 1
-// push return-address, lcl, arg, this, that
-@Main.fibonacci$RETURN_ADDRESS.1
+// pop temp 0
+@5
+D=A
+@0
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
+D=M
+@R13
+A=M
+M=D
+// goto Sys.add12$LOCALS
+@Sys.add12$LOCALS
+0;JMP
+(Sys.add12$LOCALS_END)
+// push constant 4002
+@4002
 D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@LCL
+// pop pointer 0
+@3
+D=A
+@0
+D=D+A
+@R13
+M=D
+@SP
+M=M-1
+A=M
 D=M
+@R13
+A=M
+M=D
+// push constant 5002
+@5002
+D=A
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@ARG
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-// ARG = SP - num_args - 5
-@SP
-D=M
+// pop pointer 1
+@3
+D=A
 @1
-D=D-A
-@5
-D=D-A
-@ARG
+D=D+A
+@R13
 M=D
-// LCL = SP
 @SP
+M=M-1
+A=M
 D=M
-@LCL
+@R13
+A=M
 M=D
-// goto function_name
-@Main.fibonacci
-0;JMP
-(Main.fibonacci$RETURN_ADDRESS.1)
+// push argument 0
+@ARG
+D=M
+@0
+D=D+A
+A=D
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 12
+@12
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
 // add
 @SP
 M=M-1
