@@ -1,0 +1,11 @@
+class Main {
+  function void main() {
+
+    var EtchaSketch game;
+    let game = EtchaSketch.new();
+    do game.run();
+    do game.dispose();
+    return;
+
+  }
+}

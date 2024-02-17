@@ -1,0 +1,98 @@
+class EtchaSketch {
+
+  field int LINE_LENGTH;
+  field int START_X1, START_Y1;
+  field int START_X2, START_Y2;
+  field Line line1;
+  field Line line2;
+  field boolean restart;
+
+  /** Constructs a new EtchaSketch game. */
+  constructor EtchaSketch new() {
+    let LINE_LENGTH = 30;
+    let START_X1 = 0;
+    let START_Y1 = 0;
+    let START_X2 = 512;
+    let START_Y2 = 0;
+
+    let line1 = Line.new(START_X1, START_Y1, LINE_LENGTH);
+    let line2 = Line.new(START_X2, START_X2, LINE_LENGTH);
+
+    do Screen.clearScreen();
+    let restart = false;
+
+    return this;
+  }
+
+  /** Deallocates the object's memory. */
+  method void dispose() {
+    do line1.dispose();
+    do line2.dispose();
+    do Memory.deAlloc(this);
+    return;
+  }
+
+
+  /** Starts the game, and handles inputs from the user that control
+   *  the lines' movement direction. */
+  method void run() {
+    var char key;
+
+    while (~restart) {
+      // waits for a key to be pressed.
+      while ((key = 0) & (~restart)) {
+          let key = Keyboard.keyPressed();
+          do Sys.wait(50);
+      }
+
+      if (key = 97) {
+        do line1.setDirection('a');
+      } else { if (key = 115) {
+          do line1.setDirection('s');
+      } else { if (key = 119) {
+          do line1.setDirection('w');
+      } else { if (key = 100) {
+          do line1.setDirection('d');
+      } else {
+        null;
+      }
+      }}}
+
+      if (key = 130) {
+        do line2.setDirection('a');
+      } else { if (key = 133) {
+          do line2.setDirection('s');
+      } else { if (key = 131) {
+          do line2.setDirection('w');
+      } else { if (key = 132) {
+          do line2.setDirection('d');
+      } else {
+        null;
+      }}}}
+
+
+      if (key = 140) { //esc
+        let restart = true
+      }
+
+
+
+      // Waits for the key to be released.
+      while ((~(key = 0)) & (~restart)) {
+          let key = Keyboard.keyPressed();
+          do line1.draw();
+          do line2.draw();
+          do Sys.wait(50);
+      }
+    }
+
+    if (restart) {
+      do dispose();
+      var EtchaSketch game;
+      let game = EtchaSketch.new();
+      do game.run();
+    }
+
+    return;
+  }
+}

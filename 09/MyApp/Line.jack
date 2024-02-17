@@ -1,0 +1,51 @@
+class Line {
+
+  field x, y;
+  field length;
+  field direction; //a = left, s = down, w = up, d = right
+
+
+  constructor Line new(int in_x, int in_y, int in_length) {
+    let length = in_length;
+    let x = in_x;
+    let y = in_y;
+    return this;
+  }
+
+  /** Draws the line. */
+  method void draw(char direction) {
+    if (direction == 'a') {
+      do Screen.drawLine(x, y, x - length, y);
+      let x = x - length;
+
+    } else if(direction == 's') {
+      do Screen.drawLine(x, y, x, y + length);
+      let y = y + length;
+
+    } else if(direction == 'w') {
+      do Screen.drawLine(x, y, x, y - length);
+      let y = y - length;
+
+    } else if(direction == 'd') {
+      do Screen.drawLine(x, y, x + length, y);
+      let x = x + length;
+
+    } else {
+      null;
+    }
+
+    return;
+  }
+
+  method void setDirection(char in_direction) {
+    let direction = in_direction;
+    return;
+  }
+
+  /** Deallocates the object's memory. */
+  method void dispose() {
+    do Memory.deAlloc(this);
+    return;
+  }
+
+}
