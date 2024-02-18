@@ -2,7 +2,7 @@ class Line {
 
   field int x, y;
   field int length;
-  field char direction; //a = left, s = down, w = up, d = right
+  field int direction; //1 = left, 2 = down, 3 = up, 4 = right
 
 
   constructor Line new(int in_x, int in_y, int in_length) {
@@ -13,24 +13,25 @@ class Line {
   }
 
   /** Draws the line. */
-  method void draw(char direction) {
+  method void draw(int direction) {
+    do Output.moveCursor(11,27);
+    do Output.printInt(x);
+    do Output.moveCursor(12,27);
+    do Output.printInt(y);
 
-    TODO: set color
-
-
-    if (direction = 1) {
+    if ((direction = 1) & ((x - length) > 0)) {
       do Screen.drawLine(x, y, x - length, y);
       let x = x - length; }
     else {
-      if (direction = 2) {
+      if ((direction = 2) & ((y + length) < 256)) {
         do Screen.drawLine(x, y, x, y + length);
         let y = y + length; }
       else {
-        if (direction = 3) {
+        if ((direction = 3) & ((y - length) > 0)) {
           do Screen.drawLine(x, y, x, y - length);
           let y = y - length; }
         else {
-          if (direction = 4) {
+          if ((direction = 4) & ((x + length) < 512)) {
             do Screen.drawLine(x, y, x + length, y);
             let x = x + length; }
         }
@@ -40,8 +41,12 @@ class Line {
     return;
   }
 
-  method void setDirection(char in_direction) {
+  method void setDirection(int in_direction) {
     let direction = in_direction;
+
+    do Output.moveCursor(10,27);
+	  do Output.printInt(direction);
+
     return;
   }
 
