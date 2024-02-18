@@ -1,8 +1,8 @@
 class Line {
 
-  field x, y;
-  field length;
-  field direction; //a = left, s = down, w = up, d = right
+  field int x, y;
+  field int length;
+  field char direction; //a = left, s = down, w = up, d = right
 
 
   constructor Line new(int in_x, int in_y, int in_length) {
@@ -14,24 +14,27 @@ class Line {
 
   /** Draws the line. */
   method void draw(char direction) {
-    if (direction == 'a') {
+
+    TODO: set color
+
+
+    if (direction = 1) {
       do Screen.drawLine(x, y, x - length, y);
-      let x = x - length;
-
-    } else if(direction == 's') {
-      do Screen.drawLine(x, y, x, y + length);
-      let y = y + length;
-
-    } else if(direction == 'w') {
-      do Screen.drawLine(x, y, x, y - length);
-      let y = y - length;
-
-    } else if(direction == 'd') {
-      do Screen.drawLine(x, y, x + length, y);
-      let x = x + length;
-
-    } else {
-      null;
+      let x = x - length; }
+    else {
+      if (direction = 2) {
+        do Screen.drawLine(x, y, x, y + length);
+        let y = y + length; }
+      else {
+        if (direction = 3) {
+          do Screen.drawLine(x, y, x, y - length);
+          let y = y - length; }
+        else {
+          if (direction = 4) {
+            do Screen.drawLine(x, y, x + length, y);
+            let x = x + length; }
+        }
+      }
     }
 
     return;
@@ -40,6 +43,10 @@ class Line {
   method void setDirection(char in_direction) {
     let direction = in_direction;
     return;
+  }
+
+  method char getDirection() {
+    return direction;
   }
 
   /** Deallocates the object's memory. */

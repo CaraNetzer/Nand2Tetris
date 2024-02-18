@@ -46,33 +46,36 @@ class EtchaSketch {
       }
 
       if (key = 97) {
-        do line1.setDirection('a');
-      } else { if (key = 115) {
-          do line1.setDirection('s');
-      } else { if (key = 119) {
-          do line1.setDirection('w');
-      } else { if (key = 100) {
-          do line1.setDirection('d');
-      } else {
-        null;
+        do line1.setDirection(1); } //'a'
+      else {
+        if (key = 115) {
+          do line1.setDirection(2); } //'s'
+        else {
+          if (key = 119) {
+            do line1.setDirection(3); } //'w'
+          else {
+            if (key = 100) {
+              do line1.setDirection(4); } //'d'
+          }
+        }
       }
-      }}}
 
+/*
       if (key = 130) {
-        do line2.setDirection('a');
+        do line2.setDirection(130); //left arrow
       } else { if (key = 133) {
-          do line2.setDirection('s');
+          do line2.setDirection(133); //down arrow
       } else { if (key = 131) {
-          do line2.setDirection('w');
+          do line2.setDirection(131); //up arrow
       } else { if (key = 132) {
-          do line2.setDirection('d');
+          do line2.setDirection(132); //right arrow
       } else {
         null;
       }}}}
-
+*/
 
       if (key = 140) { //esc
-        let restart = true
+        let restart = true;
       }
 
 
@@ -80,17 +83,16 @@ class EtchaSketch {
       // Waits for the key to be released.
       while ((~(key = 0)) & (~restart)) {
           let key = Keyboard.keyPressed();
-          do line1.draw();
-          do line2.draw();
+          do line1.draw(line1.getDirection());
+          do line2.draw(line2.getDirection());
           do Sys.wait(50);
       }
     }
 
     if (restart) {
       do dispose();
-      var EtchaSketch game;
-      let game = EtchaSketch.new();
-      do game.run();
+      do Output.moveCursor(10,27);
+	    do Output.printString("Press enter to restart");
     }
 
     return;
