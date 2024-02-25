@@ -1,0 +1,177 @@
+class Enemy {
+
+  field int x, y, dx, dy;
+  field int length;
+  field int direction; //1 = left, 2 = down, 3 = up, 4 = right
+  field int randDirectionSeed;
+  field int relativeMemAddress;
+  field boolean outOfBounds;
+  field int memAddress;
+
+  /** Constructs a new Enemy object. */
+  constructor Enemy new(int in_x, int in_y) {
+    let length = 16;
+    let x = in_x;
+    let y = in_y;
+
+    let dx = 10;
+    let dy = 10;
+
+    let randDirectionSeed = Memory.alloc(1);
+    do setDirection(Enemy.modulus(randDirectionSeed, 5));
+
+    return this;
+  }
+
+  /** Deallocates the object's memory. */
+  method void dispose() {
+    do Memory.deAlloc(this);
+    return;
+  }
+
+  /** Shows the enemy. */
+  method void show(int relativeMemAddress) {
+    do Screen.setColor(true);
+    do draw(relativeMemAddress);
+    return;
+  }
+
+  /** Hides the enemy. */
+  method void hide(int relativeMemAddress) {
+    do Screen.setColor(false);
+    do draw(relativeMemAddress);
+    return;
+  }
+
+  /** Sets the direction the enemy is traveling */
+  method void setDirection(int in_direction) {
+    let direction = in_direction;
+
+    return;
+  }
+
+  /** Returns the direction of the enemy object it is called on */
+  method char getDirection() {
+    return direction;
+  }
+
+  method void move() {
+    let outOfBounds = false;
+
+    let relativeMemAddress = (32 * y) + (x / 16);
+    do Screen.setColor(false);
+    do draw(relativeMemAddress);
+
+    if(direction = 1) { //left-down
+      let x = x - dx;
+      let y = y + dy;
+    } else {
+      if(direction = 2) { //down-right
+        let x = x + dx;
+        let y = y + dy;
+      } else {
+        if(direction = 3) { //up-left
+          let x = x - dx;
+          let y = y - dy;
+        } else {
+          if(direction = 4) { //right-up
+            let x = x + dx;
+            let y = y - dy;
+          } else {
+            if(direction = 5) { //
+              let x = x + dx;
+              let y = y - dy;
+            } else {
+              if(direction = 6) { //
+                let x = x + dx;
+                let y = y - dy;
+              } else {
+                if(direction = 7) { //
+                  let x = x + dx;
+                  let y = y - dy;
+                } else {
+                  if(direction = 8) { //
+                    let x = x + dx;
+                    let y = y - dy;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    do Output.moveCursor(2,8);
+    do Output.printInt(x);
+    do Output.moveCursor(3,8);
+    do Output.printInt(y);
+
+    let outOfBounds = checkIfOutOfBounds(x, y);
+    if (~outOfBounds) {
+      do Screen.setColor(true);
+      let relativeMemAddress = (32 * y) + (x / 16);
+      do draw(relativeMemAddress);
+    } else {
+      let randDirectionSeed = Memory.alloc(1);
+      do Output.moveCursor(1,8);
+      do Output.printInt(Enemy.modulus(randDirectionSeed, 5));
+      do setDirection(Enemy.modulus(randDirectionSeed, 5));
+    }
+
+    return;
+  }
+
+  method boolean checkIfOutOfBounds(int x, int y) {
+    var boolean outOfBounds;
+    let outOfBounds = false;
+
+    if (x < 0) {
+      let outOfBounds = true;
+      let direction = 4;
+    }
+
+    if (x + length > 512) {
+      let outOfBounds = true;
+      let direction = 1;
+    }
+
+    if (y < 0) {
+      let outOfBounds = true;
+      let direction = 2;
+    }
+
+    if (y + length > 256) {
+      let outOfBounds = true;
+      let direction = 3;
+    }
+
+    return outOfBounds;
+  }
+
+  method void draw(int location) {
+    let memAddress = 16384+location;
+    do Memory.poke(memAddress+0, 0);
+    do Memory.poke(memAddress+32, 0);
+    do Memory.poke(memAddress+64, 448);
+    do Memory.poke(memAddress+96, 2032);
+    do Memory.poke(memAddress+128, 4088);
+    do Memory.poke(memAddress+160, 8060);
+    do Memory.poke(memAddress+192, 7740);
+    do Memory.poke(memAddress+224, 7196);
+    do Memory.poke(memAddress+256, 7740);
+    do Memory.poke(memAddress+288, 8060);
+    do Memory.poke(memAddress+320, 4088);
+    do Memory.poke(memAddress+352, 2032);
+    do Memory.poke(memAddress+384, 448);
+    do Memory.poke(memAddress+416, 0);
+    do Memory.poke(memAddress+448, 0);
+    do Memory.poke(memAddress+480, 0);
+    return;
+}
+
+  function int modulus(int a, int b) {
+    return a - (b * (a / b));
+  }
+
+}
