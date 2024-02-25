@@ -6,6 +6,7 @@ class EtchaSketch {
   field Line line1;
   field Line line2;
   field boolean restart;
+  field Enemy enemy;
 
   /** Constructs a new EtchaSketch game. */
   constructor EtchaSketch new() {
@@ -18,12 +19,14 @@ class EtchaSketch {
     let LINE_LENGTH = 10;
     let START_X1 = 0;
     let START_Y1 = 0;
-    let START_X2 = 511;
+    let START_X2 = 510;
     let START_Y2 = 0;
 
     let line1 = Line.new(START_X1, START_Y1, LINE_LENGTH);
     let line2 = Line.new(START_X2, START_Y2, LINE_LENGTH);
 
+    //center of screen
+    let enemy = Enemy.new((512/2) - 8, (256/2) - 8);
 
     let restart = false;
 
@@ -49,10 +52,12 @@ class EtchaSketch {
 	  //do Output.printString("EtchaSketch run");
 
     while (~restart) {
+      do enemy.move();
+
       // waits for a key to be pressed.
       while ((key = 0) & (~restart)) {
           let key = Keyboard.keyPressed();
-          do Sys.wait(50);
+          do Sys.wait(25);
       }
 
 
@@ -118,9 +123,24 @@ class EtchaSketch {
     }
 
     if (restart) {
-      do dispose();
-      do Output.moveCursor(10,27);
-	    do Output.printString("Press enter to restart");
+      do Output.moveCursor(10,20);
+	    do Output.printString("Are you sure you want to restart? y/n");
+      while (~(key = 0)) {
+        let key = Keyboard.keyPressed();
+        do Sys.wait(50);
+      }
+      while (key = 0) {
+        let key = Keyboard.keyPressed();
+        do Sys.wait(50);
+      }
+      if (key = 89) { //y
+        do Screen.clearScreen(); }
+      else {
+        let restart = false;
+        do Output.moveCursor(10,27);
+        do run();
+      }
+
     }
 
     return;

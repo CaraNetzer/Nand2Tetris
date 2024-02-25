@@ -5,6 +5,7 @@ class Line {
   field int direction; //1 = left, 2 = down, 3 = up, 4 = right
 
 
+  /** Constructs a new Line object. */
   constructor Line new(int in_x, int in_y, int in_length) {
     let length = in_length;
     let x = in_x;
@@ -14,10 +15,12 @@ class Line {
 
   /** Draws the line. */
   method void draw(int direction) {
-    do Output.moveCursor(11,27);
-    do Output.printInt(x);
-    do Output.moveCursor(12,27);
-    do Output.printInt(y);
+    //do Output.moveCursor(11,27);
+    //do Output.printInt(x);
+    //do Output.moveCursor(12,27);
+    //do Output.printInt(y);
+
+    do Screen.setColor(true);
 
     if ((direction = 1) & ((x - length) > 0)) {
       do Screen.drawLine(x, y, x - length, y);
@@ -41,15 +44,17 @@ class Line {
     return;
   }
 
+  /** Sets the direction of a Line object */
   method void setDirection(int in_direction) {
     let direction = in_direction;
 
-    do Output.moveCursor(10,27);
-	  do Output.printInt(direction);
+    //do Output.moveCursor(10,27);
+	  //do Output.printInt(direction);
 
     return;
   }
 
+  /** Returns the direction of the Line object it is called on */
   method char getDirection() {
     return direction;
   }
