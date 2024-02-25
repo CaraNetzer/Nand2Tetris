@@ -1,11 +1,24 @@
 class Main {
+
   function void main() {
 
-    var EtchaSketch game;
-    let game = EtchaSketch.new();
-    do game.run();
+    var StartMenu game;
+    let game = StartMenu.new();
+    do game.show();
     do game.dispose();
+
+    do Output.moveCursor(12, 22);
+    do Output.printString("END GAME");
+
     return;
+
+
+    /* possible features
+      start and exit
+      slow mode - ctrl, 1 px
+      fast mode - shift, 50 px
+    */
+
 
   }
 }

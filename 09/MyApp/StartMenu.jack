@@ -1,0 +1,53 @@
+class StartMenu {
+
+  field boolean loop;
+  field int key;
+  field EtchaSketch game;
+
+  /** Constructs a new Start menu. */
+  constructor StartMenu new() {
+    return this;
+  }
+
+  /** Deallocates the object's memory. */
+  method void dispose() {
+    //do game.dispose();
+    do Memory.deAlloc(this);
+    return;
+  }
+
+  method void show() {
+    do Screen.setColor(true);
+
+    do Output.moveCursor(12, 22);
+    do Output.printString("Press SPACE to play");
+
+    let loop = true;
+
+    while (loop) {
+
+      // waits for a key to be pressed.
+      while (key = 0) {
+        let key = Keyboard.keyPressed();
+        do Sys.wait(25);
+      }
+
+      if (key = 32) { //SPACE
+        let game = EtchaSketch.new();
+        do game.run();
+        do game.dispose();
+        let loop = false;
+      }
+
+      // Waits for the key to be released.
+      while (~(key = 0)) {
+        let key = Keyboard.keyPressed();
+        do Sys.wait(50);
+      }
+
+    }
+
+    return;
+
+  }
+}
