@@ -57,6 +57,10 @@ class Enemy {
       do refreshFrame(relativeMemAddress);
     }
 
+    //let randDirectionSeed = Memory.alloc(1);
+    //let dx = Enemy.modulus(randDirectionSeed, 5);
+    //let dy = Enemy.modulus(randDirectionSeed, 5);
+
     if(direction = 1) { //down-left
       let x = x - dx;
       let y = y + dy;
@@ -181,6 +185,13 @@ class Enemy {
   }
 
   function int modulus(int a, int b) {
+    //var int mod;
+
+    //let mod = a - (b * (a / b));
+    //if (mod = 0) {
+    //  let mod = 1;
+    //}
+
     return a - (b * (a / b));
   }
 
