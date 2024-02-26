@@ -1,22 +1,28 @@
 class Enemy {
 
   field int x, y, dx, dy;
+  field int startingX, startingY;
   field int length;
   field int direction;
+  field in slope;
   field int randDirectionSeed;
   field int relativeMemAddress;
   field boolean outOfBounds;
   field int memAddress;
-  field int wall; //1 = top, 2 = right, 3 = bottom, 4 = left
 
   /** Constructs a new Enemy object. */
-  constructor Enemy new(int in_x, int in_y) {
+  constructor Enemy new() {
     let length = 16;
-    let x = in_x;
-    let y = in_y;
 
-    let dx = 10;
-    let dy = 10;
+    let randDirectionSeed = Memory.alloc(1);
+    let startingX = Enemy.modulus(randDirectionSeed, 512);
+    let startingY = Enemy.modulus(randDirectionSeed, 256);
+
+    let x = startingX;
+    let y = startingY;
+
+    let dx = 4;
+    let dy = 4;
 
     let randDirectionSeed = Memory.alloc(1);
     do setDirection(Enemy.modulus(randDirectionSeed, 5));
@@ -27,20 +33,6 @@ class Enemy {
   /** Deallocates the object's memory. */
   method void dispose() {
     do Memory.deAlloc(this);
-    return;
-  }
-
-  /** Shows the enemy. */
-  method void show(int relativeMemAddress) {
-    do Screen.setColor(true);
-    do draw(relativeMemAddress);
-    return;
-  }
-
-  /** Hides the enemy. */
-  method void hide(int relativeMemAddress) {
-    do Screen.setColor(false);
-    do refreshFrame(relativeMemAddress);
     return;
   }
 
@@ -62,7 +54,7 @@ class Enemy {
     let relativeMemAddress = (32 * y) + (x / 16);
     let outOfBounds = checkIfOutOfBounds(x, y);
     if (~outOfBounds) {
-      do hide(relativeMemAddress);
+      do refreshFrame(relativeMemAddress);
     }
 
     if(direction = 1) { //down-left
@@ -85,36 +77,11 @@ class Enemy {
       }
     }
 
-    do Output.moveCursor(2,8);
-    do Output.printInt(x);
-    do Output.moveCursor(3,8);
-    do Output.printInt(y);
-
     let outOfBounds = checkIfOutOfBounds(x, y);
     if (~outOfBounds) {
       do Screen.setColor(true);
       let relativeMemAddress = (32 * y) + (x / 16);
-      do show(relativeMemAddress);
-    } else {
-      let randDirectionSeed = Memory.alloc(1);
-      do Output.moveCursor(1,8);
-      do Output.printInt(Enemy.modulus(randDirectionSeed, 9));
-
-      /*if(direction = 1) { //down-left
-        do setDirection(3); //up-right
-      } else {
-        if(direction = 2) { //down-right
-          do setDirection(4); //up-left
-        } else {
-          if(direction = 3) { //up-right
-            do setDirection(1); //down-left
-          } else {
-            if(direction = 4) { //up-left
-              do setDirection(2); //down-right
-            }
-          }
-        }
-      }*/
+      do draw(relativeMemAddress);
     }
 
     return;
@@ -211,10 +178,30 @@ class Enemy {
     do Memory.poke(memAddress+448, 0);
     do Memory.poke(memAddress+480, 0);
     return;
-}
+  }
 
   function int modulus(int a, int b) {
     return a - (b * (a / b));
+  }
+
+  method boolean collide(Line line) {
+    //first, check to see if the left edge of either is farther to the right
+    //than the right edge of the other
+    var boolean collision;
+
+
+    if ((x > line.getX() + line.getLength()) | (line.getX() > x + length)) {
+      let collision = false;
+    }
+
+    //then check to see if the bottom edge of either is higher than the top
+    //edge of the other
+    if ((y > (line.getY() + line.getLength())) | (line.getY() > (y + length))) {
+      return false;
+    }
+
+    //if the above aren't true, they're overlapping
+    return true;
   }
 
 }

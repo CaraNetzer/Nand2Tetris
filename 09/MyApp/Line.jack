@@ -59,6 +59,16 @@ class Line {
     return direction;
   }
 
+  method int getX() {
+    return x;
+  }
+  method int getY() {
+    return y;
+  }
+  method int getLength() {
+    return length;
+  }
+
   /** Deallocates the object's memory. */
   method void dispose() {
     do Memory.deAlloc(this);

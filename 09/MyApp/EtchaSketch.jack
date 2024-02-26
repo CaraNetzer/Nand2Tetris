@@ -7,6 +7,7 @@ class EtchaSketch {
   field Line line2;
   field boolean restart;
   field Enemy enemy;
+  field boolean collision1, collision2;
 
   /** Constructs a new EtchaSketch game. */
   constructor EtchaSketch new() {
@@ -25,8 +26,7 @@ class EtchaSketch {
     let line1 = Line.new(START_X1, START_Y1, LINE_LENGTH);
     let line2 = Line.new(START_X2, START_Y2, LINE_LENGTH);
 
-    //center of screen
-    let enemy = Enemy.new((512/2) - 8, (256/2) - 8);
+    let enemy = Enemy.new();
 
     let restart = false;
 
@@ -52,11 +52,17 @@ class EtchaSketch {
 	  //do Output.printString("EtchaSketch run");
 
     while (~restart) {
-      do enemy.move();
 
       // waits for a key to be pressed.
       while ((key = 0) & (~restart)) {
           let key = Keyboard.keyPressed();
+
+          /*let collision1 = enemy.collide(line1);
+          let collision2 = enemy.collide(line2);
+          if((~collision1) & (~collision2)) {
+          }*/
+            do enemy.move();
+
           do Sys.wait(25);
       }
 
@@ -111,6 +117,14 @@ class EtchaSketch {
       while ((~(key = 0)) & (~restart)) {
         let key = Keyboard.keyPressed();
 
+
+        /*let collision1 = enemy.collide(line1);
+        let collision2 = enemy.collide(line2);
+        if((~collision1) & (~collision2)) {
+        }*/
+        do enemy.move();
+
+
         if (line = 1) {
           do line1.draw(line1.getDirection());
         }
@@ -123,8 +137,8 @@ class EtchaSketch {
     }
 
     if (restart) {
-      do Output.moveCursor(10,20);
-	    do Output.printString("Are you sure you want to restart? y/n");
+      do Output.moveCursor(10,13);
+	    do Output.printString("Are you sure you want to quit? y/n");
       while (~(key = 0)) {
         let key = Keyboard.keyPressed();
         do Sys.wait(50);
