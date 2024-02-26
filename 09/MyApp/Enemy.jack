@@ -7,6 +7,7 @@ class Enemy {
   field int relativeMemAddress;
   field boolean outOfBounds;
   field int memAddress;
+  field int wall; //1 = top, 2 = right, 3 = bottom, 4 = left
 
   /** Constructs a new Enemy object. */
   constructor Enemy new(int in_x, int in_y) {
@@ -99,7 +100,7 @@ class Enemy {
       do Output.moveCursor(1,8);
       do Output.printInt(Enemy.modulus(randDirectionSeed, 9));
 
-      if(direction = 1) { //down-left
+      /*if(direction = 1) { //down-left
         do setDirection(3); //up-right
       } else {
         if(direction = 2) { //down-right
@@ -113,7 +114,7 @@ class Enemy {
             }
           }
         }
-      }
+      }*/
     }
 
     return;
@@ -125,22 +126,46 @@ class Enemy {
 
     if (x < 0) {
       let outOfBounds = true;
-      let direction = 4;
+      if(direction = 1) { //down-left
+        do setDirection(2); //down-right
+      } else {
+        if(direction = 4) { //up-left
+          do setDirection(3); //up-right
+        }
+      }
     }
 
     if (x + length > 512) {
       let outOfBounds = true;
-      let direction = 1;
+      if(direction = 2) { //down-right
+        do setDirection(1); //down-left
+      } else {
+        if(direction = 3) { //up-right
+          do setDirection(4); //up-left
+        }
+      }
     }
 
     if (y < 0) {
       let outOfBounds = true;
-      let direction = 2;
+      if(direction = 3) { //up-right
+        do setDirection(2); //down-right
+      } else {
+        if(direction = 4) { //up-left
+          do setDirection(1); //down-left
+        }
+      }
     }
 
     if (y + length > 256) {
       let outOfBounds = true;
-      let direction = 3;
+      if(direction = 2) { //down-right
+        do setDirection(3); //up-right
+      } else {
+        if(direction = 1) { //down-left
+          do setDirection(4); //up-left
+        }
+      }
     }
 
     return outOfBounds;
@@ -166,6 +191,7 @@ class Enemy {
     do Memory.poke(memAddress+480, 0);
     return;
   }
+
   method void draw(int location) {
     let memAddress = 16384+location;
     do Memory.poke(memAddress+0, 0);
