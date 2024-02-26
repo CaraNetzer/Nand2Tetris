@@ -2,7 +2,7 @@ class Enemy {
 
   field int x, y, dx, dy;
   field int length;
-  field int direction; //1 = left, 2 = down, 3 = up, 4 = right
+  field int direction;
   field int randDirectionSeed;
   field int relativeMemAddress;
   field boolean outOfBounds;
@@ -39,7 +39,7 @@ class Enemy {
   /** Hides the enemy. */
   method void hide(int relativeMemAddress) {
     do Screen.setColor(false);
-    do draw(relativeMemAddress);
+    do refreshFrame(relativeMemAddress);
     return;
   }
 
@@ -59,44 +59,26 @@ class Enemy {
     let outOfBounds = false;
 
     let relativeMemAddress = (32 * y) + (x / 16);
-    do Screen.setColor(false);
-    do draw(relativeMemAddress);
+    let outOfBounds = checkIfOutOfBounds(x, y);
+    if (~outOfBounds) {
+      do hide(relativeMemAddress);
+    }
 
-    if(direction = 1) { //left-down
+    if(direction = 1) { //down-left
       let x = x - dx;
       let y = y + dy;
     } else {
       if(direction = 2) { //down-right
-        let x = x + dx;
-        let y = y + dy;
+          let x = x + dx;
+          let y = y + dy;
       } else {
-        if(direction = 3) { //up-left
-          let x = x - dx;
-          let y = y - dy;
-        } else {
-          if(direction = 4) { //right-up
+        if(direction = 3) { //up-right
             let x = x + dx;
             let y = y - dy;
-          } else {
-            if(direction = 5) { //
-              let x = x + dx;
+        } else {
+          if(direction = 4) { //up-left
+              let x = x - dx;
               let y = y - dy;
-            } else {
-              if(direction = 6) { //
-                let x = x + dx;
-                let y = y - dy;
-              } else {
-                if(direction = 7) { //
-                  let x = x + dx;
-                  let y = y - dy;
-                } else {
-                  if(direction = 8) { //
-                    let x = x + dx;
-                    let y = y - dy;
-                  }
-                }
-              }
-            }
           }
         }
       }
@@ -111,12 +93,27 @@ class Enemy {
     if (~outOfBounds) {
       do Screen.setColor(true);
       let relativeMemAddress = (32 * y) + (x / 16);
-      do draw(relativeMemAddress);
+      do show(relativeMemAddress);
     } else {
       let randDirectionSeed = Memory.alloc(1);
       do Output.moveCursor(1,8);
-      do Output.printInt(Enemy.modulus(randDirectionSeed, 5));
-      do setDirection(Enemy.modulus(randDirectionSeed, 5));
+      do Output.printInt(Enemy.modulus(randDirectionSeed, 9));
+
+      if(direction = 1) { //down-left
+        do setDirection(3); //up-right
+      } else {
+        if(direction = 2) { //down-right
+          do setDirection(4); //up-left
+        } else {
+          if(direction = 3) { //up-right
+            do setDirection(1); //down-left
+          } else {
+            if(direction = 4) { //up-left
+              do setDirection(2); //down-right
+            }
+          }
+        }
+      }
     }
 
     return;
@@ -149,6 +146,26 @@ class Enemy {
     return outOfBounds;
   }
 
+  method void refreshFrame(int location) {
+    let memAddress = 16384+location;
+    do Memory.poke(memAddress+0, 0);
+    do Memory.poke(memAddress+32, 0);
+    do Memory.poke(memAddress+64, 0);
+    do Memory.poke(memAddress+96, 0);
+    do Memory.poke(memAddress+128, 0);
+    do Memory.poke(memAddress+160, 0);
+    do Memory.poke(memAddress+192, 0);
+    do Memory.poke(memAddress+224, 0);
+    do Memory.poke(memAddress+256, 0);
+    do Memory.poke(memAddress+288, 0);
+    do Memory.poke(memAddress+320, 0);
+    do Memory.poke(memAddress+352, 0);
+    do Memory.poke(memAddress+384, 0);
+    do Memory.poke(memAddress+416, 0);
+    do Memory.poke(memAddress+448, 0);
+    do Memory.poke(memAddress+480, 0);
+    return;
+  }
   method void draw(int location) {
     let memAddress = 16384+location;
     do Memory.poke(memAddress+0, 0);

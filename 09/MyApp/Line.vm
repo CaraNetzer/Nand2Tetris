@@ -1,0 +1,147 @@
+function Line.new 0
+push constant 4
+call Memory.alloc 1
+pop pointer 0
+push argument 2
+pop this 2
+push argument 0
+pop this 0
+push argument 1
+pop this 1
+push pointer 0
+return
+function Line.draw 0
+push argument 0
+pop pointer 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 1
+push constant 1
+eq
+push this 0
+push this 2
+sub
+push constant 0
+gt
+and
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+push this 1
+push this 0
+push this 2
+sub
+push this 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push this 2
+sub
+pop this 0
+goto IF_END0
+label IF_FALSE0
+push argument 1
+push constant 2
+eq
+push this 1
+push this 2
+add
+push constant 256
+lt
+and
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push this 0
+push this 1
+push this 0
+push this 1
+push this 2
+add
+call Screen.drawLine 4
+pop temp 0
+push this 1
+push this 2
+add
+pop this 1
+goto IF_END1
+label IF_FALSE1
+push argument 1
+push constant 3
+eq
+push this 1
+push this 2
+sub
+push constant 0
+gt
+and
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push this 0
+push this 1
+push this 0
+push this 1
+push this 2
+sub
+call Screen.drawLine 4
+pop temp 0
+push this 1
+push this 2
+sub
+pop this 1
+goto IF_END2
+label IF_FALSE2
+push argument 1
+push constant 4
+eq
+push this 0
+push this 2
+add
+push constant 512
+lt
+and
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 0
+push this 1
+push this 0
+push this 2
+add
+push this 1
+call Screen.drawLine 4
+pop temp 0
+push this 0
+push this 2
+add
+pop this 0
+label IF_FALSE3
+label IF_END2
+label IF_END1
+label IF_END0
+push constant 0
+return
+function Line.setDirection 0
+push argument 0
+pop pointer 0
+push argument 1
+pop this 3
+push constant 0
+return
+function Line.getDirection 0
+push argument 0
+pop pointer 0
+push this 3
+return
+function Line.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
