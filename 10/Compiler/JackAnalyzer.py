@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import JackTokenizer
 import CompilationEngine
 
@@ -22,7 +23,28 @@ def process_file(in_file_name, in_dirname):
     out_file_name = in_file_name[0: -4] + "xml"
     out_file_path = os.path.join(in_dirname, out_file_name)
 
-    tokenizer = JackTokenizer.JackTokenizer(in_file_name, out_file_path)
-    # execute()
+    tokenizer = JackTokenizer.JackTokenizer(os.path.join(in_dirname, in_file_name), out_file_path)
+    execute(tokenizer)
+
+
+def execute(tokenizer):
+    tokens = []
+    current_token = ""
+    
+    for line in tokenizer.in_file:
+        if not line.startswith("//"):
+            line = re.split("//", line)[0].strip()
+            for character in line:
+                if not re.match("[\s+|\W]", character):
+                    current_token += character
+                elif re.match("[\W]", character):
+                    current_token += character
+                    tokens.append(current_token)
+                    current_token = ""
+                else:
+                    tokens.append(current_token)
+                    current_token = ""
+                
+    print(tokens)
 
 main()
