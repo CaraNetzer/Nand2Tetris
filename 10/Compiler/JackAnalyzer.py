@@ -38,8 +38,19 @@ def append_tokens(words, token_list):
 def execute(tokenizer):
     tokens = []
     current_token = ""
+    block_comment = False
 
     for line in tokenizer.in_file:
+        if block_comment:
+            if line.__contains__("*/"):
+                block_comment = False
+            continue
+        if line.strip().startswith("/*"):
+            block_comment = True
+            if line.__contains__("*/"):
+                block_comment = False
+            continue
+
         if not line.startswith("//"):
             line = re.split("(/\*)|(//)", line)[0].strip()
             if line.__contains__("\""):
