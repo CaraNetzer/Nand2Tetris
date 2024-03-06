@@ -5,7 +5,7 @@ import JackTokenizer
 import CompilationEngine
 
 def main():
-    in_file_path = sys.argv[1:][0]
+    in_file_path = sys.argv[1]
 
     if os.path.isdir(in_file_path):
         files = os.listdir(in_file_path)
@@ -30,5 +30,4 @@ def process_file(in_file_name, in_dirname):
 
 
 
-            
 main()

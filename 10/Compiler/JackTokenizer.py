@@ -3,6 +3,7 @@ import re
 class JackTokenizer:
     current_token = ""
     tagged_tokens = []
+    current_index = 0
 
     keywords = [
         "class", "constructor", "function", "method", "field", "static", "var", "int",
@@ -18,10 +19,14 @@ class JackTokenizer:
         self.in_file = open(in_file_path, "rt")
         self.out_file = open(out_file_path, "at", buffering = 1024)
 
-    
+
     def advance(self):
-        current_index = self.tagged_tokens.index(self.current_token)
-        self.current_token = self.tagged_tokens[current_index + 1]
+        self.current_index += 1
+        self.current_token = self.tagged_tokens[self.current_index]
+
+
+    def current_token(self):
+        return self.current_token
 
 
     def token_type(self):
@@ -51,14 +56,14 @@ class JackTokenizer:
         keyword = self.current_token.split(" ")[1]
         print(self.keywords.__getitem__(self.keywords.index(keyword)).upper())
         return self.keywords.__getitem__(self.keywords.index(keyword)).upper()
-    
-    
+
+
     def symbol(self):
         symbol = self.current_token.split(" ")[1]
         print(self.symbols.__getitem__(self.symbols.index(symbol)).upper())
         return self.symbols.__getitem__(self.symbols.index(symbol)).upper()
-        
-    
+
+
     def append_tokens(words, token_list):
         for word in words:
             tokens_and_words = re.split("(\W)", word)
@@ -72,6 +77,8 @@ class JackTokenizer:
         block_comment = False
 
         for line in self.in_file:
+
+            # skip block comments
             if block_comment:
                 if line.__contains__("*/"):
                     block_comment = False
@@ -82,6 +89,7 @@ class JackTokenizer:
                     block_comment = False
                 continue
 
+            # all other lines
             if not line.startswith("//"):
                 line = re.split("(/\*)|(//)", line)[0].strip()
                 if line.__contains__("\""):
@@ -109,3 +117,7 @@ class JackTokenizer:
                 self.tagged_tokens.append(f"<stringConstant> {self.current_token} </stringConstant>")
 
             # self.out_file.write(f"<stringConstant> {self.current_token} </stringConstant>\n")
+
+# TO-DO ideas:
+# token class
+# symbol stack
