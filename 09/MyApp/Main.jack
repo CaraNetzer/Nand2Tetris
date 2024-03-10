@@ -12,13 +12,5 @@ class Main {
 
     return;
 
-
-    /* possible features
-      start and exit
-      slow mode - ctrl, 1 px
-      fast mode - shift, 50 px
-    */
-
-
   }
 }

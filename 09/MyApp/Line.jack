@@ -47,10 +47,6 @@ class Line {
   /** Sets the direction of a Line object */
   method void setDirection(int in_direction) {
     let direction = in_direction;
-
-    //do Output.moveCursor(10,27);
-	  //do Output.printInt(direction);
-
     return;
   }
 

@@ -48,9 +48,6 @@ class EtchaSketch {
     var char key;
     var int line;
 
-    //do Output.moveCursor(20,27);
-	  //do Output.printString("EtchaSketch run");
-
     while (~restart) {
 
       // waits for a key to be pressed.
