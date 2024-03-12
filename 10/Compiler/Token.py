@@ -27,11 +27,11 @@ class Token:
         return "keyword"
     elif token in self.symbols:
         return "symbol"
-    elif re.match("\d", token):
+    elif re.match("\\d", token):
         return "integerConstant"
     elif token.__contains__(" "):
         return "stringConstant"
-    else:
+    elif not token[0].isdigit():
         return "identifier"
 
 

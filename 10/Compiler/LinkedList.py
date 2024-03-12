@@ -34,9 +34,23 @@ class LinkedList:
     self.count -= 1
 
 
+  def match(self, token):
+    return self.head.val.get_data() == token.get_data()
+
+
   def get_count(self):
     return self.count
 
 
   def is_empty(self):
     return self.head == None
+
+
+  def __str__(self):
+    token = self.head
+    str_list = str(token.get_data())
+    while token.get_next():
+      token = token.get_next()
+      str_list += "\n" + str(token.get_data())
+
+    return str_list

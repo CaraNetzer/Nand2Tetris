@@ -27,21 +27,23 @@ class JackTokenizer:
         self.current_token = self.tagged_tokens[self.current_index]
 
 
-    def get_current_token(self):
+    def get_current_token_str(self):
         return str(self.current_token)
 
+    def get_current_token(self):
+        return self.current_token
 
-    def token_type(self):
-        if str(self.current_token) in self.keywords:
-            return "KEYWORD"
-        elif str(self.current_token) in self.symbols:
-            return "SYMBOL"
-        elif re.match("\\d", str(self.current_token)):
-            return "INT_CONST"
-        elif self.current_token.get_token().__contains__(" "):
-            return "STRING_CONST"
-        else:
-            return "IDENTIFIER"
+    # def token_type(self):
+    #     if str(self.current_token) in self.keywords:
+    #         return "KEYWORD"
+    #     elif str(self.current_token) in self.symbols:
+    #         return "SYMBOL"
+    #     elif re.match("\\d", str(self.current_token)):
+    #         return "INT_CONST"
+    #     elif self.current_token.get_token().__contains__(" "):
+    #         return "STRING_CONST"
+    #     else:
+    #         return "IDENTIFIER"
 
     def convert_symbol(self):
         if self.current_token == '<':
