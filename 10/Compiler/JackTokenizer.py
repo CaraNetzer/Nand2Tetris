@@ -23,8 +23,8 @@ class JackTokenizer:
 
 
     def advance(self):
-        self.current_index += 1
         self.current_token = self.tagged_tokens[self.current_index]
+        self.current_index += 1
 
 
     def get_current_token_str(self):

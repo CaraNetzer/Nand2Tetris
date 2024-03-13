@@ -1,8 +1,9 @@
 import re
 
+var_types = { "int", "char", "boolean" }
+
 class Token:
 
-  var_types = { "int", "char", "boolean" }
 
   keywords = {
       "class", "constructor", "function", "method", "field", "static", "var", "void",
@@ -37,4 +38,4 @@ class Token:
 
 
   def __str__(self):
-     return f"<{self.type}>{self.token}</{self.type}>"
+     return f"<{self.type}> {self.token} </{self.type}>"

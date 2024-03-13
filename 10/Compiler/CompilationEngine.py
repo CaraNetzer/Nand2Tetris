@@ -12,52 +12,49 @@ class CompilationEngine:
         self.tokenizer = in_tokenizer
         self.out_file = open(out_file, "at", buffering = 1024)
 
-    def stack_push(self, token):
-        self.stack.insert(token)
+    def inc_indent(self):
         self.level = self.level + 1
         self.indent = self.tab * self.level
-        print(str(self.stack))
 
-    def stack_pop(self):
-        self.stack.pop()
+    def dec_indent(self):
         self.level = self.level - 1
         self.indent = self.tab * self.level
-        print(str(self.stack))
 
     def emit(self):
+        print((f"\n{self.indent}{self.tokenizer.get_current_token_str()}"))
         self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
         self.tokenizer.advance()
 
-    def check_token(self, match):
-        if self.tokenizer.get_current_token().get_token() == match:
-            self.emit()
+    def eat(self, item, match):
+        print("eat: " + match)
+        if item == "token":
+            if self.tokenizer.get_current_token().get_token() == match:
+                self.emit()
+            else:
+                self.syntax_error(1)
+        elif item == "type":
+            if self.tokenizer.get_current_token().get_type() == match:
+                self.emit()
+            else:
+                self.syntax_error(2)
 
-    def check_type(self, match):
-        if self.tokenizer.get_current_token().get_type() == match:
-            self.emit()
 
     def compileClass(self):
         # 'class' className '{' classVarDec* subroutineDec* '}'
         self.out_file.write("<class>")
-        self.level = self.level + 1
+        self.inc_indent()
+        self.tokenizer.advance()
 
-        self.indent = self.tab * self.level
         # 'class'
-        if self.tokenizer.tagged_tokens[0].get_token() == "class":
-            self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-            self.tokenizer.advance()
-        else:
-            return False
+        # print(self.tokenizer.tagged_tokens[0].get_token())
+        self.eat("token", "class")
 
         # className
-        self.check_type("identifier")
+        self.eat("type", "identifier")
 
         # '{'
-        # self.check_token("{")
-        if self.tokenizer.get_current_token().get_token() == "{":
-            self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-            self.stack_push(self.tokenizer.get_current_token())
-            self.tokenizer.advance()
+        self.eat("token", "{")
+        self.inc_indent()
 
         # classVarDec*
         while self.compileClassVarDec():
@@ -68,28 +65,25 @@ class CompilationEngine:
             pass
 
         # '}'
-        if self.tokenizer.get_current_token().get_token() == "}":
-            self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-            if self.stack.match(self.tokenizer.get_current_token()):
-                self.stack_pop()
-            else:
-                self.stack_push(self.tokenizer.get_current_token().get_token())
-                self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                self.tokenizer.advance()
+        self.eat("token", "}")
+        self.dec_indent()
 
-            # if token = is the pair of whats already on the stack
-                # stack.pop
-                # level--
-                # self.indent = self.tab * self.level
-            # else
-                # self.stack.insert(self.tokenizer.get_current_token().get_token())
-                # level++
-                # self.indent = self.tab * self.level
-            self.tokenizer.advance()
+
+    def check_for_one_or_more_identifiers(self):
+        if self.tokenizer.get_current_token().get_token() == ",":
+            self.emit()
+        else:
+            return False
+
+        if self.tokenizer.get_current_token().get_type() == "identifier":
+            self.emit()
+            return True
+        else:
+            self.syntax_error(3)
 
 
     def compileClassVarDec(self):
-        # ('static' | 'field') type varName (',' varName)* '}'
+        # ('static' | 'field') type varName (',' varName)* ';'
 
         # ('static' | 'field')
         if self.tokenizer.get_current_token().get_type() == "keyword":
@@ -107,57 +101,24 @@ class CompilationEngine:
                     self.tokenizer.advance()
 
                 # varName
-                if self.tokenizer.get_current_token().get_type() == "identifier":
-                    self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                    self.tokenizer.advance()
+                self.eat("type", "identifier")
 
                 #(',' varName)*
-                while self.tokenizer.get_current_token().get_token() != ";":
-                    if self.tokenizer.get_current_token().get_type() == "symbol":
-                        if self.tokenizer. get_current_token().get_token() == ",":
-                            # if self.stack.match(self.tokenizer.get_current_token()):
-                            #     self.stack_pop()
-                            # else:
-                            #     self.stack_push(self.tokenizer.get_current_token().get_token())
-                                self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                                self.tokenizer.advance()
-
-                                if self.tokenizer.get_current_token().token_type() == "identifier":
-                                    self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                                    self.tokenizer.advance()
-                                else:
-                                    # TODO implement syntax_error
-                                    self.syntax_error("expected an identifier")
-
-                """
-                def additional_identifiers(self):
-                    if token is ,
-                        emit comma
-                    else
-                        return false
-                    if identifier
-                        emit identifer
-                        return true
-                    else
-                        syntax_error
-
-                while additional_identifiers:
+                while self.check_for_one_or_more_identifiers():
                     pass
 
-                if next_token is ;
-                    emit
-                else
-                    syntax_error
-                """
+                # ';'
+                if self.tokenizer.get_current_token().get_token() == ";":
+                    self.emit()
+                else:
+                    self.syntax_error(4)
 
-                # at this point token must be ;
-                self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                self.tokenizer.advance()
             else:
                 return False
 
 
     def compileSubroutine(self):
+        print("compileSubroutine\n")
         self.tokenizer.advance()
         return ""
 
@@ -183,3 +144,7 @@ class CompilationEngine:
         self.tokenizer.advance()
 
         self.out_file.write("</term>")
+
+
+    def syntax_error(self, place):
+        print("syntax error: " + str(place))
