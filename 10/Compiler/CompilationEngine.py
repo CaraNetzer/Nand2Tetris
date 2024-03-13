@@ -24,30 +24,50 @@ class CompilationEngine:
         self.indent = self.tab * self.level
         print(str(self.stack))
 
+    def emit(self):
+        self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
+        self.tokenizer.advance()
+
+    def check_token(self, match):
+        if self.tokenizer.get_current_token().get_token() == match:
+            self.emit()
+
+    def check_type(self, match):
+        if self.tokenizer.get_current_token().get_type() == match:
+            self.emit()
+
     def compileClass(self):
+        # 'class' className '{' classVarDec* subroutineDec* '}'
         self.out_file.write("<class>")
         self.level = self.level + 1
 
         self.indent = self.tab * self.level
+        # 'class'
         if self.tokenizer.tagged_tokens[0].get_token() == "class":
             self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
             self.tokenizer.advance()
+        else:
+            return False
 
-        if self.tokenizer.get_current_token().get_type() == "identifier":
-            self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-            self.tokenizer.advance()
+        # className
+        self.check_type("identifier")
 
+        # '{'
+        # self.check_token("{")
         if self.tokenizer.get_current_token().get_token() == "{":
             self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
             self.stack_push(self.tokenizer.get_current_token())
             self.tokenizer.advance()
 
-        # while not self.stack.is_empty():
-            self.compileClassVarDec()
-        # while not self.stack.is_empty():
-            self.compileSubroutine()
-        print(str(self.stack))
+        # classVarDec*
+        while self.compileClassVarDec():
+            pass
 
+        # subroutineDec*
+        while self.compileSubroutine():
+            pass
+
+        # '}'
         if self.tokenizer.get_current_token().get_token() == "}":
             self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
             if self.stack.match(self.tokenizer.get_current_token()):
@@ -79,10 +99,8 @@ class CompilationEngine:
                 self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
                 self.tokenizer.advance()
 
-                # type
-                if (self.tokenizer.get_current_token().get_token() == "int" or
-                    self.tokenizer.get_current_token().get_token() == "char" or
-                    self.tokenizer. get_current_token().get_token() == "boolean"
+                # type { 'int' | 'char' | 'boolean' | varName }
+                if (self.tokenizer.get_current_token().get_token() in Token.var_types
                     or self.tokenizer.get_current_token().get_type() == "identifier"):
 
                     self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
@@ -97,20 +115,46 @@ class CompilationEngine:
                 while self.tokenizer.get_current_token().get_token() != ";":
                     if self.tokenizer.get_current_token().get_type() == "symbol":
                         if self.tokenizer. get_current_token().get_token() == ",":
-                            if self.stack.match(self.tokenizer.get_current_token()):
-                                self.stack_pop()
-                            else:
-                                self.stack_push(self.tokenizer.get_current_token().get_token())
+                            # if self.stack.match(self.tokenizer.get_current_token()):
+                            #     self.stack_pop()
+                            # else:
+                            #     self.stack_push(self.tokenizer.get_current_token().get_token())
                                 self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
                                 self.tokenizer.advance()
 
                                 if self.tokenizer.get_current_token().token_type() == "identifier":
                                     self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
                                     self.tokenizer.advance()
+                                else:
+                                    # TODO implement syntax_error
+                                    self.syntax_error("expected an identifier")
+
+                """
+                def additional_identifiers(self):
+                    if token is ,
+                        emit comma
+                    else
+                        return false
+                    if identifier
+                        emit identifer
+                        return true
+                    else
+                        syntax_error
+
+                while additional_identifiers:
+                    pass
+
+                if next_token is ;
+                    emit
+                else
+                    syntax_error
+                """
 
                 # at this point token must be ;
                 self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
                 self.tokenizer.advance()
+            else:
+                return False
 
 
     def compileSubroutine(self):
