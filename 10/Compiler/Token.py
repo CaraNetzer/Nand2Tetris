@@ -1,14 +1,15 @@
 import re
 
 var_types = { "int", "char", "boolean" }
+function_types = { "function", "constructor", "method" }
 
 class Token:
 
 
   keywords = {
-      "class", "constructor", "function", "method", "field", "static", "var", "void",
+      "class", "field", "static", "var", "void",
       "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"
-  }.union(var_types)
+  }.union(var_types).union(function_types)
 
   symbols = [
       '{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~'

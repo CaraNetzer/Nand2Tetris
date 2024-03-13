@@ -67,6 +67,7 @@ class CompilationEngine:
         # '}'
         self.eat("token", "}")
         self.dec_indent()
+        self.out_file.write(f"\n{self.indent}</class>")
 
 
     def check_for_one_or_more_identifiers(self):
@@ -90,15 +91,13 @@ class CompilationEngine:
             if (self.tokenizer.get_current_token().get_token() == "static" or
                self.tokenizer.get_current_token().get_token() == "field"):
 
-                self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                self.tokenizer.advance()
+                self.emit()
 
                 # type { 'int' | 'char' | 'boolean' | varName }
                 if (self.tokenizer.get_current_token().get_token() in Token.var_types
                     or self.tokenizer.get_current_token().get_type() == "identifier"):
 
-                    self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-                    self.tokenizer.advance()
+                    self.emit()
 
                 # varName
                 self.eat("type", "identifier")
@@ -108,43 +107,169 @@ class CompilationEngine:
                     pass
 
                 # ';'
-                if self.tokenizer.get_current_token().get_token() == ";":
-                    self.emit()
-                else:
-                    self.syntax_error(4)
+                self.eat("token", ";")
 
             else:
                 return False
 
 
     def compileSubroutine(self):
-        print("compileSubroutine\n")
-        self.tokenizer.advance()
+        # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' '{' varDec* statements '}'
+        
+        # ('constructor' | 'function' | 'method')
+        if self.tokenizer.get_current_token().get_token() in Token.function_types:
+            self.out_file.write(f"\n{self.indent}<subroutineDec>")
+            self.inc_indent()
+
+            self.emit()
+
+            # ('void' | type)
+            if (self.tokenizer.get_current_token().get_token() in Token.var_types
+                or self.tokenizer.get_current_token().get_token() == "void"):
+
+                self.emit()
+        
+                # subroutineName
+                self.eat("type", "identifier")
+
+                # '('
+                self.eat("token", "(")
+                
+                # parameterList
+                while self.compileParameterList():
+                    pass
+
+                # ')'
+                self.eat("token", ")")
+
+                # subroutineBody = '{' varDec* statements '}'
+                # '{'
+                self.eat("token", "{")
+
+                # varDec*
+                while self.compileVarDec():
+                    print('vardec loop')
+                    pass
+
+                # statements
+                while self.compileStatements():
+                    pass
+
+                # '}'
+                self.eat("token", "}")
+
+            else:
+                self.syntax_error(6)
+        
+            self.dec_indent()
+            self.out_file.write(f"\n{self.indent}</subroutineDec>")
+        else:
+            return False
+        
+
+    def compileParameterList(self):
+        # ((type varName) (',' varName)*)?
+
+        # type
+        if (self.tokenizer.get_current_token().get_token() in Token.var_types
+            or self.tokenizer.get_current_token().get_type() == "identifier"):
+            self.emit()
+
+            # varname
+            self.eat("type", "identifier")
+
+            # (',' varName)*
+            while self.check_for_one_or_more_identifiers():
+                pass
+        else:
+            return False
+
+    
+    def compileVarDec(self):
+        # 'var' type varName (',' varName)* ';'
+
+        # 'var'
+        self.eat("token", "var")
+
+        # TODO this is the same as in parameter list, consider drying this up
+        # type
+        if (self.tokenizer.get_current_token().get_token() in Token.var_types
+            or self.tokenizer.get_current_token().get_type() == "identifier"):
+            self.emit()
+
+            # varname
+            self.eat("type", "identifier")
+
+            # (',' varName)*
+            while self.check_for_one_or_more_identifiers():
+                pass
+
+            # ';'
+            self.eat("token", ";")
+            
+            return True
+        else:
+            return False
+
+    
+    def compileStatements(self):
+        # (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
+        while self.compileLet():
+            pass
+
+        while self.compileIf():
+            pass
+
+        while self.compileWhile():
+            pass
+
+        while self.compileDo():
+            pass
+
+        while self.compileReturn():
+            pass
+
+        return False
+
+    
+    def compileDo(self):
+        # 'do' subroutineCall ';'
+        return ""
+    
+    def compileLet(self):
+        # 'let' varName ('[' expression ']')? '=' expression ';'
         return ""
 
     def compileWhile(self):
+        # 'while' '(' expression ')' '{' statements '}'
         self.out_file.write("<whileStatement>")
-        if self.tokenizer.keyWord() == "WHILE":
-            self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token()}")
-            self.tokenizer.advance()
-            if self.tokenizer.symbol() == "(":
-                self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token()}")
-                self.tokenizer.advance()
-                self.compileExpression()
 
+
+    def compileReturn(self):
+        # 'return' expression
+        return ""
+    
+    def compileIf(self):
+        # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+        return ""
 
     def compileExpression(self):
+        # term (op term)*
         self.out_file.write("<expression>")
         self.compileTerm()
         self.out_file.write("</expression>")
 
-
     def compileTerm(self):
+        # integerConstant | stringConstant | keywordConstant | varName | varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
+        # if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
         self.out_file.write("<term>")
         self.tokenizer.advance()
 
         self.out_file.write("</term>")
 
+    def compileExpressionList(self):
+        # (expression (',' expression)*)?
+        return ""
 
     def syntax_error(self, place):
         print("syntax error: " + str(place))
