@@ -27,16 +27,18 @@ class CompilationEngine:
 
     def eat(self, item, match):
         print("eat: " + match)
+        current_token = self.tokenizer.get_current_token().get_token()
+
         if item == "token":
-            if self.tokenizer.get_current_token().get_token() == match:
+            if current_token == match:
                 self.emit()
             else:
-                self.syntax_error(1)
+                self.syntax_error(current_token)
         elif item == "type":
-            if self.tokenizer.get_current_token().get_type() == match:
+            if current_token == match:
                 self.emit()
             else:
-                self.syntax_error(2)
+                self.syntax_error(current_token)
 
 
     def compileClass(self):
@@ -54,18 +56,26 @@ class CompilationEngine:
 
         # '{'
         self.eat("token", "{")
-        self.inc_indent()
 
         # classVarDec*
+        self.out_file.write(f"\n{self.indent}<classVarDec>")
+        self.inc_indent()
         while self.compileClassVarDec():
             pass
+        self.dec_indent()
+        self.out_file.write(f"\n{self.indent}</classVarDec>")
 
         # subroutineDec*
+        self.out_file.write(f"\n{self.indent}<subroutineDec>")
+        self.inc_indent()
         while self.compileSubroutine():
             pass
+        self.dec_indent()
+        self.out_file.write(f"\n{self.indent}</subroutineDec>")
 
         # '}'
         self.eat("token", "}")
+
         self.dec_indent()
         self.out_file.write(f"\n{self.indent}</class>")
 
@@ -80,10 +90,11 @@ class CompilationEngine:
             self.emit()
             return True
         else:
-            self.syntax_error(3)
+            self.syntax_error(self.tokenizer.get_current_token().get_token())
 
 
     def compileClassVarDec(self):
+
         # ('static' | 'field') type varName (',' varName)* ';'
 
         # ('static' | 'field')
@@ -115,11 +126,9 @@ class CompilationEngine:
 
     def compileSubroutine(self):
         # ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' '{' varDec* statements '}'
-        
+
         # ('constructor' | 'function' | 'method')
         if self.tokenizer.get_current_token().get_token() in Token.function_types:
-            self.out_file.write(f"\n{self.indent}<subroutineDec>")
-            self.inc_indent()
 
             self.emit()
 
@@ -128,44 +137,62 @@ class CompilationEngine:
                 or self.tokenizer.get_current_token().get_token() == "void"):
 
                 self.emit()
-        
+
                 # subroutineName
                 self.eat("type", "identifier")
 
                 # '('
                 self.eat("token", "(")
-                
+
                 # parameterList
+                self.out_file.write(f"\n{self.indent}<parameterList>")
+                self.inc_indent()
                 while self.compileParameterList():
                     pass
+                self.dec_indent()
+                self.out_file.write(f"\n{self.indent}</parameterList>")
 
                 # ')'
                 self.eat("token", ")")
 
                 # subroutineBody = '{' varDec* statements '}'
+                self.out_file.write(f"\n{self.indent}<subroutineBody>")
+                self.inc_indent()
                 # '{'
                 self.eat("token", "{")
 
                 # varDec*
+                self.out_file.write(f"\n{self.indent}<varDec>") #TODO clean this up
+                self.inc_indent()
                 while self.compileVarDec():
-                    print('vardec loop')
+                    self.dec_indent()
+                    self.out_file.write(f"\n{self.indent}</varDec>")
+                    self.out_file.write(f"\n{self.indent}<varDec>")
+                    self.inc_indent()
                     pass
+                self.dec_indent()
+                self.out_file.write(f"\n{self.indent}</varDec>")
 
                 # statements
+                self.out_file.write(f"\n{self.indent}<statements>")
+                self.inc_indent()
                 while self.compileStatements():
                     pass
+                self.dec_indent()
+                self.out_file.write(f"\n{self.indent}</statements>")
 
                 # '}'
                 self.eat("token", "}")
 
+                self.dec_indent()
+                self.out_file.write(f"\n{self.indent}</subroutineBody>")
+
             else:
-                self.syntax_error(6)
-        
-            self.dec_indent()
-            self.out_file.write(f"\n{self.indent}</subroutineDec>")
+                self.syntax_error(self.tokenizer.get_current_token().get_token())
+
         else:
             return False
-        
+
 
     def compileParameterList(self):
         # ((type varName) (',' varName)*)?
@@ -181,10 +208,11 @@ class CompilationEngine:
             # (',' varName)*
             while self.check_for_one_or_more_identifiers():
                 pass
+
         else:
             return False
 
-    
+
     def compileVarDec(self):
         # 'var' type varName (',' varName)* ';'
 
@@ -206,12 +234,12 @@ class CompilationEngine:
 
             # ';'
             self.eat("token", ";")
-            
+
             return True
         else:
             return False
 
-    
+
     def compileStatements(self):
         # (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
         while self.compileLet():
@@ -231,11 +259,60 @@ class CompilationEngine:
 
         return False
 
-    
+
     def compileDo(self):
-        # 'do' subroutineCall ';'
-        return ""
-    
+        # 'do' subroutineCall = subroutineName '(' expressionList ')' | (className | varName) '.'
+        # subroutineName '(' expressionList ')' ';'
+
+        # 'do'
+        self.eat("token", "do")
+
+        # subroutineName | className | varName
+        self.eat("type", "identifier")
+
+        # '.' subroutineName '(' expressionList ')'
+        if (self.tokenizer.get_current_token().get_token() == "."):
+            # '.'
+            self.emit()
+
+            # sunroutineName
+            self.eat("type", "identifier")
+
+        #     # (
+        #     self.eat("token", "(")
+
+        #     # expressionList
+        #     self.out_file.write(f"\n{self.indent}<expressionList>")
+        #     self.inc_indent()
+        #     while self.compileExpressionList():
+        #         pass
+        #     self.dec_indent()
+        #     self.out_file.write(f"\n{self.indent}</expressionList>")
+
+        #     # )
+        #     self.eat("token", ")")
+
+        # # '(' expressionList ')'
+        # elif self.tokenizer.get_current_token().get_token() == "(":
+
+        # (
+        self.emit()
+
+        # expressionList
+        self.out_file.write(f"\n{self.indent}<expressionList>")
+        self.inc_indent()
+        while self.compileExpressionList():
+            pass
+        self.dec_indent()
+        self.out_file.write(f"\n{self.indent}</expressionList>")
+
+        # )
+        self.eat("token", ")")
+
+        self.eat("token", ";")
+
+
+
     def compileLet(self):
         # 'let' varName ('[' expression ']')? '=' expression ';'
         return ""
@@ -248,7 +325,7 @@ class CompilationEngine:
     def compileReturn(self):
         # 'return' expression
         return ""
-    
+
     def compileIf(self):
         # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
         return ""
