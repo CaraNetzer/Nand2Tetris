@@ -28,6 +28,10 @@ class Token:
   def get_token(self):
      return self.token
 
+  def set_token(self, in_token):
+     print("SET TOKEN---------------------------------------------------")
+     self.token = in_token
+
   def token_type(self, token):
     if token in self.keywords:
         return "keyword"

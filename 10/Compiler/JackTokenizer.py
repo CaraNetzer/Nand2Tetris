@@ -23,8 +23,9 @@ class JackTokenizer:
 
 
     def advance(self):
-        self.current_token = self.tagged_tokens[self.current_index]
-        self.current_index += 1
+        if self.current_index < len(self.tagged_tokens):
+            self.current_token = self.tagged_tokens[self.current_index]
+            self.current_index += 1
 
     def backtrack(self):
         self.current_index -= 1
@@ -49,12 +50,12 @@ class JackTokenizer:
     #         return "IDENTIFIER"
 
     def convert_symbol(self):
-        if self.current_token == '<':
-            return "&lt;"
-        elif self.current_token == '>':
-            return "&gt;"
-        elif self.current_token == '&':
-            return "&amp;"
+        if self.current_token == "<":
+            self.get_current_token().set_token("&lt;")
+        elif self.current_token == ">":
+            self.get_current_token().set_token("&gt;")
+        elif self.current_token == "&":
+            self.get_current_token().set_token("&amp;")
         else:
             return self.current_token
 

@@ -5,7 +5,7 @@ class CompilationEngine:
     stack = LinkedList.LinkedList()
     level = 0
     indent = 0
-    tab = "\t"
+    tab = "  "
 
     def __init__(self, in_tokenizer, out_file):
         self.tokens = in_tokenizer.tagged_tokens
@@ -36,6 +36,8 @@ class CompilationEngine:
                 self.syntax_error(current_token)
         elif item == "type":
             if self.tokenizer.get_current_token().token_type(current_token) == match:
+                if match == "symbol":
+                    self.tokenizer.convert_symbol()
                 self.emit()
             else:
                 self.syntax_error(current_token + " " + match)
@@ -48,7 +50,6 @@ class CompilationEngine:
         self.tokenizer.advance()
 
         # 'class'
-        # print(self.tokenizer.tagged_tokens[0].get_token())
         self.eat("token", "class")
 
         # className
@@ -183,6 +184,8 @@ class CompilationEngine:
 
             self.dec_indent()
             self.out_file.write(f"\n{self.indent}</subroutineDec>")
+
+            return True
         else:
             return False
 
@@ -283,7 +286,6 @@ class CompilationEngine:
 
             return True
         else:
-            print(current_token)
             return False
 
 
@@ -294,18 +296,21 @@ class CompilationEngine:
         # 'do'
         self.eat("token", "do")
 
+        # subroutineName | className | varName
+        self.eat("type", "identifier")
+
         # subroutineCall
         self.compileSubroutineCall()
+
+        #';'
+        self.eat("token", ";")
 
         return True
 
 
     def compileSubroutineCall(self):
-        # subroutineName '(' expressionList ')' |
+        # subroutineName                           '(' expressionList ')' |
         # (className | varName) '.' subroutineName '(' expressionList ')'
-
-        # subroutineName | className | varName
-        self.eat("type", "identifier")
 
         # '.' subroutineName
         if (self.tokenizer.get_current_token().get_token() == "."):
@@ -363,9 +368,7 @@ class CompilationEngine:
         self.compileExpression()
 
         # ';'
-        print("end of let: " + self.tokenizer.get_current_token().get_token())
         self.eat("token", ";")
-        print("end of let: " + self.tokenizer.get_current_token().get_token())
 
         return True
 
@@ -383,12 +386,12 @@ class CompilationEngine:
 
         self.out_file.write(f"\n{self.indent}<statements>")
         self.inc_indent()
-        self.compileStatements()
+        while self.compileStatements():
+            pass
         self.dec_indent()
         self.out_file.write(f"\n{self.indent}</statements>")
 
         self.eat("token", "}")
-        print("end of while: " + self.tokenizer.get_current_token().get_token())
 
         return True
 
@@ -397,7 +400,10 @@ class CompilationEngine:
         # 'return' expression
         self.eat("token", "return")
 
-        self.compileExpression()
+        while self.compileExpression():
+            pass
+
+        self.eat("token", ";")
 
         return True
 
@@ -465,13 +471,15 @@ class CompilationEngine:
 
     def compileOpTerm(self):
         # op term
+        print(self.tokenizer.get_current_token().get_token())
         if self.tokenizer.get_current_token().get_token() in Token.operators:
             # op
             self.eat("type", "symbol")
 
             # term
-            while self.compileTerm():
-                pass
+            self.compileTerm()
+
+            return True
         else:
             return False
 
@@ -479,18 +487,24 @@ class CompilationEngine:
     def compileExpression(self):
 
         # term (op term)*
-        self.out_file.write(f"\n{self.indent}<expression>")
-        self.inc_indent()
+        current_token = self.tokenizer.get_current_token().get_token()
+        if self.tokenizer.get_current_token().token_type(current_token) != "symbol":
+            self.out_file.write(f"\n{self.indent}<expression>")
+            self.inc_indent()
 
-        # term
-        self.compileTerm()
+            # term
+            self.compileTerm()
 
-        # (op term)*
-        while self.compileOpTerm():
-            pass
+            # (op term)*
+            while self.compileOpTerm():
+                pass
 
-        self.dec_indent()
-        self.out_file.write(f"\n{self.indent}</expression>")
+            self.dec_indent()
+            self.out_file.write(f"\n{self.indent}</expression>")
+
+            return True
+        else:
+            return False
 
 
     def compileTerm(self):
@@ -498,11 +512,13 @@ class CompilationEngine:
         # varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
 
         # if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
-        self.out_file.write(f"\n{self.indent}<term>")
-        self.inc_indent()
+        current_token = self.tokenizer.get_current_token().get_token()
+
+        if self.tokenizer.get_current_token().token_type(current_token) != "symbol":
+            self.out_file.write(f"\n{self.indent}<term>")
+            self.inc_indent()
 
         # integerConstant | stringConstant | keywordConstant
-        current_token = self.tokenizer.get_current_token().get_token()
         if (self.tokenizer.get_current_token().token_type(current_token) == "integerConstant" or
            self.tokenizer.get_current_token().token_type(current_token) == "stringConstant" or
            self.tokenizer.get_current_token().token_type(current_token) == "keyword"):
@@ -544,6 +560,8 @@ class CompilationEngine:
         self.dec_indent()
         self.out_file.write(f"\n{self.indent}</term>")
 
+        return True
+
 
     def check_for_one_or_more_expressions(self):
         if self.tokenizer.get_current_token().get_token() == ",":
@@ -564,16 +582,25 @@ class CompilationEngine:
     def compileExpressionList(self):
         # (expression (',' expression)*)?
 
+        current_token = self.tokenizer.get_current_token().get_token()
+        if self.tokenizer.get_current_token().token_type(current_token) != "symbol":
+            self.out_file.write(f"\n{self.indent}<expression>")
+            self.inc_indent()
+
         # expression = term (op term)*
         if self.compileTerm():
 
             # (op term)*
             while self.compileOpTerm():
+                print(self.tokenizer.get_current_token().get_token())
                 pass
 
             # (',' expression)*
             while self.check_for_one_or_more_expressions():
                 pass
+
+            self.dec_indent()
+            self.out_file.write(f"\n{self.indent}</expression>")
 
         else:
             return False
