@@ -4,6 +4,7 @@ var_types = { "int", "char", "boolean" }
 function_types = { "function", "constructor", "method" }
 operators = { "+", "-", "*", "/", "&", "|", "<", ">", "=", "~" }
 statement_types = { "let", "do", "if", "else", "while", "return" }
+unary_operators = { "-", "~" }
 
 class Token:
 

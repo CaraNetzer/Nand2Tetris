@@ -26,6 +26,9 @@ class JackTokenizer:
         self.current_token = self.tagged_tokens[self.current_index]
         self.current_index += 1
 
+    def backtrack(self):
+        self.current_index -= 1
+        self.current_token = self.tagged_tokens[self.current_index]
 
     def get_current_token_str(self):
         return str(self.current_token)
