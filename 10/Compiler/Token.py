@@ -2,18 +2,20 @@ import re
 
 var_types = { "int", "char", "boolean" }
 function_types = { "function", "constructor", "method" }
+operators = { "+", "-", "*", "/", "&", "|", "<", ">", "=", "~" }
+statement_types = { "let", "do", "if", "else", "while", "return" }
 
 class Token:
 
 
   keywords = {
       "class", "field", "static", "var", "void",
-      "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"
-  }.union(var_types).union(function_types)
+      "true", "false", "null", "this"
+  }.union(var_types).union(function_types).union(statement_types)
 
-  symbols = [
-      '{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~'
-  ]
+  symbols = {
+      '{', '}', '(', ')', '[', ']', '.', ',', ';'
+  }.union(operators)
 
   def __init__(self, token):
     self.type = self.token_type(token)
