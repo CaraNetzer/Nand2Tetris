@@ -50,14 +50,17 @@ class JackTokenizer:
     #         return "IDENTIFIER"
 
     def convert_symbol(self):
-        if self.current_token == "<":
-            self.get_current_token().set_token("&lt;")
-        elif self.current_token == ">":
-            self.get_current_token().set_token("&gt;")
-        elif self.current_token == "&":
-            self.get_current_token().set_token("&amp;")
+        token = self.get_current_token()
+        token_str = token.get_token()
+
+        if token_str == "<":
+            token.set_token("&lt;")
+        elif token_str == ">":
+            token.set_token("&gt;")
+        elif token_str == "&":
+            token.set_token("&amp;")
         else:
-            return self.current_token
+            return token
 
 
     def keyWord(self):

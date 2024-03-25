@@ -5,7 +5,10 @@ import JackTokenizer
 import CompilationEngine
 
 def main():
+    
+    # in_file_path = input("Enter file path:")
     in_file_path = sys.argv[1]
+    
 
     if os.path.isdir(in_file_path):
         files = os.listdir(in_file_path)

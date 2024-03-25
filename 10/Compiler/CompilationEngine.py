@@ -36,8 +36,6 @@ class CompilationEngine:
                 self.syntax_error(current_token)
         elif item == "type":
             if self.tokenizer.get_current_token().token_type(current_token) == match:
-                if match == "symbol":
-                    self.tokenizer.convert_symbol()
                 self.emit()
             else:
                 self.syntax_error(current_token + " " + match)
@@ -433,9 +431,6 @@ class CompilationEngine:
 
     def compileIf(self):
 
-        self.out_file.write(f"\n{self.indent}<ifStatement>")
-        self.inc_indent()
-
         # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
 
         # 'if'
@@ -471,7 +466,7 @@ class CompilationEngine:
 
     def compileOpTerm(self):
         # op term
-        print(self.tokenizer.get_current_token().get_token())
+        # print("op term: ", self.tokenizer.get_current_token().get_token())
         if self.tokenizer.get_current_token().get_token() in Token.operators:
             # op
             self.eat("type", "symbol")
@@ -488,7 +483,7 @@ class CompilationEngine:
 
         # term (op term)*
         current_token = self.tokenizer.get_current_token().get_token()
-        if self.tokenizer.get_current_token().token_type(current_token) != "symbol":
+        if self.tokenizer.get_current_token().token_type(current_token) != "symbol" or current_token in Token.unary_operators:
             self.out_file.write(f"\n{self.indent}<expression>")
             self.inc_indent()
 
@@ -514,7 +509,7 @@ class CompilationEngine:
         # if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
         current_token = self.tokenizer.get_current_token().get_token()
 
-        if self.tokenizer.get_current_token().token_type(current_token) != "symbol":
+        if self.tokenizer.get_current_token().token_type(current_token) != "symbol" or current_token == "(":
             self.out_file.write(f"\n{self.indent}<term>")
             self.inc_indent()
 
@@ -527,9 +522,12 @@ class CompilationEngine:
 
         # unaryOp term
         elif current_token in Token.unary_operators:
-            self.eat("type", "symbol")
+            self.out_file.write(f"\n{self.indent}<term>")
+            self.inc_indent()
 
+            self.eat("type", "symbol")
             self.compileTerm()
+
 
         # '(' expression ')'
         elif current_token == '(':
@@ -592,7 +590,7 @@ class CompilationEngine:
 
             # (op term)*
             while self.compileOpTerm():
-                print(self.tokenizer.get_current_token().get_token())
+                # print(self.tokenizer.get_current_token().get_token())
                 pass
 
             # (',' expression)*
