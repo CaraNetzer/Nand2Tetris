@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "JackTokenizer.h"
 
 typedef struct {
@@ -7,15 +8,22 @@ typedef struct {
 } jack_tokenizer;
 
 
-FILE read_file(char *in_file_path) {
-    jack_tokenizer tokenizer;
-    tokenizer.in_file = fopen("test", "r");
-    return *tokenizer.in_file;
+jack_tokenizer* open_file(char *in_file_path) {
+    jack_tokenizer *tokenizer;
+    tokenizer = calloc(1, sizeof(jack_tokenizer));
+
+    if(!tokenizer) {
+        perror("calloc failed for open_file");
+        exit(1);
+    }
+
+    tokenizer->in_file = fopen("test", "r");
+    return tokenizer;
 }
 
 
 void tokenizer_execute() {
-    char tokens[200];
+    char tokens[2000];
     bool block_comment = false;
 
     // for line in self.in_file:
