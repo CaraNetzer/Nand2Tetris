@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
     filename = argv[1];
     // strncpy(filename, argv[1], 31);
     // printf("filename = %s\n", filename);
-    printf("filename = %p (%p), 2 = %p (%p)\n", filename, &filename, filename2, &filename2);
-    exit(0);
+    // printf("filename = %p (%p), 2 = %p (%p)\n", filename, &filename, filename2, &filename2);
+    // exit(0);
 
     stat(filename, &file_info);
 
@@ -39,6 +39,12 @@ int main(int argc, char *argv[])
         printf("dir: %s\n", filename);
         struct dirent *dir;
         DIR *d = opendir(filename);
+
+        if(!d) {
+            perror(filename);
+            exit(1);
+        }
+
         while ((dir = readdir(d)) != NULL)
         {
             if (strstr(dir->d_name, ".jack") != NULL) {
@@ -66,30 +72,31 @@ void process_file(char* in_file_name, char* in_dirname) {
 
     // printf("%s: %zu\n", in_file_name, strlen(in_file_name));
     // declare out file path with enough space for .vm
-    char* out_file_name = malloc(strlen(in_file_name) - 1);
+    int file_path_size = strlen(in_dirname) + strlen(in_file_name); //jack --> /vm\0
+    char* out_file_path = malloc(file_path_size);
         
-    assert(out_file_name != NULL);
+    assert(out_file_path != NULL);
 
-    //take jack off end of in file name and copy the rest to out file name
-    strncpy(out_file_name, in_file_name, strlen(in_file_name) - 4);
+    strcpy(out_file_path, in_dirname);
+    strcat(out_file_path, "/"); // two slashes is fine in a linux file path
+
+    //take jack off end of in file name and join directory path and new file name
+    strncat(out_file_path, in_file_name, strlen(in_file_name) - 4);
 
     //concatonate vm to the out file path
-    strcat(out_file_name, "vm");
+    strcat(out_file_path, "vm");
     // printf("without .jack: %s\n", out_file_path);
 
-    // join directory path and new file name
-    size_t len_dir_path = strlen(in_dirname);
-    size_t len_file_name = strlen(out_file_name);
-    char* out_file_path = malloc(len_dir_path + len_file_name + 1);
-    if (in_dirname[len_dir_path - 1] != '/') {
-        strcat(in_dirname, "/");
-    }
-    out_file_path = strcat(in_dirname, out_file_name);
-    // printf("%s\n", out_file_path);
+    printf("%s\n", out_file_path);
 
+    char* in_file_path = malloc(file_path_size + 2);
+    strcpy(in_file_path, in_dirname);
+    strcat(in_file_path, "/"); // two slashes is fine in a linux file path
+    strcat(in_file_path, in_file_name);
 
-    FILE tokenizer = read_file(strcat(in_dirname, in_file_name));
-    tokenizer_execute();
+    jack_tokenizer* tokenizer = open_file(in_file_path);
+    printf("%d\n", tokenizer->in_file->_fileno);
+    tokenizer_execute(tokenizer);
 
     // CompilationEngine compilationEngine = new CompilationEngine(tokenizer, out_file_path)
     // compilationEngine.compileClass()
