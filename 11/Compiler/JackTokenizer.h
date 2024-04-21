@@ -14,4 +14,4 @@ jack_tokenizer* open_file(char *in_file_path);
 
 void tokenizer_execute(jack_tokenizer *tokenizer);
 
-void append_tokens(char **words, char **token_list);
+void append_token(char *token);

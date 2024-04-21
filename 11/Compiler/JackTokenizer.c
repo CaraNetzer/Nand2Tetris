@@ -4,11 +4,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <regex.h>
+#include <locale.h>
 #include "JackTokenizer.h"
 
 
+jack_tokenizer *tokenizer;
+
 jack_tokenizer* open_file(char *in_file_path) {
-    jack_tokenizer *tokenizer;
     tokenizer = calloc(1, sizeof(jack_tokenizer));
 
     if(!tokenizer) {
@@ -30,15 +33,35 @@ jack_tokenizer* open_file(char *in_file_path) {
     return tokenizer;
 }
 
-void append_tokens(char **words, char **token_list) {
+void append_token(char *token) {
 
-}
-// def append_tokens(self, words, token_list):
-//     for word in words:
+    // printf("here append token");
+    if (0 != strcmp(token, "")) {
+        printf("token to be inserted: %s\n", token);
+        printf("duplicate of that: %s\n", strdup(token));
+        tokenizer->tokens[tokenizer->next_index++] = strdup(token);
+        printf("next index: %d\n", tokenizer->next_index);
+        printf("token[%d]: %s\n", tokenizer->next_index - 1, tokenizer->tokens[tokenizer->next_index - 1]);
+    }
+
+    if(tokenizer->next_index > tokenizer->max_tokens) {
+        char **new_tokens = reallocarray(tokenizer->tokens, tokenizer->max_tokens * 2, sizeof(char*));
+    
+        if(new_tokens) {
+            tokenizer->tokens = new_tokens;
+            tokenizer->max_tokens *= 2;
+        } else {
+            perror(*new_tokens);
+            exit(1);
+        }
+    }
+
 //         tokens_and_words = re.split("(\\W)", word)
 //         for token in tokens_and_words:
 //             if token != '':
 //                 token_list.append(token)
+
+}
 
 
 void tokenizer_execute(jack_tokenizer* tokenizer) {
@@ -49,12 +72,6 @@ void tokenizer_execute(jack_tokenizer* tokenizer) {
 
     char line[BUFSIZ];
     char* line_position;
-
-    printf("line: %p\n", line);
-    printf("file: %p\n", tokenizer->in_file);
-    printf("tokenizer: %p\n", tokenizer);
-
-    printf("%s\n", fgets(line, BUFSIZ - 1, tokenizer->in_file));
 
     while(fgets(line, BUFSIZ - 1, tokenizer->in_file)) {
 
@@ -99,28 +116,51 @@ void tokenizer_execute(jack_tokenizer* tokenizer) {
             //     self.append_tokens(words[2].split(" "), tokens)
 
             } else {
-
+                setlocale(LC_ALL, "C");
 
                 // region: words = line.split(" ")
                 char *token = strtok(line_position, " ");
+                // char *token = "class";
 
                 while (token != NULL) {
-                    tokenizer->tokens[tokenizer->next_index++] = strdup(token);
+                    char *sub_token = strdup(token);
+                    char string_sub_token[BUFSIZ];
 
-                    if(tokenizer->next_index > tokenizer->max_tokens) {
-                        char **new_tokens = reallocarray(tokenizer->tokens, tokenizer->max_tokens * 2, sizeof(char*));
-                    
-                        if(new_tokens) {
-                            tokenizer->tokens = new_tokens;
-                            tokenizer->max_tokens *= 2;
-                        } else {
-                            perror(*new_tokens);
-                            exit(1);
+                    int token_length = strlen(sub_token);
+                    // printf("token length: %d\n", token_length);
+                    for(int i = 0; i < token_length + 1; i++) {
+                        printf("i: %d\n", i);
+                        printf("token[%d] = %c\n", i, token[i]);
+
+                        printf("symbol? %c\n", sub_token[i]);
+                        if(!isspace(token[i])) {
+
+                            if (!isalnum(token[i])) {
+                                if(0 != strcmp(string_sub_token, "")) {
+                                    printf("\tyes\n");
+                                    printf("\tstring sub token: %s\n", string_sub_token);
+                                    append_token(string_sub_token);
+                                }
+
+                                string_sub_token[0] = '\0';
+
+                                if(0 != strcmp(sub_token, "")) {
+                                    printf("\tyes\n");
+                                    printf("\tsub token: %c\n", *sub_token);
+                                    append_token(strndup(sub_token, 1));
+                                }
+                            } else {
+                                strncat(string_sub_token, sub_token, 1);
+                                printf("sub token: %s\n", sub_token);
+                                printf("string: %s\n", string_sub_token);
+                            }
                         }
+                        sub_token += 1;
                     }
 
-                    printf("%s\n", tokenizer->tokens[tokenizer->next_index - 1]);
+                    // printf("end\n");
                     token = strtok(NULL, " ");
+                    // printf("end 2\n");
 
                 }
                 // #endregion

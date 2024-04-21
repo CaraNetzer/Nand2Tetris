@@ -15,10 +15,10 @@ void process_file(char* in_file_name, char* in_dirname);
 
 int main(int argc, char *argv[])
 {
-    int opt;
+    // int opt;
     char *filename;
     // char filename[32];
-    char filename2[32] = "error.txt";
+    // char filename2[32] = "error.txt";
 
     if (argc != 2) {
 	fprintf(stderr, "usage: JackCompiler filepath\n");
@@ -98,6 +98,7 @@ void process_file(char* in_file_name, char* in_dirname) {
     printf("%d\n", tokenizer->in_file->_fileno);
     tokenizer_execute(tokenizer);
 
+    printf("end overall\n");
     // CompilationEngine compilationEngine = new CompilationEngine(tokenizer, out_file_path)
     // compilationEngine.compileClass()
 }
