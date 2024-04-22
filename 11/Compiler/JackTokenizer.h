@@ -9,7 +9,6 @@ typedef struct {
     int max_tokens;
 } jack_tokenizer;
 
-// FILE read_file(char *in_file_path);
 jack_tokenizer* open_file(char *in_file_path);
 
 void tokenizer_execute(jack_tokenizer *tokenizer);
