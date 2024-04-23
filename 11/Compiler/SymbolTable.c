@@ -49,6 +49,42 @@ int var_count(char *kind, symbol_table *table) {
 
 }
 
-char* kind_of(char *name);
-char* type_of(char *name);
-int index_of(char *name);
+char* kind_of(char *name, symbol_table *table) {
+
+    char *kind;
+
+    find_property(name, table, kind);
+
+    return kind;
+
+}
+
+char* type_of(char *name, symbol_table *table) {
+
+    char *type;
+
+    find_property(name, table, type);
+
+    return type;
+}
+
+int index_of(char *name, symbol_table *table) {
+
+    char *index;
+
+    find_property(name, table, index);
+
+    return index;
+}
+
+
+#define find_property(name, table, property) (                  \
+                                                                \
+    int num_of_rows = sizeof(table) / sizeof(symbol_table_row); \
+                                                                \
+    for (int i = 0; i < num_of_rows; i++) {                     \
+        if (table->rows[i]->name == name) {                     \
+            property = table->rows[i]->property;                \
+        }                                                       \
+    }                                                           \
+)
