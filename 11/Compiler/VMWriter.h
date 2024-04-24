@@ -14,5 +14,5 @@ void write_goto(char *label);
 void write_if(char *label);
 void write_call(char *name, int n_args);
 void write_function(char *name, int n_locals);
-void write_return();
-void close();
+void write_return(vm_writer *writer);
+void wrtier_close(vm_writer *writer);

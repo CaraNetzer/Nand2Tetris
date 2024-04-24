@@ -1,4 +1,4 @@
-#include <VMWriter.h>
+#include "VMWriter.h"
 
 vm_writer* create_vm_writer(char *file_path) {
 
@@ -48,6 +48,8 @@ void write_return(vm_writer *writer) {
     fprintf(writer->out_file, "return");
 }
 
-void close(vm_writer *writer) {
+void writer_close(vm_writer *writer) {
+    // TODO double check if fclose frees memory
     fclose(writer->out_file);
+    writer->out_file = NULL;
 }

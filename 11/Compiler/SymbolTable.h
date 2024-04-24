@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <stdio.h>
 
 typedef struct {
     char *name;
@@ -13,14 +13,14 @@ typedef struct {
     int max_rows;
 } symbol_table;
 
-symbol_table* create_symbol_table;
+symbol_table* create_symbol_table();
 
-void startSubroutine;
+symbol_table* startSubroutine(symbol_table *table);
 
-void define(char *name, char *type, char *kind);
+void define(char *name, char *type, char *kind, symbol_table *table);
 
-int var_count(char *kind);
+int var_count(char *kind, symbol_table *table);
 
-char* kind_of(char *name);
-char* type_of(char *name);
-int index_of(char *name);
+char* kind_of(char *name, symbol_table *table);
+char* type_of(char *name, symbol_table *table);
+int index_of(char *name, symbol_table *table);
