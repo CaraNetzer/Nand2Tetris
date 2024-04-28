@@ -1,0 +1,10 @@
+#include <stdbool.h>
+
+typedef struct {
+    char *type;
+    char *token;
+} token;
+
+char* to_str(token *token);
+char* token_type(char *token); 
+bool array_contains(char **array, int size, char *item);

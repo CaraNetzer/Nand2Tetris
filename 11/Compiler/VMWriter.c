@@ -1,4 +1,5 @@
 #include "VMWriter.h"
+#include <stdlib.h>
 
 vm_writer* create_vm_writer(char *file_path) {
 
@@ -11,7 +12,6 @@ vm_writer* create_vm_writer(char *file_path) {
     return writer;
 }
 
-// TODO do I have to pass the wv_writer obct to all of these or is there a way to call a method on an obct??
 void write_push(vm_writer *writer, char *segment, int index) {
     fprintf(writer->out_file, "push %s %d", segment, index);
 }
