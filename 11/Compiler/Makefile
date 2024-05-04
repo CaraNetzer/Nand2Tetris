@@ -16,4 +16,4 @@ test: JackCompiler
 		./JackCompiler ../$$test/; \
 	done
 
-JackCompiler: JackCompiler.o JackTokenizer.o
+JackCompiler: JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o

@@ -8,7 +8,6 @@
 #include <locale.h>
 #include "JackTokenizer.h"
 
-
 jack_tokenizer *tokenizer;
 
 jack_tokenizer* open_file(char *in_file_path) {
@@ -52,10 +51,37 @@ void append_token(char *token) {
     }
 }
 
+void append_tokenized_token(token *tok, int i) {
+
+    printf("tokenizer: %p\n", &tokenizer);
+    token* new_token = calloc(1, sizeof(token));
+    if(!new_token) {
+        perror("calloc failed for append_tokenize_token");
+        exit(1);
+    }
+    new_token = tok;
+
+    
+    if (0 != strcmp(tok->item, "")) {
+        printf("i: %p\n", &tokenizer->tokenized_tokens[i]);
+        printf("i: %p\n", new_token);
+        tokenizer->tokenized_tokens[i] = new_token;
+    }
+
+    if(tokenizer->next_index > tokenizer->max_tokens) {
+        char **new_tokens = reallocarray(tokenizer->tokens, tokenizer->max_tokens * 2, sizeof(char*));
+    
+        if(new_tokens) {
+            tokenizer->tokens = new_tokens;
+            tokenizer->max_tokens *= 2;
+        } else {
+            perror(*new_tokens);
+            exit(1);
+        }
+    }
+}
 
 void tokenizer_execute(jack_tokenizer* tokenizer) {
-    // char* tokens[2000];
-
     
     bool block_comment = false;
 
@@ -97,12 +123,16 @@ void tokenizer_execute(jack_tokenizer* tokenizer) {
             }
 
 
-            if(strstr(line_position, "\"") != NULL) { // handle string constants differently than other words
-                printf("%s", line_position);
-            //     words = line.split("\"")
-            //     self.append_tokens(words[0].split(" "), tokens)
-            //     tokens.append(words[1])
-            //     self.append_tokens(words[2].split(" "), tokens)
+            if(strstr(line_position, "\"") != NULL) { //tokenizes string including parentheses
+                char *string_token = malloc(BUFSIZ);
+                // printf("%s", line_position);
+                strncat(string_token, line_position, 1);
+                while (!strcmp(line_position, "\"")) {
+                    strncat(string_token, line_position, 1);
+                    line_position += 1;
+                }
+                strncat(string_token, line_position, 1);
+                append_token(string_token);
 
             } else {
 
@@ -138,19 +168,20 @@ void tokenizer_execute(jack_tokenizer* tokenizer) {
                     token = strtok(NULL, " "); // need to pass NULL to strtok after first call
 
                 }
-
                 // #endregion
             }
         }
     }
 
-    for (int i = 0; i < 27; i++) {
-        printf("\"%s\", ", tokenizer->tokens[i]);
-    }
 
-    // for token in tokens:
-    //     self.current_token = token
-    //
-    //     newToken = Token.Token(token)
-    //     self.tagged_tokens.append(newToken)
+    for (int i = 0; i < tokenizer->next_index; i++) {
+        token *tokenized_token = create_token(tokenizer->tokens[i]);
+
+        printf("%p\n", &tokenizer->tokenized_tokens[i]);
+
+        append_tokenized_token(tokenized_token, i);
+        // tokenizer->tokenized_tokens[i] = tokenized_token;
+
+        printf("%s\n", tokenized_token->item);
+    }
 }

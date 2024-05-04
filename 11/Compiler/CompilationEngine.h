@@ -8,3 +8,4 @@ typedef struct {
 } compilation_engine;
 
 compilation_engine *CompilationEngine(jack_tokenizer *in_tokenizer, char *out_file_path);
+void compileClass(compilation_engine *compiler);

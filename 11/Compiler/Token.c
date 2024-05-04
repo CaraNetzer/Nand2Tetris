@@ -1,6 +1,6 @@
 #include <ctype.h>
-#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "Token.h"
 
@@ -12,6 +12,20 @@ char *unary_operators[] = { "-", "~" };
 char *other_keywords[] = { "class", "field", "static", "var", "void", "true", "false", "null", "this" }; //.union(var_types).union(function_types).union(statement_types);
 char *symbols[] = { "{", "}", "(", ")", "[", "]", ".", ",", ";" }; //.union(operators)
 
+token *create_token(char *in_token) {
+    printf("tokenizer: %p\n", &in_token);
+    token *new_token = malloc(sizeof(token));
+
+    if(!new_token) {
+        perror("malloc failed for new tokenized token");
+        exit(1);
+    }
+
+    new_token->item = in_token;
+    new_token->type = token_type(in_token);
+
+    return new_token;
+}
 
 bool array_contains(char **array, int size, char *item) {
     for(int i = 0; i < size; i++) {
@@ -30,7 +44,7 @@ char* token_type(char *token) {
         return "symbol";
     } else if (isdigit(token[0])) {
         return "integerConstant";
-    } else if (strstr(" ", token)) { // TODO find better way to decide if a token is a string
+    } else if (strncmp("\"", token, 1)) {
         return "stringConstant";
     } else if (!isdigit(token[0])) {
         return "identifier";
@@ -41,7 +55,7 @@ char* token_type(char *token) {
 
 char* to_str(token *token) {
     char buf[BUFSIZ];
-    int return_value = snprintf(buf, BUFSIZ - 1, "<%s> %s </%s>", token->type, token->token, token->type);
+    int return_value = snprintf(buf, BUFSIZ - 1, "<%s> %s </%s>", token->type, token->item, token->type);
 
     if (return_value > 0) return strdup(buf);
     else return NULL;

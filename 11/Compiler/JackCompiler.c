@@ -6,8 +6,7 @@
 #include <dirent.h>
 #include <libgen.h>
 #include <assert.h>
-#include "JackTokenizer.h"
-// #include "CompilationEngine.h"
+#include "CompilationEngine.h"
 
 
 
@@ -15,10 +14,7 @@ void process_file(char* in_file_name, char* in_dirname);
 
 int main(int argc, char *argv[])
 {
-    // int opt;
     char *filename;
-    // char filename[32];
-    // char filename2[32] = "error.txt";
 
     if (argc != 2) {
 	fprintf(stderr, "usage: JackCompiler filepath\n");
@@ -28,10 +24,6 @@ int main(int argc, char *argv[])
     // stat library provides file status info
     struct stat file_info;
     filename = argv[1];
-    // strncpy(filename, argv[1], 31);
-    // printf("filename = %s\n", filename);
-    // printf("filename = %p (%p), 2 = %p (%p)\n", filename, &filename, filename2, &filename2);
-    // exit(0);
 
     stat(filename, &file_info);
 
@@ -73,7 +65,7 @@ void process_file(char* in_file_name, char* in_dirname) {
     // printf("%s: %zu\n", in_file_name, strlen(in_file_name));
     // declare out file path with enough space for .vm
     int file_path_size = strlen(in_dirname) + strlen(in_file_name); //jack --> /vm\0
-    char* out_file_path = malloc(file_path_size);
+    char *out_file_path = malloc(file_path_size);
         
     assert(out_file_path != NULL);
 
@@ -89,16 +81,16 @@ void process_file(char* in_file_name, char* in_dirname) {
 
     printf("%s\n", out_file_path);
 
-    char* in_file_path = malloc(file_path_size + 2);
+    char *in_file_path = malloc(file_path_size + 2);
     strcpy(in_file_path, in_dirname);
     strcat(in_file_path, "/"); // two slashes is fine in a linux file path
     strcat(in_file_path, in_file_name);
 
-    jack_tokenizer* tokenizer = open_file(in_file_path);
-    printf("%d\n", tokenizer->in_file->_fileno);
+    jack_tokenizer *tokenizer = open_file(in_file_path);
     tokenizer_execute(tokenizer);
 
-    printf("end overall\n");
-    // CompilationEngine compilationEngine = new CompilationEngine(tokenizer, out_file_path)
-    // compilationEngine.compileClass()
+    compilation_engine *compilationEngine = CompilationEngine(tokenizer, out_file_path);
+    compileClass(compilationEngine);
+    fclose(compilationEngine->out_file);
+    fclose(tokenizer->in_file);
 }

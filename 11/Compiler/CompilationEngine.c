@@ -1,12 +1,15 @@
-#include "Token.h"
 #include <stdlib.h>
 #include "CompilationEngine.h"
+#include "SymbolTable.h"
+#include "VMWriter.h"
 
 int level = 0;
 int indent = 0;
 char tab[] = "  ";
 
 compilation_engine *compiler;
+symbol_table *class_symbol_table;
+symbol_table *subroutine_symbol_table;
 
 compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_file_path) {
     compiler = calloc(1, sizeof(compilation_engine));
@@ -35,11 +38,13 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
     //     self.level = self.level - 1
     //     self.indent = self.tab * self.level
 
-    // def emit(self):
-    //     print((f"\n{self.indent}{self.tokenizer.get_current_token_str()}"))
-    //     self.out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}")
-    //     self.tokenizer.advance()
-    //
+void emit(char *token) {
+
+    fprintf(compiler->out_file, "\n%s", compiler->tokenizer->file_path); //get_current_token_str());
+    // out_file.write(f"\n{self.indent}{self.tokenizer.get_current_token_str()}");
+    // tokenizer.advance();
+}
+
     // def eat(self, item, match):
     //     # print("eat: " + match)
     //     current_token = self.tokenizer.get_current_token().get_token()
@@ -56,34 +61,43 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
     //             self.syntax_error(current_token + " " + match)
     //
     //
-    // def compileClass(self):
-    //     # 'class' className '{' classVarDec* subroutineDec* '}'
-    //     self.out_file.write("<class>")
-    //     self.inc_indent()
-    //     self.tokenizer.advance()
+void compileClass(compilation_engine *compiler) {
+    class_symbol_table = create_symbol_table();
+    subroutine_symbol_table = create_symbol_table();
+
+    for (int i = 0; i < compiler->tokenizer->next_index; i++) {
+        printf("\"%s\", ", compiler->tokenizer->tokens[i]);
+        fprintf(compiler->out_file, "%s, %s\n", compiler->tokenizer->tokenized_tokens[i]->item, compiler->tokenizer->tokenized_tokens[i]->type);
+    }
+
+    // 'class' className '{' classVarDec* subroutineDec* '}'
+    // self.out_file.write("<class>")
+    // self.inc_indent()
+    // self.tokenizer.advance()
     //
-    //     # 'class'
-    //     self.eat("token", "class")
+    // # 'class'
+    // self.eat("token", "class")
     //
-    //     # className
-    //     self.eat("type", "identifier")
+    // # className
+    // self.eat("type", "identifier")
     //
-    //     # '{'
-    //     self.eat("token", "{")
+    // # '{'
+    // self.eat("token", "{")
     //
-    //     # classVarDec*
-    //     while self.compileClassVarDec():
-    //         pass
+    // # classVarDec*
+    // while self.compileClassVarDec():
+    //     pass
     //
-    //     # subroutineDec*
-    //     while self.compileSubroutine():
-    //         pass
+    // # subroutineDec*
+    // while self.compileSubroutine():
+    //     pass
     //
-    //     # '}'
-    //     self.eat("token", "}")
+    // # '}'
+    // self.eat("token", "}")
     //
-    //     self.dec_indent()
-    //     self.out_file.write(f"\n{self.indent}</class>")
+    // self.dec_indent()
+    // self.out_file.write(f"\n{self.indent}</class>")
+}
     //
     //
     // def check_for_one_or_more_identifiers(self):

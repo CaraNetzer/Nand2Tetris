@@ -17,7 +17,9 @@ symbol_table* create_symbol_table();
 
 symbol_table* startSubroutine(symbol_table *table);
 
-void define(char *name, char *type, char *kind, symbol_table *table);
+void clear_symbol_table_row(symbol_table_row *row);
+void define_row(char *name, char *type, char *kind, symbol_table *table);
+symbol_table_row* alloc_new_row(symbol_table *table);
 
 int var_count(char *kind, symbol_table *table);
 

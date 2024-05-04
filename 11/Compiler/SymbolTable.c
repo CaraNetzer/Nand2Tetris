@@ -9,7 +9,9 @@ symbol_table* create_symbol_table() {
 }
 
 symbol_table* startSubroutine(symbol_table *table) { 
-    // TODO free prior table's data
+    for(int i = 0; i < table->next_index; i++) {
+        clear_symbol_table_row(table->rows[i]);
+    }
     table->next_index = 0;
     return table;
 }
@@ -25,21 +27,23 @@ void clear_symbol_table_row(symbol_table_row *row) {
 }
 
 
-symbol_table_row* st_next_row() {
-    // symbol_table_row* row = calloc();
-    // set next index
+symbol_table_row* alloc_new_row(symbol_table *table) {
+    symbol_table_row* row = calloc(1, sizeof(symbol_table_row));
+    table->next_index += 1;
+    return row;
 }
 
-void define(char *name, char *type, char *kind, symbol_table *table) {
+void define_row(char *name, char *type, char *kind, symbol_table *table) {
 
-    // if (0 != strcmp(token, "")) {
-    // symbol_table_row *row;
-    // row = table->rows[table->next_index++] 
-    // row = st_next_row(table)
-        table->rows[table->next_index++]->name = strdup(name);
-        table->rows[table->next_index++]->type = strdup(type);
-        table->rows[table->next_index++]->kind = strdup(kind);
-    // }
+    if (0 != strcmp(name, "")) {
+        symbol_table_row *row;
+        row = table->rows[table->next_index++];
+        row = alloc_new_row(table);
+        row->name = strdup(name);
+        row->type = strdup(type);
+        row->kind = strdup(kind);
+        table->rows[table->next_index++] = row;
+    }
 
     if(table->next_index > table->max_rows) {
         symbol_table_row **new_table = reallocarray(table->rows, table->max_rows * 2, sizeof(char*));
