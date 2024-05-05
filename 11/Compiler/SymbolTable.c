@@ -42,6 +42,7 @@ void define_row(char *name, char *type, char *kind, symbol_table *table) {
         row->name = strdup(name);
         row->type = strdup(type);
         row->kind = strdup(kind);
+        row->n = var_count(kind, table);
         table->rows[table->next_index++] = row;
     }
 
@@ -64,7 +65,7 @@ int var_count(char *kind, symbol_table *table) {
     int count = 0;
 
     for (int i = 0; i < table->next_index; i++) {
-        if (table->rows[i]->kind == kind) {
+        if (!strcmp(table->rows[i]->kind, kind)) {
             count++;
         }
     }

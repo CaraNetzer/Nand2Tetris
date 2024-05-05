@@ -17,3 +17,4 @@ void tokenizer_execute(jack_tokenizer *tokenizer);
 void append_token(char *token);
 
 void append_tokenized_token(token *tok, int i);
+

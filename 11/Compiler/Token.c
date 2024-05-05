@@ -4,12 +4,14 @@
 #include <string.h>
 #include "Token.h"
 
-char *var_types[] = { "int", "char", "boolean" };
+
+char *var_types[] = { "int", "char", "boolean", "void" };
 char *function_types[] = { "function", "constructor", "method" };
 char *operators[] = { "+", "-", "*", "/", "&", "|", "<", ">", "=", "~" };
 char *statement_types[] = { "let", "do", "if", "else", "while", "return" };
 char *unary_operators[] = { "-", "~" };
-char *other_keywords[] = { "class", "field", "static", "var", "void", "true", "false", "null", "this" }; //.union(var_types).union(function_types).union(statement_types);
+char *other_keywords[] = { "class", "void", "true", "false", "null", "this" }; //.union(var_types).union(function_types).union(statement_types);
+char *variable_declarations[] = { "field", "static", "var" }; //.union(var_types).union(function_types).union(statement_types);
 char *symbols[] = { "{", "}", "(", ")", "[", "]", ".", ",", ";" }; //.union(operators)
 
 token *create_token(char *in_token) {
@@ -37,7 +39,7 @@ bool array_contains(char **array, int size, char *item) {
 
 
 char* token_type(char *token) {
-    if(array_contains(other_keywords, 9, token) || array_contains(var_types, 3, token) || array_contains(function_types, 3, token) || array_contains(statement_types, 6, token)) {
+    if(array_contains(other_keywords, 9, token) || array_contains(var_types, 3, token) || array_contains(function_types, 3, token) || array_contains(statement_types, 6, token) || array_contains(variable_declarations, 3, token)) {
         return "keyword";
     } else if (array_contains(symbols, 9, token) || array_contains(operators, 10, token)) {
         return "symbol";

@@ -71,6 +71,7 @@ void append_tokenized_token(token *tok, int i) {
     }
 }
 
+
 void tokenizer_execute(jack_tokenizer* tokenizer) {
     
     bool block_comment = false;
@@ -166,12 +167,8 @@ void tokenizer_execute(jack_tokenizer* tokenizer) {
 
     for (int i = 0; i < tokenizer->next_index; i++) {
         token *tokenized_token = create_token(tokenizer->tokens[i]);
-
-        // printf("%p\n", &tokenizer->tokenized_tokens[i]);
-
         append_tokenized_token(tokenized_token, i);
-        // tokenizer->tokenized_tokens[i] = tokenized_token;
-
-        // printf("%s\n", tokenized_token->item);
     }
+
+    tokenizer->next_index = 0;
 }

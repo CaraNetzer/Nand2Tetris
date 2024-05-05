@@ -9,6 +9,8 @@ tests = \
 
 CFLAGS = -Wall -Werror
 
+OBJS = JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o
+
 default: test
 
 test: JackCompiler
@@ -16,4 +18,15 @@ test: JackCompiler
 		./JackCompiler ../$$test/; \
 	done
 
-JackCompiler: JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o
+JackCompiler: ${OBJS}
+
+${OBJS}: Token.h
+
+
+clean:
+	rm -f ${OBJS}
+
+clobber: clean
+	rm -f JackCompiler
+
+

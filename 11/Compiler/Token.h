@@ -5,6 +5,10 @@ typedef struct {
     char *item;
 } token;
 
+extern char *variable_declarations[];
+extern char *var_types[];
+extern char *function_types[];
+
 token* create_token(char *in_token);
 char* to_str(token *token);
 char* token_type(char *token); 
