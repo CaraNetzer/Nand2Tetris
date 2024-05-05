@@ -18,7 +18,7 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
         exit(1);
     }
 
-    compiler->tokens = in_tokenizer->tokens;
+    compiler->tokens = in_tokenizer->tokenized_tokens;
     compiler->tokenizer = in_tokenizer;
 
     compiler->out_file = fopen(out_file_path, "w");
@@ -65,9 +65,19 @@ void compileClass(compilation_engine *compiler) {
     class_symbol_table = create_symbol_table();
     subroutine_symbol_table = create_symbol_table();
 
+    token** tokens_list = compiler->tokenizer->tokenized_tokens;
+
     for (int i = 0; i < compiler->tokenizer->next_index; i++) {
-        printf("\"%s\", ", compiler->tokenizer->tokens[i]);
-        fprintf(compiler->out_file, "%s, %s\n", compiler->tokenizer->tokenized_tokens[i]->item, compiler->tokenizer->tokenized_tokens[i]->type);
+        fprintf(compiler->out_file, "%s, %s\n", tokens_list[i]->item, tokens_list[i]->type);
+        // printf("%s, %s\n", tokens_list[i]->item, tokens_list[i]->type);
+        define_row(tokens_list[i]->item, tokens_list[i]->type, "kind unknown", class_symbol_table);
+    }
+
+    for (int j = 0; j < class_symbol_table->next_index; j++) {
+        printf("name: %s, ", class_symbol_table->rows[j]->name);
+        printf("type: %s, ", class_symbol_table->rows[j]->type);
+        printf("kind: %s, ", class_symbol_table->rows[j]->kind);
+        printf("n: %d\n", class_symbol_table->rows[j]->n);
     }
 
     // 'class' className '{' classVarDec* subroutineDec* '}'

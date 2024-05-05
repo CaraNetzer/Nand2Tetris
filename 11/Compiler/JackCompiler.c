@@ -91,6 +91,7 @@ void process_file(char* in_file_name, char* in_dirname) {
 
     compilation_engine *compilationEngine = CompilationEngine(tokenizer, out_file_path);
     compileClass(compilationEngine);
+
     fclose(compilationEngine->out_file);
     fclose(tokenizer->in_file);
 }

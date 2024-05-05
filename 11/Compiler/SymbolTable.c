@@ -5,6 +5,8 @@
 symbol_table* create_symbol_table() {
     symbol_table *table = calloc(1, sizeof(symbol_table));
     table->max_rows = 2000;
+    table->rows = calloc(table->max_rows, sizeof(symbol_table_row));
+    table->next_index = 0;
     return table;
 }
 
@@ -29,7 +31,6 @@ void clear_symbol_table_row(symbol_table_row *row) {
 
 symbol_table_row* alloc_new_row(symbol_table *table) {
     symbol_table_row* row = calloc(1, sizeof(symbol_table_row));
-    table->next_index += 1;
     return row;
 }
 
@@ -37,7 +38,6 @@ void define_row(char *name, char *type, char *kind, symbol_table *table) {
 
     if (0 != strcmp(name, "")) {
         symbol_table_row *row;
-        row = table->rows[table->next_index++];
         row = alloc_new_row(table);
         row->name = strdup(name);
         row->type = strdup(type);

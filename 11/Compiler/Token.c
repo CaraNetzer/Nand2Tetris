@@ -13,7 +13,6 @@ char *other_keywords[] = { "class", "field", "static", "var", "void", "true", "f
 char *symbols[] = { "{", "}", "(", ")", "[", "]", ".", ",", ";" }; //.union(operators)
 
 token *create_token(char *in_token) {
-    printf("tokenizer: %p\n", &in_token);
     token *new_token = malloc(sizeof(token));
 
     if(!new_token) {
@@ -29,7 +28,7 @@ token *create_token(char *in_token) {
 
 bool array_contains(char **array, int size, char *item) {
     for(int i = 0; i < size; i++) {
-        if (array[i] == item) {
+        if (!strcmp(array[i], item)) {
             return true;
         }
     }
@@ -44,7 +43,8 @@ char* token_type(char *token) {
         return "symbol";
     } else if (isdigit(token[0])) {
         return "integerConstant";
-    } else if (strncmp("\"", token, 1)) {
+    } else if (!strncmp("\"", token, 1)) {
+        printf("%s\n", token);
         return "stringConstant";
     } else if (!isdigit(token[0])) {
         return "identifier";
@@ -52,6 +52,7 @@ char* token_type(char *token) {
 
     return "none";
 }
+
 
 char* to_str(token *token) {
     char buf[BUFSIZ];

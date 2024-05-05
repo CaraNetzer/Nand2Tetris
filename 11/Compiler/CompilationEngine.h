@@ -2,7 +2,7 @@
 #include "JackTokenizer.h"
 
 typedef struct {
-    char **tokens;
+    token **tokens;
     jack_tokenizer *tokenizer;
     FILE *out_file;
 } compilation_engine;

@@ -21,6 +21,7 @@ jack_tokenizer* open_file(char *in_file_path) {
     tokenizer->file_path = in_file_path;
     tokenizer->max_tokens = 2000;
     tokenizer->tokens = calloc(tokenizer->max_tokens, sizeof(char*));
+    tokenizer->tokenized_tokens = calloc(tokenizer->max_tokens, sizeof(token));
     tokenizer->next_index = 0;
 
     tokenizer->in_file = fopen(in_file_path, "r");
@@ -53,29 +54,18 @@ void append_token(char *token) {
 
 void append_tokenized_token(token *tok, int i) {
 
-    printf("tokenizer: %p\n", &tokenizer);
-    token* new_token = calloc(1, sizeof(token));
-    if(!new_token) {
-        perror("calloc failed for append_tokenize_token");
-        exit(1);
-    }
-    new_token = tok;
-
-    
     if (0 != strcmp(tok->item, "")) {
-        printf("i: %p\n", &tokenizer->tokenized_tokens[i]);
-        printf("i: %p\n", new_token);
-        tokenizer->tokenized_tokens[i] = new_token;
+        tokenizer->tokenized_tokens[i] = tok;
     }
 
-    if(tokenizer->next_index > tokenizer->max_tokens) {
-        char **new_tokens = reallocarray(tokenizer->tokens, tokenizer->max_tokens * 2, sizeof(char*));
+    if(i + 1 > tokenizer->max_tokens) {
+        token **new_tokenized_tokens = reallocarray(tokenizer->tokens, tokenizer->max_tokens * 2, sizeof(token));
     
-        if(new_tokens) {
-            tokenizer->tokens = new_tokens;
+        if(new_tokenized_tokens) {
+            tokenizer->tokenized_tokens = new_tokenized_tokens;
             tokenizer->max_tokens *= 2;
         } else {
-            perror(*new_tokens);
+            perror("new_tokenized_tokens");
             exit(1);
         }
     }
@@ -177,11 +167,11 @@ void tokenizer_execute(jack_tokenizer* tokenizer) {
     for (int i = 0; i < tokenizer->next_index; i++) {
         token *tokenized_token = create_token(tokenizer->tokens[i]);
 
-        printf("%p\n", &tokenizer->tokenized_tokens[i]);
+        // printf("%p\n", &tokenizer->tokenized_tokens[i]);
 
         append_tokenized_token(tokenized_token, i);
         // tokenizer->tokenized_tokens[i] = tokenized_token;
 
-        printf("%s\n", tokenized_token->item);
+        // printf("%s\n", tokenized_token->item);
     }
 }
