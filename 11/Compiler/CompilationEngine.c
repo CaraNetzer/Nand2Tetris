@@ -23,6 +23,8 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
     compiler->tokens = in_tokenizer->tokenized_tokens;
     compiler->tokenizer = in_tokenizer;
 
+    current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+
     compiler->out_file = fopen(out_file_path, "w");
     if(!compiler->out_file) {
         perror("failed to open out_file for writing");
@@ -82,8 +84,6 @@ void process_keyword(char* item, char* match, token** tokens_list, int i) {
 
 void process_identifier(char* item, char* match, token** tokens_list, int i) {
 
-
-    // # print("eat: " + match)
     token* current_token = tokens_list[i];
 
     if(!strcmp(current_token->type, "identifier")) {
@@ -156,27 +156,68 @@ void compileClass(compilation_engine *compiler) {
     }
 }
 
-    //
-    //
-    // def check_for_one_or_more_identifiers(self):
-    //     if self.tokenizer.get_current_token().get_token() == ",":
-    //         self.emit()
-    //     else:
-    //         return False
-    //
-    //     if self.tokenizer.get_current_token().get_type() == "identifier":
-    //         self.emit()
-    //         return True
-    //     else:
-    //         self.syntax_error(self.tokenizer.get_current_token().get_token())
-    //
-    //
+bool check_for_one_or_more_parameters() {
+
+    // (',' type varName)*)?
+    if (!strcmp(",", current_token->item)) {
+        advance_token();
+    } else {
+        return false;
+    }
+
+    // type
+    if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
+
+        char *type = current_token->item;
+        advance_token();
+
+        // varname
+        char *name = current_token->item;
+        check_token("type", "identifier");
+        advance_token();
+
+        define_row(name, type, "ARG", subroutine_symbol_table);
+
+        return true;
+    } else {
+        syntax_error(current_token->item, "type");
+        return false;
+    }
+}
+
+bool check_for_one_or_more_identifiers() {
+
+    if (!strcmp(",", current_token->item)) {
+        advance_token();
+    } else {
+        return false;
+    }
+
+    // identifier
+    if (!strcmp(current_token->type, "identifier")) {
+
+        // varname
+        char *name = current_token->item;
+        check_token("type", "identifier");
+        advance_token();
+
+        char *type = current_token->item;
+        advance_token();
+
+
+        define_row(name, type, "VAR", subroutine_symbol_table);
+
+        return true;
+    } else {
+        syntax_error(current_token->item, "identifier");
+        return false;
+    }
+}
+
 bool compileClassVarDec() {
 
     // ('static' | 'field') type varName (',' varName)* ';'
     
-    current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
-
     // ('static' | 'field')
     if (0 == strcmp(current_token->item, "static") || 0 == strcmp(current_token->item, "field")) {
 
@@ -190,16 +231,16 @@ bool compileClassVarDec() {
         char *type;
         // type { 'int' | 'char' | 'boolean' | varName }
         // printf("after advance: %s\n", current_token->item);
-        if (array_contains(var_types, 3, current_token->item) || !strcmp(current_token->type, "identifier")) {
+        if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
             // printf("%s\n", current_token->item);
-            type = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index]->item;
+            type = current_token->item;
             advance_token();
             // self.emit()
         }
 
         // varName
         check_token("type", "identifier");
-        char *name = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index]->item;
+        char *name = current_token->item;
         advance_token();
 
         define_row(name, type, kind, class_symbol_table);
@@ -257,9 +298,9 @@ bool compileSubroutine() {
             // self.out_file.write(f"\n{self.indent}<parameterList>")
             // self.inc_indent()
 
-            // while (compileParameterList()) {
-            //     continue;
-            // }
+            while (compileParameterList()) {
+                continue;
+            }
 
             // self.dec_indent()
             // self.out_file.write(f"\n{self.indent}</parameterList>")
@@ -279,16 +320,16 @@ bool compileSubroutine() {
             advance_token();
 
             // varDec*
-            // while (compileVarDec()) {
-            //     continue;
-            // }
+            while (compileVarDec()) {
+                continue;
+            }
 
             // statements
             // self.out_file.write(f"\n{self.indent}<statements>")
             // self.inc_indent()
-            // while (compileStatements()) {
-            //     continue;
-            // }
+            while (compileStatements()) {
+                continue;
+            }
             // self.dec_indent()
             // self.out_file.write(f"\n{self.indent}</statements>")
 
@@ -299,6 +340,13 @@ bool compileSubroutine() {
 
             // self.dec_indent()
             // self.out_file.write(f"\n{self.indent}</subroutineBody>")
+            printf("num of rows: %d\n", subroutine_symbol_table->next_index);
+            for (int j = 0; j < subroutine_symbol_table->next_index; j++) {
+                printf("name: %s, ", subroutine_symbol_table->rows[j]->name);
+                printf("type: %s, ", subroutine_symbol_table->rows[j]->type);
+                printf("kind: %s, ", subroutine_symbol_table->rows[j]->kind);
+                printf("n: %d\n", subroutine_symbol_table->rows[j]->n);
+            }
         } else {
             syntax_error(current_token->item, "void or {type}");
         }
@@ -307,424 +355,514 @@ bool compileSubroutine() {
         // self.out_file.write(f"\n{self.indent}</subroutineDec>")
 
         return true;
+
     } else {
         return false;
     }
 }
-    //
-    // def compileParameterList(self):
-    //     # ((type varName) (',' varName)*)?
-    //
-    //     # type
-    //     if (self.tokenizer.get_current_token().get_token() in Token.var_types
-    //         or self.tokenizer.get_current_token().get_type() == "identifier"):
-    //         self.emit()
-    //
-    //         # varname
-    //         self.eat("type", "identifier")
-    //
-    //         # (',' varName)*
-    //         while self.check_for_one_or_more_identifiers():
-    //             pass
-    //
-    //     else:
-    //         return False
-    //
-    //
-    // def compileVarDec(self):
-    //     # 'var' type varName (',' varName)* ';'
-    //
-    //     # 'var'
-    //     if self.tokenizer.get_current_token().get_token() == "var":
-    //         self.out_file.write(f"\n{self.indent}<varDec>") #TODO clean this up
-    //         self.inc_indent()
-    //         self.emit()
-    //
-    //         # TODO this is the same as in parameter list, consider drying this up
-    //         # type
-    //         if (self.tokenizer.get_current_token().get_token() in Token.var_types
-    //             or self.tokenizer.get_current_token().get_type() == "identifier"):
-    //             self.emit()
-    //
-    //             # varname
-    //             self.eat("type", "identifier")
-    //
-    //             # (',' varName)*
-    //             while self.check_for_one_or_more_identifiers():
-    //                 pass
-    //
-    //             # ';'
-    //             self.eat("token", ";")
-    //
-    //             self.dec_indent()
-    //             self.out_file.write(f"\n{self.indent}</varDec>")
-    //             return True
-    //         else:
-    //             self.syntax_error(self.tokenizer.get_current_token().get_token())
-    //     else:
-    //         return False
-    //
-    //
-    // def compileStatements(self):
-    //
-    //     # (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
-    //     current_token = self.tokenizer.get_current_token().get_token()
-    //     if current_token in Token.statement_types:
-    //
-    //         if current_token == "let":
-    //             self.out_file.write(f"\n{self.indent}<letStatement>")
-    //             self.inc_indent()
-    //             self.compileLet()
-    //             self.dec_indent()
-    //             self.out_file.write(f"\n{self.indent}</letStatement>")
-    //
-    //         if current_token == "if":
-    //             self.out_file.write(f"\n{self.indent}<ifStatement>")
-    //             self.inc_indent()
-    //             self.compileIf()
-    //             self.dec_indent()
-    //             self.out_file.write(f"\n{self.indent}</ifStatement>")
-    //
-    //         if current_token == "while":
-    //             self.out_file.write(f"\n{self.indent}<whileStatement>")
-    //             self.inc_indent()
-    //             self.compileWhile()
-    //             self.dec_indent()
-    //             self.out_file.write(f"\n{self.indent}</whileStatement>")
-    //
-    //         if current_token == "do":
-    //             self.out_file.write(f"\n{self.indent}<doStatement>")
-    //             self.inc_indent()
-    //             self.compileDo()
-    //             self.dec_indent()
-    //             self.out_file.write(f"\n{self.indent}</doStatement>")
-    //
-    //         if current_token == "return":
-    //             self.out_file.write(f"\n{self.indent}<returnStatement>")
-    //             self.inc_indent()
-    //             self.compileReturn()
-    //             self.dec_indent()
-    //             self.out_file.write(f"\n{self.indent}</returnStatement>")
-    //
-    //         return True
-    //     else:
-    //         return False
-    //
-    //
-    // def compileDo(self):
-    //     # 'do' subroutineCall = subroutineName '(' expressionList ')' | (className | varName) '.'
-    //     # subroutineName '(' expressionList ')' ';'
-    //
-    //     # 'do'
-    //     self.eat("token", "do")
-    //
-    //     # subroutineName | className | varName
-    //     self.eat("type", "identifier")
-    //
-    //     # subroutineCall
-    //     self.compileSubroutineCall()
-    //
-    //     #';'
-    //     self.eat("token", ";")
-    //
-    //     return True
-    //
-    //
-    // def compileSubroutineCall(self):
-    //     # subroutineName                           '(' expressionList ')' |
-    //     # (className | varName) '.' subroutineName '(' expressionList ')'
-    //
-    //     # '.' subroutineName
-    //     if (self.tokenizer.get_current_token().get_token() == "."):
-    //         # '.'
-    //         self.emit()
-    //
-    //         # sunroutineName
-    //         self.eat("type", "identifier")
-    //
-    //     # '(' expressionList ')'
-    //
-    //     self.eat("token", "(")
-    //
-    //     # expressionList
-    //     self.out_file.write(f"\n{self.indent}<expressionList>")
-    //     self.inc_indent()
-    //     while self.compileExpressionList():
-    //         pass
-    //     self.dec_indent()
-    //     self.out_file.write(f"\n{self.indent}</expressionList>")
-    //
-    //     # )
-    //     self.eat("token", ")")
-    //
-    //
-    // def compileIndexedExpression(self):
-    //     # '[' expression ']'
-    //     if self.tokenizer.get_current_token().get_token() == "[":
-    //         self.emit()
-    //
-    //         self.compileExpression()
-    //
-    //         self.eat("token", "]")
-    //     else:
-    //         return False
-    //
-    //
-    // def compileLet(self):
-    //     # 'let' varName ('[' expression ']')? '=' expression ';'
-    //
-    //     # 'let'
-    //     self.eat("token", "let")
-    //
-    //     # varName
-    //     self.eat("type", "identifier")
-    //
-    //     # '[' expression ']'
-    //     while self.compileIndexedExpression():
-    //         pass
-    //
-    //     # '='
-    //     self.eat("token", "=")
-    //
-    //     # expression
-    //     self.compileExpression()
-    //
-    //     # ';'
-    //     self.eat("token", ";")
-    //
-    //     return True
-    //
-    // def compileWhile(self):
-    //     # 'while' '(' expression ')' '{' statements '}'
-    //     self.eat("token", "while")
-    //
-    //     self.eat("token", "(")
-    //
-    //     self.compileExpression()
-    //
-    //     self.eat("token", ")")
-    //
-    //     self.eat("token", "{")
-    //
-    //     self.out_file.write(f"\n{self.indent}<statements>")
-    //     self.inc_indent()
-    //     while self.compileStatements():
-    //         pass
-    //     self.dec_indent()
-    //     self.out_file.write(f"\n{self.indent}</statements>")
-    //
-    //     self.eat("token", "}")
-    //
-    //     return True
-    //
-    //
-    // def compileReturn(self):
-    //     # 'return' expression
-    //     self.eat("token", "return")
-    //
-    //     while self.compileExpression():
-    //         pass
-    //
-    //     self.eat("token", ";")
-    //
-    //     return True
-    //
-    //
-    // def compileElseStatement(self):
-    //     # 'else' '{' statements '}'
-    //     if self.tokenizer.get_current_token().get_token() == "else":
-    //         # 'else'
-    //         self.emit()
-    //
-    //         # '{'
-    //         self.eat("token", "{")
-    //
-    //         # statements
-    //         self.out_file.write(f"\n{self.indent}<statements>")
-    //         self.inc_indent()
-    //         while self.compileStatements():
-    //             pass
-    //         self.dec_indent()
-    //         self.out_file.write(f"\n{self.indent}</statements>")
-    //
-    //         # '}'
-    //         self.eat("token", "}")
-    //     else:
-    //         return False
-    //
-    //
-    // def compileIf(self):
-    //
-    //     # 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
-    //
-    //     # 'if'
-    //     self.eat("token", "if")
-    //
-    //     # '('
-    //     self.eat("token", "(")
-    //
-    //     self.compileExpression()
-    //
-    //     # ')'
-    //     self.eat("token", ")")
-    //
-    //     # '{'
-    //     self.eat("token", "{")
-    //
-    //     # statements
-    //     self.out_file.write(f"\n{self.indent}<statements>")
-    //     self.inc_indent()
-    //     while self.compileStatements():
-    //         pass
-    //     self.dec_indent()
-    //     self.out_file.write(f"\n{self.indent}</statements>")
-    //
-    //     # '}'
-    //     self.eat("token", "}")
-    //
-    //     # 'else' '{' statements '}'
-    //     while self.compileElseStatement():
-    //         pass
-    //
-    //     return True
-    //
-    // def compileOpTerm(self):
-    //     # op term
-    //     # print("op term: ", self.tokenizer.get_current_token().get_token())
-    //     if self.tokenizer.get_current_token().get_token() in Token.operators:
-    //         # op
-    //         self.eat("type", "symbol")
-    //
-    //         # term
-    //         self.compileTerm()
-    //
-    //         return True
-    //     else:
-    //         return False
-    //
-    //
-    // def compileExpression(self):
-    //
-    //     # term (op term)*
-    //     current_token = self.tokenizer.get_current_token().get_token()
-    //     if self.tokenizer.get_current_token().token_type(current_token) != "symbol" or current_token in Token.unary_operators:
-    //         self.out_file.write(f"\n{self.indent}<expression>")
-    //         self.inc_indent()
-    //
-    //         # term
-    //         self.compileTerm()
-    //
-    //         # (op term)*
-    //         while self.compileOpTerm():
-    //             pass
-    //
-    //         self.dec_indent()
-    //         self.out_file.write(f"\n{self.indent}</expression>")
-    //
-    //         return True
-    //     else:
-    //         return False
-    //
-    //
-    // def compileTerm(self):
-    //     # integerConstant | stringConstant | keywordConstant | varName |
-    //     # varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
-    //
-    //     # if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
-    //     current_token = self.tokenizer.get_current_token().get_token()
-    //
-    //     if self.tokenizer.get_current_token().token_type(current_token) != "symbol" or current_token == "(":
-    //         self.out_file.write(f"\n{self.indent}<term>")
-    //         self.inc_indent()
-    //
-    //     # integerConstant | stringConstant | keywordConstant
-    //     if (self.tokenizer.get_current_token().token_type(current_token) == "integerConstant" or
-    //        self.tokenizer.get_current_token().token_type(current_token) == "stringConstant" or
-    //        self.tokenizer.get_current_token().token_type(current_token) == "keyword"):
-    //
-    //         self.eat("token", current_token)
-    //
-    //     # unaryOp term
-    //     elif current_token in Token.unary_operators:
-    //         self.out_file.write(f"\n{self.indent}<term>")
-    //         self.inc_indent()
-    //
-    //         self.eat("type", "symbol")
-    //         self.compileTerm()
-    //
-    //
-    //     # '(' expression ')'
-    //     elif current_token == '(':
-    //         self.eat("token", "(")
-    //         self.compileExpression()
-    //         self.eat("token", ")")
-    //
-    //     elif self.tokenizer.get_current_token().token_type(current_token) == "identifier":
-    //         # this is where we need to look two ahead
-    //
-    //         # varName
-    //         self.eat("type", "identifier")
-    //
-    //         current_token = self.tokenizer.get_current_token().get_token()
-    //
-    //         # varName '[' expression ']'
-    //         if current_token == "[":
-    //             self.compileIndexedExpression()
-    //
-    //         # subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
-    //         elif current_token == "(" or current_token == ".":
-    //             self.compileSubroutineCall()
-    //
-    //     else:
-    //         return False
-    //
-    //
-    //     self.dec_indent()
-    //     self.out_file.write(f"\n{self.indent}</term>")
-    //
-    //     return True
-    //
-    //
-    // def check_for_one_or_more_expressions(self):
-    //     if self.tokenizer.get_current_token().get_token() == ",":
-    //         self.emit()
-    //     else:
-    //         return False
-    //
-    //     if self.compileTerm():
-    //         # (op term)*
-    //         while self.compileOpTerm():
-    //             pass
-    //
-    //         return True
-    //     else:
-    //         self.syntax_error(self.tokenizer.get_current_token().get_token())
-    //
-    //
-    // def compileExpressionList(self):
-    //     # (expression (',' expression)*)?
-    //
-    //     current_token = self.tokenizer.get_current_token().get_token()
-    //     if self.tokenizer.get_current_token().token_type(current_token) != "symbol":
-    //         self.out_file.write(f"\n{self.indent}<expression>")
-    //         self.inc_indent()
-    //
-    //     # expression = term (op term)*
-    //     if self.compileTerm():
-    //
-    //         # (op term)*
-    //         while self.compileOpTerm():
-    //             # print(self.tokenizer.get_current_token().get_token())
-    //             pass
-    //
-    //         # (',' expression)*
-    //         while self.check_for_one_or_more_expressions():
-    //             pass
-    //
-    //         self.dec_indent()
-    //         self.out_file.write(f"\n{self.indent}</expression>")
-    //
-    //     else:
-    //         return False
-    //
-    //
+
+bool compileParameterList() {
+
+    // ((type varName) (',' type varName)*)?
+
+    // type
+    if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
+
+        char *type = current_token->item;
+        advance_token();
+
+        // varname
+        char *name = current_token->item;
+        check_token("type", "identifier");
+        advance_token();
+
+        define_row(name, type, "ARG", subroutine_symbol_table);
+
+        // (',' varName)*
+        while(check_for_one_or_more_parameters()) {
+            continue;
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool compileVarDec() {
+    // 'var' type varName (',' varName)* ';'
+
+    // 'var'
+    if (0 == strcmp(current_token->item, "var")) {
+
+        advance_token();
+
+        // TODO this is the same as in parameter list, consider drying this up
+        //
+        char *type;
+        // type { 'int' | 'char' | 'boolean' | varName }
+        if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
+            // printf("%s\n", current_token->item);
+            type = current_token->item;
+            advance_token();
+        }
+
+        // varName
+        check_token("type", "identifier");
+        char *name = current_token->item;
+        advance_token();
+
+        define_row(name, type, "VAR", subroutine_symbol_table);
+
+        // (',' varName)*
+        while(check_for_one_or_more_identifiers()) {
+            continue;
+        }
+
+        // ';'
+        check_token("token", ";");
+        advance_token();
+
+            // self.dec_indent()
+            // self.out_file.write(f"\n{self.indent}</varDec>")
+        return true;
+        // self.out_file.write(f"\n{self.indent}<classVarDec>")
+        // self.inc_indent()
+
+    } else {
+        return false;
+    }
+}
+
+bool compileStatements() {
+
+    // (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
+    if (array_contains(statement_types, 6, current_token->item)) { 
+
+        if(!strcmp(current_token->item, "let")) {
+            // self.out_file.write(f"\n{self.indent}<letStatement>")
+            // self.inc_indent()
+            compileLet();
+            // self.dec_indent()
+            // self.out_file.write(f"\n{self.indent}</letStatement>")
+        }
+
+        if (!strcmp(current_token->item, "if")) {
+            // self.out_file.write(f"\n{self.indent}<ifStatement>")
+            // self.inc_indent()
+            compileIf();
+            // self.dec_indent()
+            // self.out_file.write(f"\n{self.indent}</ifStatement>")
+        }
+
+        if (!strcmp(current_token->item, "while")) {
+            // self.out_file.write(f"\n{self.indent}<whileStatement>")
+            // self.inc_indent()
+            compileWhile();
+            // self.dec_indent()
+            // self.out_file.write(f"\n{self.indent}</whileStatement>")
+        }
+
+        if (!strcmp(current_token->item, "do")) {
+            // self.out_file.write(f"\n{self.indent}<doStatement>")
+            // self.inc_indent()
+            compileDo();
+            // self.dec_indent()
+            // self.out_file.write(f"\n{self.indent}</doStatement>")
+        }
+
+        if (!strcmp(current_token->item, "return")) {
+            // self.out_file.write(f"\n{self.indent}<returnStatement>")
+            // self.inc_indent()
+            compileReturn();
+            // self.dec_indent()
+            // self.out_file.write(f"\n{self.indent}</returnStatement>")
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool compileDo() {
+    // 'do' subroutineCall = subroutineName '(' expressionList ')' | (className | varName) '.'
+    
+    // subroutineName '(' expressionList ')' ';'
+
+    // 'do'
+    check_token("token", "do");
+    advance_token();
+
+    // subroutineName | className | varName
+    check_token("type", "identifier");
+    advance_token();
+
+    // subroutineCall
+    compileSubroutineCall();
+
+    //';'
+    check_token("token", ";");
+    advance_token();
+
+    return true;
+}
+
+bool compileSubroutineCall() {
+    // subroutineName                           '(' expressionList ')' |
+    // (className | varName) '.' subroutineName '(' expressionList ')'
+
+    // '.' subroutineName
+    if (!strcmp(current_token->item, ".")) {
+
+        // '.'
+        advance_token();
+
+        // sunroutineName
+        check_token("type", "identifier");
+        advance_token();
+    }
+
+    // '(' expressionList ')'
+    check_token("token", "(");
+    advance_token();
+
+    // expressionList
+    // self.out_file.write(f"\n{self.indent}<expressionList>")
+    // self.inc_indent()
+    while (compileExpressionList()) {
+        continue;
+    }
+    // self.dec_indent()
+    // self.out_file.write(f"\n{self.indent}</expressionList>")
+
+    // )
+    check_token("token", ")");
+    advance_token();
+
+    return true;
+}
+
+bool compileIndexedExpression() {
+    // '[' expression ']'
+    if (!strcmp(current_token->item, "[")) {
+
+        advance_token();
+
+        compileExpression();
+
+        check_token("token", "]");
+        advance_token();
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool compileLet() {
+    // 'let' varName ('[' expression ']')? '=' expression ';'
+
+    // 'let'
+    check_token("token", "let");
+    advance_token();
+
+    // varName
+    check_token("type", "identifier");
+    advance_token();
+
+    // '[' expression ']'
+    while (compileIndexedExpression()) {
+        continue;
+    }
+
+    // '='
+    check_token("token", "=");
+    advance_token();
+
+    // expression
+    compileExpression();
+
+    // ';'
+    check_token("token", ";");
+    advance_token();
+
+    return true;
+}
+
+bool compileWhile() {
+    // 'while' '(' expression ')' '{' statements '}'
+    check_token("token", "while");
+    advance_token();
+
+    check_token("token", "(");
+    advance_token();
+
+    compileExpression();
+
+    check_token("token", ")");
+    advance_token();
+
+    check_token("token", "{");
+    advance_token();
+
+    // out_file.write(f"\n{self.indent}<statements>")
+    // inc_indent()
+    while (compileStatements()) {
+        continue;
+    }
+    // dec_indent()
+    // out_file.write(f"\n{self.indent}</statements>")
+
+    check_token("token", "}");
+    advance_token();
+
+    return true;
+}
+
+bool compileReturn() {
+    // 'return' expression
+    check_token("token", "return");
+    advance_token();
+
+    while (compileExpression()) {
+        continue;
+    }
+
+    check_token("token", ";");
+    advance_token();
+
+    return true;
+}
+
+bool compileElseStatement() {
+    // 'else' '{' statements '}'
+    if (!strcmp(current_token->item, "else")) {
+        // 'else'
+        advance_token();
+
+        // '{'
+        check_token("token", "{");
+        advance_token();
+
+        // statements
+        // out_file.write(f"\n{self.indent}<statements>")
+        // inc_indent()
+        while (compileStatements()) {
+            continue;
+        }
+        // dec_indent()
+        // out_file.write(f"\n{self.indent}</statements>")
+
+        // '}'
+        check_token("token", "}");
+        advance_token();
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool compileIf() {
+
+    // 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+
+    // 'if'
+    check_token("token", "if");
+    advance_token();
+
+    // '('
+    check_token("token", "(");
+    advance_token();
+
+    compileExpression();
+
+    // ')'
+    check_token("token", ")");
+    advance_token();
+
+    // '{'
+    check_token("token", "{");
+    advance_token();
+
+    // statements
+    // out_file.write(f"\n{self.indent}<statements>")
+    // inc_indent()
+    while (compileStatements()) {
+        continue;
+    }
+    // dec_indent()
+    // out_file.write(f"\n{self.indent}</statements>")
+
+    // '}'
+    check_token("token", "}");
+    advance_token();
+
+    // 'else' '{' statements '}'
+    while (compileElseStatement()) {
+        continue;
+    }
+
+    return true;
+}
+
+bool compileOpTerm() {
+    // op term
+    if(array_contains(operators, 10, current_token->item)) {
+        // op
+        check_token("type", "symbol");
+        advance_token();
+
+        // term
+        compileTerm();
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool compileExpression() {
+
+    // term (op term)*
+    if (strcmp(current_token->type, "symbol") != 0 || array_contains(unary_operators, 2, current_token->item)) {
+        // self.out_file.write(f"\n{self.indent}<expression>")
+        // self.inc_indent()
+
+        // term
+        compileTerm();
+
+        // (op term)*
+        while (compileOpTerm()) {
+            continue;
+        }
+
+        // self.dec_indent()
+        // self.out_file.write(f"\n{self.indent}</expression>")
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+bool compileTerm() {
+    // integerConstant | stringConstant | keywordConstant | varName |
+    // varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
+
+    // if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
+
+    // if (strcmp(current_token->type, "symbol") != 0 || strcmp("(", current_token->item)) {
+    //     out_file.write(f"\n{self.indent}<term>")
+    //     inc_indent()
+
+    // integerConstant | stringConstant | keywordConstant
+    if (!strcmp(current_token->type, "integerConstant") ||
+        !strcmp(current_token->type, "stringConstant") ||
+        !strcmp(current_token->type, "keyword")) {
+
+        check_token("token", current_token->item);
+        advance_token();
+    }
+
+    // unaryOp term
+    else if (array_contains(unary_operators, 2, current_token->item)) {
+        // out_file.write(f"\n{self.indent}<term>")
+        // inc_indent()
+
+        check_token("type", "symbol");
+        advance_token();
+        compileTerm();
+    }
+
+    // '(' expression ')'
+    else if(!strcmp(current_token->item, "(")) {
+        check_token("token", "(");
+        advance_token();
+
+        compileExpression();
+
+        check_token("token", ")");
+        advance_token();
+    }
+
+    else if (!strcmp(current_token->type, "identifier")) {
+        // this is where we need to look two ahead
+
+        // varName
+        check_token("type", "identifier");
+        advance_token();
+
+        // TWO AHEAD - TODO check if this is right
+        // advance_token(); 
+
+        // varName '[' expression ']'
+        if (!strcmp(current_token->item, "[")) {
+            compileIndexedExpression();
+        }
+
+        // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
+        else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
+            compileSubroutineCall();
+        }
+
+    } else {
+        return false;
+    }
+
+
+    // dec_indent()
+    // out_file.write(f"\n{self.indent}</term>")
+
+    return true;
+}
+
+bool check_for_one_or_more_expressions() {
+    if (!strcmp(current_token->item, ",")) {
+        advance_token();
+    } else {
+        return false;
+    }
+
+    if (compileTerm()) {
+        // (op term)*
+        while (compileOpTerm()) {
+            continue;
+        }
+    } else {
+        syntax_error(current_token->item, "op term after ,");
+    }
+
+    return true;
+}
+
+bool compileExpressionList() {
+    // (expression (',' expression)*)?
+
+    // if tokenizer.get_current_token().token_type(current_token) != "symbol":
+        // out_file.write(f"\n{self.indent}<expression>")
+        // inc_indent()
+
+    // expression = term (op term)*
+    if (compileTerm()) {
+
+        // (op term)*
+        while (compileOpTerm()) {
+            // print(tokenizer.get_current_token().get_token())
+            continue;
+        }        
+
+        // (',' expression)*
+        while (check_for_one_or_more_expressions()) {
+            continue;
+        }
+
+        // dec_indent()
+        // out_file.write(f"\n{self.indent}</expression>")
+        return true;
+    } else {
+        return false;
+    }
+}

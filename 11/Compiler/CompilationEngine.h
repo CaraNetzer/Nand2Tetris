@@ -23,3 +23,18 @@ void check_token(char* item, char* match);
 
 bool compileClassVarDec();
 bool compileSubroutine();
+bool compileParameterList();
+bool compileVarDec();
+bool compileStatements();
+bool compileLet();
+bool compileIf();
+bool compileWhile();
+bool compileDo();
+bool compileReturn();
+bool compileSubroutineCall();
+bool compileExpressionList();
+bool compileExpression();
+bool compileElseStatement();
+bool compileTerm();
+bool compileOpTerm();
+bool check_for_one_or_more_expressions();

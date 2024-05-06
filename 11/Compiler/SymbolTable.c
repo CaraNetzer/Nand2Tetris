@@ -85,7 +85,7 @@ int var_count(char *kind, symbol_table *table) {
 
 char* kind_of(char *name, symbol_table *table) {
 
-    char *kind;
+    char *kind = "NONE";
 
     find_property(name, table, kind);
 
@@ -95,7 +95,7 @@ char* kind_of(char *name, symbol_table *table) {
 
 char* type_of(char *name, symbol_table *table) {
 
-    char *type;
+    char *type = "NONE";
 
     find_property(name, table, type);
 
