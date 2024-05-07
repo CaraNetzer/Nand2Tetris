@@ -45,7 +45,11 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
 void emit(token *token) {
 
     if(!strcmp(token->type, "identifier")) {
-
+      if(find_by_name(token->item, class_symbol_table)) {
+        // write vm code
+      } else if(find_by_name(token->item, subroutine_symbol_table)) {
+        // write vm code
+      }
     } else if (!strcmp(token->type, "keyword")) {
 
     }
@@ -217,13 +221,13 @@ bool check_for_one_or_more_identifiers() {
 bool compileClassVarDec() {
 
     // ('static' | 'field') type varName (',' varName)* ';'
-    
+
     // ('static' | 'field')
     if (0 == strcmp(current_token->item, "static") || 0 == strcmp(current_token->item, "field")) {
 
         // self.out_file.write(f"\n{self.indent}<classVarDec>")
         // self.inc_indent()
-        
+
         char *kind = current_token->item;
         advance_token();
         // emit(current_token);
@@ -267,7 +271,7 @@ bool compileSubroutine() {
     startSubroutine(subroutine_symbol_table);
 
     // ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' '{' varDec* statements '}'
-    
+
     // ('constructor' | 'function' | 'method')
     if(array_contains(function_types, 2, current_token->item)) {
         // self.out_file.write(f"\n{self.indent}<subroutineDec>")
@@ -398,7 +402,6 @@ bool compileVarDec() {
         advance_token();
 
         // TODO this is the same as in parameter list, consider drying this up
-        //
         char *type;
         // type { 'int' | 'char' | 'boolean' | varName }
         if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
@@ -437,7 +440,7 @@ bool compileVarDec() {
 bool compileStatements() {
 
     // (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
-    if (array_contains(statement_types, 6, current_token->item)) { 
+    if (array_contains(statement_types, 6, current_token->item)) {
 
         if(!strcmp(current_token->item, "let")) {
             // self.out_file.write(f"\n{self.indent}<letStatement>")
@@ -487,7 +490,7 @@ bool compileStatements() {
 
 bool compileDo() {
     // 'do' subroutineCall = subroutineName '(' expressionList ')' | (className | varName) '.'
-    
+
     // subroutineName '(' expressionList ')' ';'
 
     // 'do'
@@ -747,7 +750,6 @@ bool compileExpression() {
     }
 }
 
-
 bool compileTerm() {
     // integerConstant | stringConstant | keywordConstant | varName |
     // varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
@@ -796,7 +798,7 @@ bool compileTerm() {
         advance_token();
 
         // TWO AHEAD - TODO check if this is right
-        // advance_token(); 
+        // advance_token();
 
         // varName '[' expression ']'
         if (!strcmp(current_token->item, "[")) {
@@ -852,7 +854,7 @@ bool compileExpressionList() {
         while (compileOpTerm()) {
             // print(tokenizer.get_current_token().get_token())
             continue;
-        }        
+        }
 
         // (',' expression)*
         while (check_for_one_or_more_expressions()) {

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct {
     char *name;
@@ -22,6 +23,7 @@ void define_row(char *name, char *type, char *kind, symbol_table *table);
 symbol_table_row* alloc_new_row(symbol_table *table);
 
 int var_count(char *kind, symbol_table *table);
+bool find_by_name(char *name, symbol_table *table);
 
 char* kind_of(char *name, symbol_table *table);
 char* type_of(char *name, symbol_table *table);

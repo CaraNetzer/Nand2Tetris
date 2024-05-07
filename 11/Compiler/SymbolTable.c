@@ -1,6 +1,7 @@
 #include "SymbolTable.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 symbol_table* create_symbol_table() {
     symbol_table *table = calloc(1, sizeof(symbol_table));
@@ -10,7 +11,7 @@ symbol_table* create_symbol_table() {
     return table;
 }
 
-symbol_table* startSubroutine(symbol_table *table) { 
+symbol_table* startSubroutine(symbol_table *table) {
     for(int i = 0; i < table->next_index; i++) {
         clear_symbol_table_row(table->rows[i]);
     }
@@ -20,7 +21,7 @@ symbol_table* startSubroutine(symbol_table *table) {
 
 void clear_symbol_table_row(symbol_table_row *row) {
     if(!row) return;
-    
+
     if(row->name) free(row->name);
     if(row->type) free(row->type);
     if(row->kind) free(row->kind);
@@ -48,7 +49,7 @@ void define_row(char *name, char *type, char *kind, symbol_table *table) {
 
     if(table->next_index > table->max_rows) {
         symbol_table_row **new_table = reallocarray(table->rows, table->max_rows * 2, sizeof(char*));
-    
+
         if(new_table) {
             table->rows = new_table;
             table->max_rows *= 2;
@@ -74,11 +75,22 @@ int var_count(char *kind, symbol_table *table) {
 
 }
 
+bool find_by_name(char *name, symbol_table *table) {
+
+  for (int i = 0; i < table->next_index; i++) {
+    if (!strcmp(table->rows[i]->name, name)) {
+      return true;
+    }
+  }
+  return false;
+
+}
+
 #define find_property(name, table, property) {                  \
                                                                 \
     for (int i = 0; i < table->next_index; i++) {               \
-        if (table->rows[i]->name == name) {                     \
-            property = table->rows[i]->property;                \
+      if (!strcmp(table->rows[i]->name, name)) {                \
+          property = table->rows[i]->property;                  \
         }                                                       \
     }                                                           \
 }
@@ -110,5 +122,3 @@ int index_of(char *name, symbol_table *table) {
 
     return n;
 }
-
-
