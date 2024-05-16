@@ -96,14 +96,18 @@ void process_identifier(char* item, char* match, token** tokens_list, int i) {
 }
 
 void syntax_error(char* actual, char* expected) {
-    printf("syntax error: actual - %s, expected - %s\n", actual, expected);
+    printf("syntax error: actual - '%s', expected - '%s'\n", actual, expected);
 }
 
 token* advance_token() {
-    compiler->tokenizer->next_index++;
-    // printf("next token: %s\n", compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index]->item);
-    current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
-    return compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+  compiler->tokenizer->next_index++;
+
+  current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+  if(current_token) {
+    printf("next token (idx=%d): item=%s, type=%s\n", compiler->tokenizer->next_index,
+           current_token->item, current_token->type);
+  }
+  return compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
 }
 
 void compileClass(compilation_engine *compiler) {
@@ -137,6 +141,7 @@ void compileClass(compilation_engine *compiler) {
 
     // subroutineDec*
     while (compileSubroutine()) {
+      printf("finished subroutine\n");
         continue;
     }
 
@@ -152,6 +157,7 @@ void compileClass(compilation_engine *compiler) {
         // define_row(token_list[i]->item, token_list[i]->type, "kind unknown", class_symbol_table);
     }
 
+    printf("num of rows in class symbol table: %d\n", class_symbol_table->next_index);
     for (int j = 0; j < class_symbol_table->next_index; j++) {
         printf("name: %s, ", class_symbol_table->rows[j]->name);
         printf("type: %s, ", class_symbol_table->rows[j]->type);
@@ -189,7 +195,7 @@ bool check_for_one_or_more_parameters() {
     }
 }
 
-bool check_for_one_or_more_identifiers() {
+bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope) {
 
     if (!strcmp(",", current_token->item)) {
         advance_token();
@@ -205,11 +211,12 @@ bool check_for_one_or_more_identifiers() {
         check_token("type", "identifier");
         advance_token();
 
-        char *type = current_token->item;
-        advance_token();
-
-
-        define_row(name, type, "VAR", subroutine_symbol_table);
+        if(!strcmp(scope, "class")) {
+          define_row(name, type, kind, class_symbol_table);
+        }
+        else {
+          define_row(name, type, kind, subroutine_symbol_table);
+        }
 
         return true;
     } else {
@@ -250,8 +257,9 @@ bool compileClassVarDec() {
         define_row(name, type, kind, class_symbol_table);
 
         // (',' varName)*
-        // while check_for_one_or_more_identifiers() {
-        // }
+        while (check_for_one_or_more_identifiers(type, kind, "class")) {
+            continue;
+        }
 
         // ';'
         check_token("token", ";");
@@ -270,10 +278,11 @@ bool compileClassVarDec() {
 bool compileSubroutine() {
     startSubroutine(subroutine_symbol_table);
 
+    printf("start subroutine\n");
     // ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' '{' varDec* statements '}'
 
     // ('constructor' | 'function' | 'method')
-    if(array_contains(function_types, 2, current_token->item)) {
+    if(array_contains(function_types, 3, current_token->item)) {
         // self.out_file.write(f"\n{self.indent}<subroutineDec>")
         // self.inc_indent()
 
@@ -282,9 +291,8 @@ bool compileSubroutine() {
         advance_token();
 
         // ('void' | type)
-        if (array_contains(var_types, 4, current_token->item)) {
+        if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
 
-            printf("%s\n", current_token->item);
             // self.emit()
             advance_token();
 
@@ -340,11 +348,12 @@ bool compileSubroutine() {
             // '}'
             // self.eat("token", "}")
             check_token("token", "}");
+            printf("got }\n");
             advance_token();
 
             // self.dec_indent()
             // self.out_file.write(f"\n{self.indent}</subroutineBody>")
-            printf("num of rows: %d\n", subroutine_symbol_table->next_index);
+            printf("num of rows in subroutine symbol table: %d\n", subroutine_symbol_table->next_index);
             for (int j = 0; j < subroutine_symbol_table->next_index; j++) {
                 printf("name: %s, ", subroutine_symbol_table->rows[j]->name);
                 printf("type: %s, ", subroutine_symbol_table->rows[j]->type);
@@ -418,7 +427,7 @@ bool compileVarDec() {
         define_row(name, type, "VAR", subroutine_symbol_table);
 
         // (',' varName)*
-        while(check_for_one_or_more_identifiers()) {
+        while(check_for_one_or_more_identifiers(type, "VAR", "subroutine")) {
             continue;
         }
 
@@ -729,12 +738,12 @@ bool compileOpTerm() {
 bool compileExpression() {
 
     // term (op term)*
-    if (strcmp(current_token->type, "symbol") != 0 || array_contains(unary_operators, 2, current_token->item)) {
+  if (strcmp(current_token->type, "symbol") != 0 || array_contains(unary_operators, 2, current_token->item) || !strcmp(current_token->item, "(")) {
         // self.out_file.write(f"\n{self.indent}<expression>")
         // self.inc_indent()
 
         // term
-        compileTerm();
+      compileTerm();
 
         // (op term)*
         while (compileOpTerm()) {
@@ -765,24 +774,25 @@ bool compileTerm() {
         !strcmp(current_token->type, "stringConstant") ||
         !strcmp(current_token->type, "keyword")) {
 
-        check_token("token", current_token->item);
-        advance_token();
+      check_token("token", current_token->item);
+      advance_token();
     }
 
     // unaryOp term
     else if (array_contains(unary_operators, 2, current_token->item)) {
-        // out_file.write(f"\n{self.indent}<term>")
-        // inc_indent()
+      // out_file.write(f"\n{self.indent}<term>")
+      // inc_indent()
 
-        check_token("type", "symbol");
-        advance_token();
-        compileTerm();
+      check_token("type", "symbol");
+      advance_token();
+      /* printf("about to eat ( after unary\n"); */
+      compileTerm();
     }
 
     // '(' expression ')'
     else if(!strcmp(current_token->item, "(")) {
-        check_token("token", "(");
-        advance_token();
+      check_token("token", "(");
+      advance_token();
 
         compileExpression();
 

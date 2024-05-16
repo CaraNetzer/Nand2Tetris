@@ -1,8 +1,8 @@
 tests = \
-	Seven	\
+	Square	\
 	# Average	\
+	# Seven	\
 	# ConvertToBin	\
-	# Square	\
 	# Pong	\
 	# ComplexArrays	\
 	${null}

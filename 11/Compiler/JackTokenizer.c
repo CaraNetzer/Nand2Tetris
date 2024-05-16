@@ -75,34 +75,34 @@ void append_tokenized_token(token *tok, int i) {
 char* process_string_constant(char* line_position) {
 
     char *string_token = malloc(BUFSIZ);
-    printf("line with string: %s\n", line_position);
+    /* printf("line with string: %s\n", line_position); */
 
     /* while (strncmp(line_position, "\"", 1)) { */
     /*   line_position += 1; */
     /* } */
 
     if (!strncmp(line_position, "\"", 1)) {
-      printf("string token: '%s'\n", string_token);
+      /* printf("string token: '%s'\n", string_token); */
       strncat(string_token, line_position, 1);
       line_position += 1;
 
       while (strncmp(line_position, "\"", 1)) {
         strncat(string_token, line_position, 1);
         line_position += 1;
-        printf("string token: '%s'\n", string_token);
+        /* printf("string token: '%s'\n", string_token); */
       }
 
       if (!strncmp(line_position, "\"", 1)) {
         strncat(string_token, line_position, 1);
         line_position += 1;
-        printf("string token: '%s'\n", string_token);
+        /* printf("string token: '%s'\n", string_token); */
       }
 
-      printf("string token: '%s'\n", string_token);
+      /* printf("string token: '%s'\n", string_token); */
       append_token(string_token);
     }
 
-    printf("after append string_token : %s, line position: %s\n", string_token, line_position);
+    /* printf("after append string_token : %s, line position: %s\n", string_token, line_position); */
 
     return line_position;
 }
@@ -115,7 +115,7 @@ void loop_through_words(char* line_position) {
   bool string_appended;
 
   char *line = strdup(line_position);
-  printf("line: %s\n", line);
+  /* printf("line: %s\n", line); */
 
   // region: words = line.split(" ")
   char *token = strtok(line_position, " ");
@@ -128,7 +128,7 @@ void loop_through_words(char* line_position) {
       int token_length = strlen(sub_token);
       for(int i = 0; i < token_length + 1; i++) {
 
-        printf("sub_token beginning of for loop: '%s', token[%d]: %c\n", sub_token, i, token[i]);
+        /* printf("sub_token beginning of for loop: '%s', token[%d]: %c, 0x%x\n", sub_token, i, token[i], token[i]); */
 
         if(!isspace(token[i])) {
 
@@ -142,32 +142,32 @@ void loop_through_words(char* line_position) {
             position_after = process_string_constant(position_before);
             delta = position_after - position_before;
             i += delta;
-            printf("token + i: %s\n", token + i);
+            /* printf("token + i: %s\n", token + i); */
             token = strtok(token + i, " ");
             string_appended = true;
           }
           else if (!isalnum(token[i])) {
-            printf("sub_token alnum? '%s'\n", &sub_token[i]);
+            /* printf("sub_token alnum? '%s', %p, token + i = '%s'\n", sub_token, sub_token, token + i); */
 
             if(0 != strcmp(string_sub_token, "")) {
               append_token(string_sub_token);
-              printf("string_sub_token being appended: %.50s\n", string_sub_token);
+              /* printf("string_sub_token being appended: %.50s\n", string_sub_token); */
             }
 
             string_sub_token[0] = '\0';
 
-            if(0 != strcmp(sub_token, "") && 0 != strcmp(sub_token, "\n")) {
+            if(0 != strcmp(sub_token, "") && 0 != strcmp(sub_token, "\n") && 0 != strcmp(sub_token, "\r\n")) {
               append_token(strndup(sub_token, 1));
-              printf("sub_token appended: '%.1s'\n", sub_token);
+              /* printf("sub_token appended: '%s'\n", sub_token); */
             }
             sub_token += 1;
           }
-
           else {
             strncat(string_sub_token, sub_token, 1);
-            printf("string_sub_token after strncat: %.50s\n", string_sub_token);
+            /* printf("string_sub_token after strncat: %.50s\n", string_sub_token); */
             sub_token += 1;
           }
+
         }
       }
 
@@ -176,7 +176,7 @@ void loop_through_words(char* line_position) {
       if(!string_appended) {
         token = strtok(NULL, " "); // need to pass NULL to strtok after first call
       }
-      printf("token after strtok: %.50s\n", token);
+      /* printf("token after strtok: %.50s\n", token); */
       /* } */
   }
   // #endregion
