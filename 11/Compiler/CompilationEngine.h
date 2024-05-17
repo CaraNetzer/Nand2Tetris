@@ -19,7 +19,7 @@ void process_identifier(char* item, char* match, token** tokens_list, int i);
 
 void process_keyword(char* item, char* match, token** tokens_list, int i);
 
-void check_token(char* item, char* match);
+void check_token(char* item, char* match, char *action);
 
 bool compileClassVarDec();
 bool compileSubroutine();

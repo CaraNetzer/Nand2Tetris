@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
     char *filename;
 
     if (argc != 2) {
-	fprintf(stderr, "usage: JackCompiler filepath\n");
-	exit(1);
+      fprintf(stderr, "usage: JackCompiler filepath\n");
+      exit(1);
     }
 
     // stat library provides file status info
@@ -66,7 +66,7 @@ void process_file(char* in_file_name, char* in_dirname) {
     // declare out file path with enough space for .vm
     int file_path_size = strlen(in_dirname) + strlen(in_file_name); //jack --> /vm\0
     char *out_file_path = malloc(file_path_size);
-        
+
     assert(out_file_path != NULL);
 
     strcpy(out_file_path, in_dirname);

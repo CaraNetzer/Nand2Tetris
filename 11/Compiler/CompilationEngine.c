@@ -42,58 +42,71 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
     //     self.level = self.level - 1
     //     self.indent = self.tab * self.level
 
-void emit(token *token) {
+void emit(token *token, char * action) {
 
     if(!strcmp(token->type, "identifier")) {
       if(find_by_name(token->item, class_symbol_table)) {
-        // write vm code
+          printf("name: %s, ", token->item);
+          printf("type: %s, ", type_of(token->item, class_symbol_table));
+          printf("kind: %s, ", kind_of(token->item, class_symbol_table));
+          printf("n: %d, ", index_of(token->item, class_symbol_table));
+          printf("action: %s\n", action);
+      // write vm code
       } else if(find_by_name(token->item, subroutine_symbol_table)) {
-        // write vm code
+
+          printf("name: %s, ", token->item);
+          printf("type: %s, ", type_of(token->item, subroutine_symbol_table));
+          printf("kind: %s, ", kind_of(token->item, subroutine_symbol_table));
+          printf("n: %d, ", index_of(token->item, subroutine_symbol_table));
+          printf("action: %s\n", action);
+      } else if (!strcmp(action, "define")){
+          printf("name: %s, ", token->item);
+          printf("action: %s\n", action);
       }
     } else if (!strcmp(token->type, "keyword")) {
 
     }
 }
 
-void check_token(char* item, char* match) {
+void check_token(char* item, char* match, char *action) {
     token** token_list = compiler->tokenizer->tokenized_tokens;
     int i = compiler->tokenizer->next_index;
 
     if(!strcmp(item, "type")) {
         if(!strcmp(token_list[i]->type, match)) {
-            emit(token_list[i]);
+          emit(token_list[i], action);
         } else {
-            syntax_error(token_list[i]->item, match);
+          syntax_error(token_list[i]->item, match);
         }
     } else if (!strcmp(item, "token")) {
         if(!strcmp(token_list[i]->item, match)) {
-            emit(token_list[i]);
+          emit(token_list[i], action);
         } else {
-            syntax_error(token_list[i]->item, match);
+          syntax_error(token_list[i]->item, match);
         }
     }
 }
 
-void process_keyword(char* item, char* match, token** tokens_list, int i) {
+/* void process_keyword(char* item, char* match, token** tokens_list, int i) { */
 
-    token* current_token = tokens_list[i];
+/*     token* current_token = tokens_list[i]; */
 
-    if(!strcmp(current_token->type, "keyword")) {
-        if(array_contains(variable_declarations, 3, current_token->item)) {
-            define_row(current_token->item, current_token->item, current_token->item, class_symbol_table);
-        }
-    }
+/*     if(!strcmp(current_token->type, "keyword")) { */
+/*         if(array_contains(variable_declarations, 3, current_token->item)) { */
+/*             define_row(current_token->item, current_token->item, current_token->item, class_symbol_table); */
+/*         } */
+/*     } */
 
-}
+/* } */
 
-void process_identifier(char* item, char* match, token** tokens_list, int i) {
+/* void process_identifier(char* item, char* match, token** tokens_list, int i) { */
 
-    token* current_token = tokens_list[i];
+/*     token* current_token = tokens_list[i]; */
 
-    if(!strcmp(current_token->type, "identifier")) {
-        define_row(current_token->item, current_token->item, current_token->item, class_symbol_table);
-    }
-}
+/*     if(!strcmp(current_token->type, "identifier")) { */
+/*         define_row(current_token->item, current_token->item, current_token->item, class_symbol_table); */
+/*     } */
+/* } */
 
 void syntax_error(char* actual, char* expected) {
     printf("syntax error: actual - '%s', expected - '%s'\n", actual, expected);
@@ -103,10 +116,10 @@ token* advance_token() {
   compiler->tokenizer->next_index++;
 
   current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
-  if(current_token) {
-    printf("next token (idx=%d): item=%s, type=%s\n", compiler->tokenizer->next_index,
-           current_token->item, current_token->type);
-  }
+  /* if(current_token) { */
+  /*   printf("next token (idx=%d): item=%s, type=%s\n", compiler->tokenizer->next_index, */
+  /*          current_token->item, current_token->type); */
+  /* } */
   return compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
 }
 
@@ -114,7 +127,7 @@ void compileClass(compilation_engine *compiler) {
     class_symbol_table = create_symbol_table();
     subroutine_symbol_table = create_symbol_table();
 
-    token** token_list = compiler->tokenizer->tokenized_tokens;
+    /* token** token_list = compiler->tokenizer->tokenized_tokens; */
     // jack_tokenizer *tokenizer = compiler->tokenizer;
 
     // 'class' className '{' classVarDec* subroutineDec* '}'
@@ -123,15 +136,15 @@ void compileClass(compilation_engine *compiler) {
     // self.inc_indent()
 
     // # 'class'
-    check_token("token", "class");
+    check_token("token", "class", "misc");
     advance_token();
 
     // # className
-    check_token("type", "identifier");
+    check_token("type", "identifier", "misc");
     advance_token();
 
     // # '{'
-    check_token("token", "{");
+    check_token("token", "{", "misc");
     advance_token();
 
     // classVarDec*
@@ -146,16 +159,16 @@ void compileClass(compilation_engine *compiler) {
     }
 
     // # '}'
-    check_token("token", "}");
+    check_token("token", "}", "misc");
     advance_token();
 
     // self.dec_indent()
     // self.out_file.write(f"\n{self.indent}</class>")
 
-    for (int i = 0; i < compiler->tokenizer->next_index; i++) {
-        fprintf(compiler->out_file, "%s, %s\n", token_list[i]->item, token_list[i]->type);
-        // define_row(token_list[i]->item, token_list[i]->type, "kind unknown", class_symbol_table);
-    }
+    /* for (int i = 0; i < compiler->tokenizer->next_index; i++) { */
+    /*     fprintf(compiler->out_file, "%s, %s\n", token_list[i]->item, token_list[i]->type); */
+    /*     // define_row(token_list[i]->item, token_list[i]->type, "kind unknown", class_symbol_table); */
+    /* } */
 
     printf("num of rows in class symbol table: %d\n", class_symbol_table->next_index);
     for (int j = 0; j < class_symbol_table->next_index; j++) {
@@ -183,7 +196,7 @@ bool check_for_one_or_more_parameters() {
 
         // varname
         char *name = current_token->item;
-        check_token("type", "identifier");
+        check_token("type", "identifier", "define");
         advance_token();
 
         define_row(name, type, "ARG", subroutine_symbol_table);
@@ -208,7 +221,7 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope) {
 
         // varname
         char *name = current_token->item;
-        check_token("type", "identifier");
+        check_token("type", "identifier", "define");
         advance_token();
 
         if(!strcmp(scope, "class")) {
@@ -250,7 +263,7 @@ bool compileClassVarDec() {
         }
 
         // varName
-        check_token("type", "identifier");
+        check_token("type", "identifier", "define");
         char *name = current_token->item;
         advance_token();
 
@@ -262,7 +275,7 @@ bool compileClassVarDec() {
         }
 
         // ';'
-        check_token("token", ";");
+        check_token("token", ";", "misc");
         advance_token();
 
         // self.dec_indent()
@@ -298,12 +311,12 @@ bool compileSubroutine() {
 
             // subroutineName
             // self.eat("type", "identifier")
-            check_token("type", "identifier");
+            check_token("type", "identifier", "misc");
             advance_token();
 
             // '('
             // self.eat("token", "(")
-            check_token("token", "(");
+            check_token("token", "(", "misc");
             advance_token();
 
             // parameterList
@@ -319,7 +332,7 @@ bool compileSubroutine() {
 
             // ')'
             // self.eat("token", ")")
-            check_token("token", ")");
+            check_token("token", ")", "misc");
             advance_token();
 
             // subroutineBody = '{' varDec* statements '}'
@@ -328,7 +341,7 @@ bool compileSubroutine() {
 
             // '{'
             // self.eat("token", "{")
-            check_token("token", "{");
+            check_token("token", "{", "misc");
             advance_token();
 
             // varDec*
@@ -347,7 +360,7 @@ bool compileSubroutine() {
 
             // '}'
             // self.eat("token", "}")
-            check_token("token", "}");
+            check_token("token", "}", "misc");
             printf("got }\n");
             advance_token();
 
@@ -386,7 +399,7 @@ bool compileParameterList() {
 
         // varname
         char *name = current_token->item;
-        check_token("type", "identifier");
+        check_token("type", "identifier", "define");
         advance_token();
 
         define_row(name, type, "ARG", subroutine_symbol_table);
@@ -420,7 +433,7 @@ bool compileVarDec() {
         }
 
         // varName
-        check_token("type", "identifier");
+        check_token("type", "identifier", "define");
         char *name = current_token->item;
         advance_token();
 
@@ -432,7 +445,7 @@ bool compileVarDec() {
         }
 
         // ';'
-        check_token("token", ";");
+        check_token("token", ";", "misc");
         advance_token();
 
             // self.dec_indent()
@@ -503,18 +516,18 @@ bool compileDo() {
     // subroutineName '(' expressionList ')' ';'
 
     // 'do'
-    check_token("token", "do");
+  check_token("token", "do", "misc");
     advance_token();
 
     // subroutineName | className | varName
-    check_token("type", "identifier");
+    check_token("type", "identifier", "use");
     advance_token();
 
     // subroutineCall
     compileSubroutineCall();
 
     //';'
-    check_token("token", ";");
+    check_token("token", ";", "misc");
     advance_token();
 
     return true;
@@ -531,12 +544,12 @@ bool compileSubroutineCall() {
         advance_token();
 
         // sunroutineName
-        check_token("type", "identifier");
+        check_token("type", "identifier", "misc");
         advance_token();
     }
 
     // '(' expressionList ')'
-    check_token("token", "(");
+    check_token("token", "(", "misc");
     advance_token();
 
     // expressionList
@@ -549,7 +562,7 @@ bool compileSubroutineCall() {
     // self.out_file.write(f"\n{self.indent}</expressionList>")
 
     // )
-    check_token("token", ")");
+    check_token("token", ")", "misc");
     advance_token();
 
     return true;
@@ -563,7 +576,7 @@ bool compileIndexedExpression() {
 
         compileExpression();
 
-        check_token("token", "]");
+        check_token("token", "]", "misc");
         advance_token();
 
         return true;
@@ -576,11 +589,11 @@ bool compileLet() {
     // 'let' varName ('[' expression ']')? '=' expression ';'
 
     // 'let'
-    check_token("token", "let");
+  check_token("token", "let", "misc");
     advance_token();
 
     // varName
-    check_token("type", "identifier");
+    check_token("type", "identifier", "use");
     advance_token();
 
     // '[' expression ']'
@@ -589,14 +602,14 @@ bool compileLet() {
     }
 
     // '='
-    check_token("token", "=");
+    check_token("token", "=", "misc");
     advance_token();
 
     // expression
     compileExpression();
 
     // ';'
-    check_token("token", ";");
+    check_token("token", ";", "misc");
     advance_token();
 
     return true;
@@ -604,18 +617,18 @@ bool compileLet() {
 
 bool compileWhile() {
     // 'while' '(' expression ')' '{' statements '}'
-    check_token("token", "while");
+  check_token("token", "while", "misc");
     advance_token();
 
-    check_token("token", "(");
+    check_token("token", "(", "misc");
     advance_token();
 
     compileExpression();
 
-    check_token("token", ")");
+    check_token("token", ")", "misc");
     advance_token();
 
-    check_token("token", "{");
+    check_token("token", "{", "misc");
     advance_token();
 
     // out_file.write(f"\n{self.indent}<statements>")
@@ -626,7 +639,7 @@ bool compileWhile() {
     // dec_indent()
     // out_file.write(f"\n{self.indent}</statements>")
 
-    check_token("token", "}");
+    check_token("token", "}", "misc");
     advance_token();
 
     return true;
@@ -634,14 +647,14 @@ bool compileWhile() {
 
 bool compileReturn() {
     // 'return' expression
-    check_token("token", "return");
+  check_token("token", "return", "misc");
     advance_token();
 
     while (compileExpression()) {
         continue;
     }
 
-    check_token("token", ";");
+    check_token("token", ";", "misc");
     advance_token();
 
     return true;
@@ -654,7 +667,7 @@ bool compileElseStatement() {
         advance_token();
 
         // '{'
-        check_token("token", "{");
+        check_token("token", "{", "misc");
         advance_token();
 
         // statements
@@ -667,7 +680,7 @@ bool compileElseStatement() {
         // out_file.write(f"\n{self.indent}</statements>")
 
         // '}'
-        check_token("token", "}");
+        check_token("token", "}", "misc");
         advance_token();
 
         return true;
@@ -681,21 +694,21 @@ bool compileIf() {
     // 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
 
     // 'if'
-    check_token("token", "if");
+  check_token("token", "if", "misc");
     advance_token();
 
     // '('
-    check_token("token", "(");
+    check_token("token", "(", "misc");
     advance_token();
 
     compileExpression();
 
     // ')'
-    check_token("token", ")");
+    check_token("token", ")", "misc");
     advance_token();
 
     // '{'
-    check_token("token", "{");
+    check_token("token", "{", "misc");
     advance_token();
 
     // statements
@@ -708,7 +721,7 @@ bool compileIf() {
     // out_file.write(f"\n{self.indent}</statements>")
 
     // '}'
-    check_token("token", "}");
+    check_token("token", "}", "misc");
     advance_token();
 
     // 'else' '{' statements '}'
@@ -723,7 +736,7 @@ bool compileOpTerm() {
     // op term
     if(array_contains(operators, 10, current_token->item)) {
         // op
-        check_token("type", "symbol");
+      check_token("type", "symbol", "misc");
         advance_token();
 
         // term
@@ -774,7 +787,7 @@ bool compileTerm() {
         !strcmp(current_token->type, "stringConstant") ||
         !strcmp(current_token->type, "keyword")) {
 
-      check_token("token", current_token->item);
+      check_token("token", current_token->item, "misc");
       advance_token();
     }
 
@@ -783,7 +796,7 @@ bool compileTerm() {
       // out_file.write(f"\n{self.indent}<term>")
       // inc_indent()
 
-      check_token("type", "symbol");
+      check_token("type", "symbol", "misc");
       advance_token();
       /* printf("about to eat ( after unary\n"); */
       compileTerm();
@@ -791,12 +804,12 @@ bool compileTerm() {
 
     // '(' expression ')'
     else if(!strcmp(current_token->item, "(")) {
-      check_token("token", "(");
+      check_token("token", "(", "misc");
       advance_token();
 
         compileExpression();
 
-        check_token("token", ")");
+        check_token("token", ")", "misc");
         advance_token();
     }
 
@@ -804,7 +817,7 @@ bool compileTerm() {
         // this is where we need to look two ahead
 
         // varName
-        check_token("type", "identifier");
+      check_token("type", "identifier", "use");
         advance_token();
 
         // TWO AHEAD - TODO check if this is right
