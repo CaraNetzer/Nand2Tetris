@@ -130,8 +130,10 @@ void loop_through_words(char* line_position) {
 
         /* printf("sub_token beginning of for loop: '%s', token[%d]: %c, 0x%x\n", sub_token, i, token[i], token[i]); */
 
+        /* printf("contains a space: '%s'\n", token); */
         if(!isspace(token[i])) {
 
+          /* printf("contains a space after isspace: '%d'\n", token[i]); */
           if(!strncmp(sub_token, "\"", 1)) { //tokenizes string including double quotation marks
             /* printf("sub_token with \": %s\n", sub_token); */
             /* printf("line: %s\n", line); */
@@ -156,7 +158,7 @@ void loop_through_words(char* line_position) {
 
             string_sub_token[0] = '\0';
 
-            if(0 != strcmp(sub_token, "") && 0 != strcmp(sub_token, "\n") && 0 != strcmp(sub_token, "\r\n")) {
+            if(0 != strcmp(sub_token, "") && 0 != strcmp(sub_token, "\n") && 0 != strcmp(sub_token, "\r\n") && 0 != token[i]) {
               append_token(strndup(sub_token, 1));
               /* printf("sub_token appended: '%s'\n", sub_token); */
             }
