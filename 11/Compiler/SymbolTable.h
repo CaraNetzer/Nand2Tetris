@@ -14,6 +14,9 @@ typedef struct {
     int max_rows;
 } symbol_table;
 
+extern symbol_table *class_symbol_table;
+extern symbol_table *subroutine_symbol_table;
+
 symbol_table* create_symbol_table();
 
 symbol_table* startSubroutine(symbol_table *table);
