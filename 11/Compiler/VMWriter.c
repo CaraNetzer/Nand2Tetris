@@ -71,23 +71,23 @@ void write_push(vm_writer *writer, token *token) {
         if (find_by_name(token->item, subroutine_symbol_table)) {
             segment = kind_of(token->item, subroutine_symbol_table);
             index = index_of(token->item, subroutine_symbol_table);
-            fprintf(writer->out_file, "push %s %d", segment, index);
+            fprintf(writer->out_file, "push %s %d\n", segment, index);
         } else if (find_by_name(token->item, class_symbol_table)) {
             segment = kind_of(token->item, class_symbol_table);
             index = index_of(token->item, class_symbol_table);
-            fprintf(writer->out_file, "push %s %d", segment, index);
+            fprintf(writer->out_file, "push %s %d\n", segment, index);
         } else {
             syntax_error("identifier not found in either symbol table", "");
         }
 
     } else if (!strcmp(token->type, "keyword")) { // true false null this
         int value = translate_keywords(token->item);
-        fprintf(writer->out_file, "push %d", value);
+        fprintf(writer->out_file, "push %d\n", value);
     }
 }
 
 void write_pop(vm_writer *writer, char *segment, int index) {
-    fprintf(writer->out_file, "pop %s %d", segment, index);
+    fprintf(writer->out_file, "pop %s %d\n", segment, index);
 }
 
 void write_arithmetic(vm_writer *writer, char *command, bool unary) {
@@ -97,31 +97,32 @@ void write_arithmetic(vm_writer *writer, char *command, bool unary) {
     } else {
         translated_command = op_to_str(command);
     }
-    fprintf(writer->out_file, "%s", translated_command);
+    fprintf(writer->out_file, "%s\n", translated_command);
 }
 
-void write_label(vm_writer *writer, char *label) {
-    fprintf(writer->out_file, "(%s)", label);
+void write_label(vm_writer *writer, char *label, int num) {
+    fprintf(writer->out_file, "(%s%d)\n", label, num);
 }
 
-void write_goto(vm_writer *writer, char *label) {
-    fprintf(writer->out_file, "goto %s", label);
+void write_goto(vm_writer *writer, char *label, int num) {
+    fprintf(writer->out_file, "goto %s%d\n", label, num);
 }
 
-void write_if(vm_writer *writer, char *label) {
-    fprintf(writer->out_file, "if %s", label);
+void write_if(vm_writer *writer, char *label, int num) {
+    fprintf(writer->out_file, "not\n");
+    fprintf(writer->out_file, "if-goto %s%d\n", label, num);
 }
 
 void write_call(vm_writer *writer, char *name, int n_args) {
-    fprintf(writer->out_file, "call %s %d", name, n_args);
+    fprintf(writer->out_file, "call %s %d\n", name, n_args);
 }
 
 void write_function(vm_writer *writer, char *name, int n_locals) {
-    fprintf(writer->out_file, "function %s %d", name, n_locals);
+    fprintf(writer->out_file, "function %s %d\n", name, n_locals);
 }
 
 void write_return(vm_writer *writer) {
-    fprintf(writer->out_file, "return");
+    fprintf(writer->out_file, "return\n");
 }
 
 void writer_close(vm_writer *writer) {

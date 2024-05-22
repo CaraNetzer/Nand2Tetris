@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "CompilationEngine.h"
 #include "VMWriter.h"
 
 int level = 0;
@@ -287,12 +288,16 @@ bool compileSubroutine() {
         // self.out_file.write(f"\n{self.indent}<subroutineDec>")
         // self.inc_indent()
 
+        if (!strcmp(current_token->item, "method")) {
+            define_row("this", className, "ARG", subroutine_symbol_table);
+        }
         // self.emit()
         // check_token("token", current_token->item);
         advance_token();
 
         // ('void' | type)
-        if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
+        if (array_contains(var_types, 4, current_token->item) ||
+            !strcmp(current_token->type, "identifier")) {
 
             // self.emit()
             advance_token();
@@ -312,7 +317,7 @@ bool compileSubroutine() {
             // self.inc_indent()
 
             while (compileParameterList()) {
-                continue;
+              continue;
             }
 
             // self.dec_indent()
@@ -534,7 +539,6 @@ bool compileSubroutineCall() {
 
         // sunroutineName
         check_token("type", "identifier", "misc");
-        define_row("this", className, "ARG", subroutine_symbol_table);
         advance_token();
     }
 
@@ -607,7 +611,7 @@ bool compileLet() {
 
 bool compileWhile() {
 
-    fprintf(compiler->out_file, "label BEGINWHILE%d\n", beginWhileCounter++);
+    write_label(writer, "BEGINWHILE", beginWhileCounter++);
 
     // 'while' '(' expression ')' '{' statements '}'
     check_token("token", "while", "misc");
@@ -618,8 +622,7 @@ bool compileWhile() {
 
     compileExpression();
 
-    fprintf(compiler->out_file, "not\n");
-    fprintf(compiler->out_file, "if-goto ENDWHILE%d\n", endWhileCounter++);
+    write_if(writer, "ENDWHILE", endWhileCounter++);
 
     check_token("token", ")", "misc");
     advance_token();
@@ -633,14 +636,14 @@ bool compileWhile() {
         continue;
     }
 
-    fprintf(compiler->out_file, "goto BEGINWHILE%d\n", beginWhileCounter);
+    write_goto(writer, "BEGINWHILE", beginWhileCounter);
     // dec_indent()
     // out_file.write(f"\n{self.indent}</statements>")
 
     check_token("token", "}", "misc");
     advance_token();
 
-    fprintf(compiler->out_file, "goto ENDWHILE%d\n", endWhileCounter);
+    write_goto(writer, "ENDWHILE", endWhileCounter);
 
     return true;
 }
@@ -707,8 +710,7 @@ bool compileIf() {
     check_token("token", ")", "misc");
     advance_token();
 
-    fprintf(compiler->out_file, "not");
-    fprintf(compiler->out_file, "if-goto ELSE%d\n", elseCounter++);
+    write_if(writer, "ELSE", elseCounter++);
 
     // '{'
     check_token("token", "{", "misc");
@@ -721,7 +723,7 @@ bool compileIf() {
         continue;
     }
 
-    fprintf(compiler->out_file, "goto DONEIF%d\n", endIfCounter++);
+    write_if(writer, "ENDIF", endIfCounter++);
 
     // dec_indent()
     // out_file.write(f"\n{self.indent}</statements>")
@@ -730,13 +732,13 @@ bool compileIf() {
     check_token("token", "}", "misc");
     advance_token();
 
-    fprintf(compiler->out_file, "label ELSE%d\n", elseCounter);
+    write_label(writer, "ELSE", elseCounter++);
     // 'else' '{' statements '}'
     while (compileElseStatement()) {
         continue;
     }
 
-    fprintf(compiler->out_file, "label DONEIF%d\n", endIfCounter);
+    write_label(writer, "ENDIF", endIfCounter++);
 
     return true;
 }

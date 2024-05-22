@@ -9,7 +9,7 @@ tests = \
 
 CFLAGS = -Wall -Werror
 
-OBJS = JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o
+OBJS = JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o VMWriter.o
 
 default: test
 

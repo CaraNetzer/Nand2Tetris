@@ -1,3 +1,6 @@
+#ifndef _SymbolTable_H
+#define _SymbolTable_H
+
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -31,3 +34,5 @@ bool find_by_name(char *name, symbol_table *table);
 char* kind_of(char *name, symbol_table *table);
 char* type_of(char *name, symbol_table *table);
 int index_of(char *name, symbol_table *table);
+
+#endif //_SymbolTable_H

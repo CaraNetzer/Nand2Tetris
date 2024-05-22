@@ -1,3 +1,6 @@
+#ifndef _JackTokenizer_H
+#define _JackTokenizer_H
+
 #include <stdio.h>
 #include "Token.h"
 
@@ -18,3 +21,5 @@ void append_token(char *token);
 
 void append_tokenized_token(token *tok, int i);
 
+
+#endif //_JackTokenizer_H

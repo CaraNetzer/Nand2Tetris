@@ -1,3 +1,6 @@
+#ifndef _Token_H
+#define _Token_H
+
 #include <stdbool.h>
 
 typedef struct {
@@ -16,3 +19,5 @@ token* create_token(char *in_token);
 char* to_str(token *token);
 char* token_type(char *token); 
 bool array_contains(char **array, int size, char *item);
+
+#endif //_Token_H
