@@ -7,6 +7,7 @@
 #include <libgen.h>
 #include <assert.h>
 #include "CompilationEngine.h"
+#include "VMWriter.h"
 
 
 
@@ -90,8 +91,9 @@ void process_file(char* in_file_name, char* in_dirname) {
     tokenizer_execute(tokenizer);
 
     compilation_engine *compilationEngine = CompilationEngine(tokenizer, out_file_path);
-    compileClass(compilationEngine);
+    FILE *written_file = compileClass(compilationEngine);
 
-    fclose(compilationEngine->out_file);
+    printf("after compileClass\n");
+    fclose(writer);
     fclose(tokenizer->in_file);
 }

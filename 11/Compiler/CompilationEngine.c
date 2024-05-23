@@ -111,7 +111,7 @@ token* advance_token() {
   return compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
 }
 
-void compileClass(compilation_engine *compiler) {
+FILE *compileClass(compilation_engine *compiler) {
     class_symbol_table = create_symbol_table();
     subroutine_symbol_table = create_symbol_table();
 
@@ -166,6 +166,8 @@ void compileClass(compilation_engine *compiler) {
         printf("kind: %s, ", class_symbol_table->rows[j]->kind);
         printf("n: %d\n", class_symbol_table->rows[j]->n);
     }
+
+    return writer->out_file;
 }
 
 bool check_for_one_or_more_parameters() {
@@ -354,7 +356,6 @@ bool compileSubroutine() {
             // '}'
             // self.eat("token", "}")
             check_token("token", "}", "misc");
-            printf("got }\n");
             advance_token();
 
             // self.dec_indent()
@@ -510,7 +511,7 @@ bool compileDo() {
     // subroutineName '(' expressionList ')' ';'
 
     // 'do'
-  check_token("token", "do", "misc");
+    check_token("token", "do", "misc");
     advance_token();
 
     // subroutineName | className | varName
@@ -583,7 +584,7 @@ bool compileLet() {
     // 'let' varName ('[' expression ']')? '=' expression ';'
 
     // 'let'
-  check_token("token", "let", "misc");
+    check_token("token", "let", "misc");
     advance_token();
 
     // varName

@@ -12,7 +12,7 @@ typedef struct {
 
 compilation_engine *CompilationEngine(jack_tokenizer *in_tokenizer,
                                       char *out_file_path);
-void compileClass(compilation_engine *compiler);
+FILE *compileClass(compilation_engine *compiler);
 void syntax_error(char *actual, char *expected);
 void check_token(char *item, char *match, char *action);
 token *advance_token();
