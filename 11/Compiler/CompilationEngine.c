@@ -3,10 +3,6 @@
 #include "CompilationEngine.h"
 #include "VMWriter.h"
 
-int level = 0;
-int indent = 0; // TODO delete these
-char tab[] = "  ";
-
 int endIfCounter = 0;
 int elseCounter = 0;
 int endWhileCounter = 0;
@@ -49,16 +45,9 @@ void syntax_error(char* actual, char* expected) {
     printf("syntax error: actual - '%s', expected - '%s'\n", actual, expected);
 }
 
-    // def inc_indent(self):
-    //     self.level = self.level + 1
-    //     self.indent = self.tab * self.level
-    //
-    // def dec_indent(self):
-    //     self.level = self.level - 1
-    //     self.indent = self.tab * self.level
-
 void emit(token *token, char * action) {
 
+    // TODO do I need this ultimately?
     if(!strcmp(token->type, "identifier")) {
       if(find_by_name(token->item, class_symbol_table)) {
           printf("name: %s, ", token->item);
@@ -123,9 +112,6 @@ FILE *compileClass(compilation_engine *compiler) {
 
     // 'class' className '{' classVarDec* subroutineDec* '}'
 
-    // self.out_file.write("<class>")
-    // self.inc_indent()
-
     // # 'class'
     check_token("token", "class", "misc");
     advance_token();
@@ -153,9 +139,6 @@ FILE *compileClass(compilation_engine *compiler) {
     // # '}'
     check_token("token", "}", "misc");
     advance_token();
-
-    // self.dec_indent()
-    // self.out_file.write(f"\n{self.indent}</class>")
 
     /* for (int i = 0; i < compiler->tokenizer->next_index; i++) { */
     /*     fprintf(compiler->out_file, "%s, %s\n", token_list[i]->item, token_list[i]->type); */
@@ -272,9 +255,6 @@ bool compileClassVarDec() {
         check_token("token", ";", "misc");
         advance_token();
 
-        // self.dec_indent()
-        // self.out_file.write(f"\n{self.indent}</classVarDec>")
-
         return true;
 
     } else {
@@ -290,8 +270,6 @@ bool compileSubroutine() {
 
     // ('constructor' | 'function' | 'method')
     if(array_contains(function_types, 3, current_token->item)) {
-        // self.out_file.write(f"\n{self.indent}<subroutineDec>")
-        // self.inc_indent()
 
         if (!strcmp(current_token->item, "method")) {
             define_row("this", className, "ARG", subroutine_symbol_table);
@@ -299,7 +277,6 @@ bool compileSubroutine() {
         } else if (!strcmp(current_token->item, "function")) {
             subroutineKind = "function";
         }
-        // self.emit()
         // check_token("token", current_token->item);
         advance_token();
 
@@ -308,11 +285,9 @@ bool compileSubroutine() {
             !strcmp(current_token->type, "identifier")) {
 
             subroutineType = current_token->item;
-            // self.emit()
             advance_token();
 
             // subroutineName
-            // self.eat("type", "identifier")
             check_token("type", "identifier", "misc");
             if (!strcmp(subroutineKind, "function")) {
                 char functionName[BUFSIZ];
@@ -324,32 +299,20 @@ bool compileSubroutine() {
             advance_token();
 
             // '('
-            // self.eat("token", "(")
             check_token("token", "(", "misc");
             advance_token();
 
             // parameterList
-            // self.out_file.write(f"\n{self.indent}<parameterList>")
-            // self.inc_indent()
-
             while (compileParameterList()) {
               continue;
             }
 
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</parameterList>")
-
             // ')'
-            // self.eat("token", ")")
             check_token("token", ")", "misc");
             advance_token();
 
             // subroutineBody = '{' varDec* statements '}'
-            // self.out_file.write(f"\n{self.indent}<subroutineBody>")
-            // self.inc_indent()
-
             // '{'
-            // self.eat("token", "{")
             check_token("token", "{", "misc");
             advance_token();
 
@@ -364,21 +327,14 @@ bool compileSubroutine() {
             }
 
             // statements
-            // self.out_file.write(f"\n{self.indent}<statements>")
-            // self.inc_indent()
             while (compileStatements()) {
                 continue;
             }
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</statements>")
 
             // '}'
-            // self.eat("token", "}")
             check_token("token", "}", "misc");
             advance_token();
 
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</subroutineBody>")
             printf("num of rows in subroutine symbol table: %d\n", subroutine_symbol_table->next_index);
             for (int j = 0; j < subroutine_symbol_table->next_index; j++) {
                 printf("name: %s, ", subroutine_symbol_table->rows[j]->name);
@@ -390,9 +346,6 @@ bool compileSubroutine() {
         } else {
             syntax_error(current_token->item, "void or {type}");
         }
-
-        // self.dec_indent()
-        // self.out_file.write(f"\n{self.indent}</subroutineDec>")
 
         return true;
 
@@ -463,11 +416,7 @@ bool compileVarDec() {
         check_token("token", ";", "misc");
         advance_token();
 
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</varDec>")
         return true;
-        // self.out_file.write(f"\n{self.indent}<classVarDec>")
-        // self.inc_indent()
 
     } else {
         return false;
@@ -480,43 +429,23 @@ bool compileStatements() {
     if (array_contains(statement_types, 6, current_token->item)) {
 
         if(!strcmp(current_token->item, "let")) {
-            // self.out_file.write(f"\n{self.indent}<letStatement>")
-            // self.inc_indent()
             compileLet();
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</letStatement>")
         }
 
         if (!strcmp(current_token->item, "if")) {
-            // self.out_file.write(f"\n{self.indent}<ifStatement>")
-            // self.inc_indent()
             compileIf();
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</ifStatement>")
         }
 
         if (!strcmp(current_token->item, "while")) {
-            // self.out_file.write(f"\n{self.indent}<whileStatement>")
-            // self.inc_indent()
             compileWhile();
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</whileStatement>")
         }
 
         if (!strcmp(current_token->item, "do")) {
-            // self.out_file.write(f"\n{self.indent}<doStatement>")
-            // self.inc_indent()
             compileDo();
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</doStatement>")
         }
 
         if (!strcmp(current_token->item, "return")) {
-            // self.out_file.write(f"\n{self.indent}<returnStatement>")
-            // self.inc_indent()
             compileReturn();
-            // self.dec_indent()
-            // self.out_file.write(f"\n{self.indent}</returnStatement>")
         }
 
         return true;
@@ -571,15 +500,11 @@ bool compileSubroutineCall(char *subroutineName) {
     advance_token();
 
     // expressionList
-    // self.out_file.write(f"\n{self.indent}<expressionList>")
-    // self.inc_indent()
     int arg_count = 0;
     while (compileExpressionList()) {
         arg_count += 1;
         continue;
     }
-    // self.dec_indent()
-    // self.out_file.write(f"\n{self.indent}</expressionList>")
 
     // )
     check_token("token", ")", "misc");
@@ -659,15 +584,11 @@ bool compileWhile() {
     check_token("token", "{", "misc");
     advance_token();
 
-    // out_file.write(f"\n{self.indent}<statements>")
-    // inc_indent()
     while (compileStatements()) {
         continue;
     }
 
     write_goto(writer, "BEGINWHILE", beginWhileCounter);
-    // dec_indent()
-    // out_file.write(f"\n{self.indent}</statements>")
 
     check_token("token", "}", "misc");
     advance_token();
@@ -708,13 +629,9 @@ bool compileElseStatement() {
         advance_token();
 
         // statements
-        // out_file.write(f"\n{self.indent}<statements>")
-        // inc_indent()
         while (compileStatements()) {
             continue;
         }
-        // dec_indent()
-        // out_file.write(f"\n{self.indent}</statements>")
 
         // '}'
         check_token("token", "}", "misc");
@@ -751,23 +668,18 @@ bool compileIf() {
     advance_token();
 
     // statements
-    // out_file.write(f"\n{self.indent}<statements>")
-    // inc_indent()
     while (compileStatements()) {
         continue;
     }
 
     write_if(writer, "ENDIF", endIfCounter++);
 
-    // dec_indent()
-    // out_file.write(f"\n{self.indent}</statements>")
-
     // '}'
     check_token("token", "}", "misc");
     advance_token();
 
-    write_label(writer, "ELSE", elseCounter++);
     // 'else' '{' statements '}'
+    write_label(writer, "ELSE", elseCounter++);
     while (compileElseStatement()) {
         continue;
     }
@@ -800,24 +712,19 @@ bool compileExpression() {
 
     // term (op term)*
     if (strcmp(current_token->type, "symbol") != 0 || array_contains(unary_operators, 2, current_token->item) || !strcmp(current_token->item, "(")) {
-        // self.out_file.write(f"\n{self.indent}<expression>")
-        // self.inc_indent()
 
         // term
         compileTerm();
 
         // (op term)*
         while (compileOpTerm()) {
-      continue;
+            continue;
+        }
+
+        return true;
+    } else {
+        return false;
     }
-
-    // self.dec_indent()
-    // self.out_file.write(f"\n{self.indent}</expression>")
-
-    return true;
-  } else {
-    return false;
-  }
 }
 
 
@@ -826,10 +733,6 @@ bool compileTerm() {
   // varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
 
   // if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
-
-  // if (strcmp(current_token->type, "symbol") != 0 || strcmp("(", current_token->item)) {
-  //     out_file.write(f"\n{self.indent}<term>")
-  //     inc_indent()
 
   // integerConstant | stringConstant | keywordConstant
   if (!strcmp(current_token->type, "integerConstant") ||
@@ -843,8 +746,6 @@ bool compileTerm() {
 
   // unaryOp term
   else if (array_contains(unary_operators, 2, current_token->item)) {
-    // out_file.write(f"\n{self.indent}<term>")
-    // inc_indent()
 
     check_token("type", "symbol", "misc");
     char *op = current_token->item;
@@ -891,10 +792,6 @@ bool compileTerm() {
     return false;
   }
 
-
-  // dec_indent()
-  // out_file.write(f"\n{self.indent}</term>")
-
   return true;
 }
 
@@ -920,10 +817,6 @@ bool check_for_one_or_more_expressions() {
 bool compileExpressionList() {
     // (expression (',' expression)*)?
 
-    // if tokenizer.get_current_token().token_type(current_token) != "symbol":
-        // out_file.write(f"\n{self.indent}<expression>")
-        // inc_indent()
-
     // expression = term (op term)*
     if (compileTerm()) {
 
@@ -938,8 +831,6 @@ bool compileExpressionList() {
             continue;
         }
 
-        // dec_indent()
-        // out_file.write(f"\n{self.indent}</expression>")
         return true;
     } else {
         return false;
