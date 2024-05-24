@@ -19,6 +19,8 @@ token *current_token;
 symbol_table *class_symbol_table;
 symbol_table *subroutine_symbol_table;
 char *className;
+char *subroutineType;
+char *subroutineKind;
 
 compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_file_path) {
     compiler = calloc(1, sizeof(compilation_engine));
@@ -46,6 +48,7 @@ compilation_engine* CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
 void syntax_error(char* actual, char* expected) {
     printf("syntax error: actual - '%s', expected - '%s'\n", actual, expected);
 }
+
     // def inc_indent(self):
     //     self.level = self.level + 1
     //     self.indent = self.tab * self.level
@@ -292,6 +295,9 @@ bool compileSubroutine() {
 
         if (!strcmp(current_token->item, "method")) {
             define_row("this", className, "ARG", subroutine_symbol_table);
+            subroutineKind = "method";
+        } else if (!strcmp(current_token->item, "function")) {
+            subroutineKind = "function";
         }
         // self.emit()
         // check_token("token", current_token->item);
@@ -301,12 +307,20 @@ bool compileSubroutine() {
         if (array_contains(var_types, 4, current_token->item) ||
             !strcmp(current_token->type, "identifier")) {
 
+            subroutineType = current_token->item;
             // self.emit()
             advance_token();
 
             // subroutineName
             // self.eat("type", "identifier")
             check_token("type", "identifier", "misc");
+            if (!strcmp(subroutineKind, "function")) {
+                char functionName[BUFSIZ];
+                strcat(functionName, className);
+                strcat(functionName, ".");
+                strcat(functionName, current_token->item);
+                write_function(writer, functionName, var_count("argument", subroutine_symbol_table));
+            }
             advance_token();
 
             // '('
@@ -344,6 +358,11 @@ bool compileSubroutine() {
                 continue;
             }
 
+            if (!strcmp(subroutineKind, "method")) {
+                write_push_specific(writer, "argument", 0);
+                write_pop(writer, "pointer", 0);
+            }
+
             // statements
             // self.out_file.write(f"\n{self.indent}<statements>")
             // self.inc_indent()
@@ -367,6 +386,7 @@ bool compileSubroutine() {
                 printf("kind: %s, ", subroutine_symbol_table->rows[j]->kind);
                 printf("n: %d\n", subroutine_symbol_table->rows[j]->n);
             }
+
         } else {
             syntax_error(current_token->item, "void or {type}");
         }
@@ -516,10 +536,11 @@ bool compileDo() {
 
     // subroutineName | className | varName
     check_token("type", "identifier", "use");
+    char *subroutineName = current_token->item;
     advance_token();
 
     // subroutineCall
-    compileSubroutineCall();
+    compileSubroutineCall(subroutineName);
 
     //';'
     check_token("token", ";", "misc");
@@ -528,7 +549,7 @@ bool compileDo() {
     return true;
 }
 
-bool compileSubroutineCall() {
+bool compileSubroutineCall(char *subroutineName) {
     // subroutineName                           '(' expressionList ')' |
     // (className | varName) '.' subroutineName '(' expressionList ')'
 
@@ -538,8 +559,10 @@ bool compileSubroutineCall() {
         // '.'
         advance_token();
 
-        // sunroutineName
+        // subroutineName
         check_token("type", "identifier", "misc");
+        strcat(subroutineName, ".");
+        strcat(subroutineName, current_token->item);
         advance_token();
     }
 
@@ -550,7 +573,9 @@ bool compileSubroutineCall() {
     // expressionList
     // self.out_file.write(f"\n{self.indent}<expressionList>")
     // self.inc_indent()
+    int arg_count = 0;
     while (compileExpressionList()) {
+        arg_count += 1;
         continue;
     }
     // self.dec_indent()
@@ -559,6 +584,9 @@ bool compileSubroutineCall() {
     // )
     check_token("token", ")", "misc");
     advance_token();
+
+    write_call(writer, subroutineName, arg_count);
+    write_pop(writer, "temp", 0);
 
     return true;
 }
@@ -651,7 +679,7 @@ bool compileWhile() {
 
 bool compileReturn() {
     // 'return' expression
-  check_token("token", "return", "misc");
+    check_token("token", "return", "misc");
     advance_token();
 
     while (compileExpression()) {
@@ -660,6 +688,11 @@ bool compileReturn() {
 
     check_token("token", ";", "misc");
     advance_token();
+
+    if (!strcmp(subroutineType, "void")) {
+        write_push_specific(writer, "constant", 0);
+    }
+    write_return(writer);
 
     return true;
 }
@@ -749,29 +782,32 @@ bool compileOpTerm() {
   if(array_contains(operators, 10, current_token->item)) {
     // op
     check_token("type", "symbol", "misc");
+    char *op = current_token->item;
     advance_token();
 
     // term
     compileTerm();
 
+    write_arithmetic(writer, op, false);
+
     return true;
   } else {
-    return false;
+      return false;
   }
 }
 
 bool compileExpression() {
 
-  // term (op term)*
-  if (strcmp(current_token->type, "symbol") != 0 || array_contains(unary_operators, 2, current_token->item) || !strcmp(current_token->item, "(")) {
-    // self.out_file.write(f"\n{self.indent}<expression>")
-    // self.inc_indent()
+    // term (op term)*
+    if (strcmp(current_token->type, "symbol") != 0 || array_contains(unary_operators, 2, current_token->item) || !strcmp(current_token->item, "(")) {
+        // self.out_file.write(f"\n{self.indent}<expression>")
+        // self.inc_indent()
 
-    // term
-    compileTerm();
+        // term
+        compileTerm();
 
-    // (op term)*
-    while (compileOpTerm()) {
+        // (op term)*
+        while (compileOpTerm()) {
       continue;
     }
 
@@ -835,6 +871,7 @@ bool compileTerm() {
 
     // varName
     check_token("type", "identifier", "use");
+    char *subroutineName = current_token->item;
     advance_token();
 
     // TWO AHEAD - TODO check if this is right
@@ -847,7 +884,7 @@ bool compileTerm() {
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
     else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
-        compileSubroutineCall();
+        compileSubroutineCall(subroutineName);
     }
 
   } else {
@@ -908,4 +945,3 @@ bool compileExpressionList() {
         return false;
     }
 }
-

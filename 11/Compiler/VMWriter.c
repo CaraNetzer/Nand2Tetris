@@ -29,6 +29,8 @@ char *op_to_str(char *op) {
         return "and";
     } else if (!strcmp(op, "|")) {
         return "or";
+    } else if (!strcmp(op, "*")) {
+        return "call Math.multiply 2";
     } else {
         printf("unrecognized symbol: %s\n", op);
         return "error";
@@ -59,9 +61,13 @@ int translate_keywords(char *word) {
     }
 }
 
+void write_push_specific(vm_writer *writer, char *segment, int index) {
+    fprintf(writer->out_file, "push %s %d\n", segment, index);
+}
+
 void write_push(vm_writer *writer, token *token) {
     if (!strcmp(token->type, "integerConstant")) {
-        fprintf(writer->out_file, "push %s\n", token->item);
+        fprintf(writer->out_file, "push constant %s\n", token->item);
 
     } else if (!strcmp(token->type, "stringConstant")) {
 

@@ -10,7 +10,6 @@
 #include "VMWriter.h"
 
 
-
 void process_file(char* in_file_name, char* in_dirname);
 
 int main(int argc, char *argv[])
@@ -94,6 +93,6 @@ void process_file(char* in_file_name, char* in_dirname) {
     FILE *written_file = compileClass(compilationEngine);
 
     printf("after compileClass\n");
-    fclose(writer);
+    fclose(written_file);
     fclose(tokenizer->in_file);
 }
