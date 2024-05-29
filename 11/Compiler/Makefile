@@ -1,10 +1,10 @@
 tests = \
-	Seven	\
-	# ConvertToBin	\
+	ConvertToBin	\
 	# Average	\
 	# Square	\
 	# Pong	\
 	# ComplexArrays	\
+	# Seven	\
 	${null}
 
 CFLAGS = -Wall -Werror

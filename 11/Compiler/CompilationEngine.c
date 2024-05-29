@@ -3,10 +3,8 @@
 #include "CompilationEngine.h"
 #include "VMWriter.h"
 
-int endIfCounter = 0;
-int elseCounter = 0;
-int endWhileCounter = 0;
-int beginWhileCounter = 0;
+int ifCounter = 0;
+int whileCounter = 0;
 
 compilation_engine *compiler;
 vm_writer *writer;
@@ -264,8 +262,8 @@ bool compileClassVarDec() {
 
 bool compileSubroutine() {
     startSubroutine(subroutine_symbol_table);
-
     printf("start subroutine\n");
+
     // ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' '{' varDec* statements '}'
 
     // ('constructor' | 'function' | 'method')
@@ -290,7 +288,7 @@ bool compileSubroutine() {
             // subroutineName
             check_token("type", "identifier", "misc");
             if (!strcmp(subroutineKind, "function")) {
-                char functionName[BUFSIZ];
+                char functionName[BUFSIZ] = "";
                 strcat(functionName, className);
                 strcat(functionName, ".");
                 strcat(functionName, current_token->item);
@@ -565,7 +563,9 @@ bool compileLet() {
 
 bool compileWhile() {
 
-    write_label(writer, "BEGINWHILE", beginWhileCounter++);
+    int whileId = whileCounter++;
+
+    write_label(writer, "BEGINWHILE", whileId);
 
     // 'while' '(' expression ')' '{' statements '}'
     check_token("token", "while", "misc");
@@ -576,7 +576,7 @@ bool compileWhile() {
 
     compileExpression();
 
-    write_if(writer, "ENDWHILE", endWhileCounter++);
+    write_if(writer, "ENDWHILE", whileId);
 
     check_token("token", ")", "misc");
     advance_token();
@@ -588,12 +588,12 @@ bool compileWhile() {
         continue;
     }
 
-    write_goto(writer, "BEGINWHILE", beginWhileCounter);
+    write_goto(writer, "BEGINWHILE", whileId);
 
     check_token("token", "}", "misc");
     advance_token();
 
-    write_goto(writer, "ENDWHILE", endWhileCounter);
+    write_goto(writer, "ENDWHILE", whileId);
 
     return true;
 }
@@ -645,6 +645,8 @@ bool compileElseStatement() {
 
 bool compileIf() {
 
+    int ifId = ifCounter++;
+
     // 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
 
     // 'if'
@@ -661,7 +663,8 @@ bool compileIf() {
     check_token("token", ")", "misc");
     advance_token();
 
-    write_if(writer, "ELSE", elseCounter++);
+    write_if(writer, "ELSE", ifId);
+
 
     // '{'
     check_token("token", "{", "misc");
@@ -672,19 +675,19 @@ bool compileIf() {
         continue;
     }
 
-    write_if(writer, "ENDIF", endIfCounter++);
+    write_goto(writer, "ENDIF", ifId);
 
     // '}'
     check_token("token", "}", "misc");
     advance_token();
 
     // 'else' '{' statements '}'
-    write_label(writer, "ELSE", elseCounter++);
+    write_label(writer, "ELSE", ifId);
     while (compileElseStatement()) {
         continue;
     }
 
-    write_label(writer, "ENDIF", endIfCounter++);
+    write_label(writer, "ENDIF", ifId);
 
     return true;
 }
