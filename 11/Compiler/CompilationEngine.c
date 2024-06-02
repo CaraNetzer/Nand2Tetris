@@ -174,7 +174,7 @@ bool check_for_one_or_more_parameters() {
         check_token("type", "identifier", "define");
         advance_token();
 
-        define_row(name, type, "ARG", subroutine_symbol_table);
+        define_row(name, type, "argument", subroutine_symbol_table);
 
         return true;
     } else {
@@ -270,7 +270,7 @@ bool compileSubroutine() {
     if(array_contains(function_types, 3, current_token->item)) {
 
         if (!strcmp(current_token->item, "method")) {
-            define_row("this", className, "ARG", subroutine_symbol_table);
+            define_row("this", className, "argument", subroutine_symbol_table);
             subroutineKind = "method";
         } else if (!strcmp(current_token->item, "function")) {
             subroutineKind = "function";
@@ -289,7 +289,7 @@ bool compileSubroutine() {
             check_token("type", "identifier", "misc");
             if (!strcmp(subroutineKind, "function")) {
                 char functionName[BUFSIZ] = "";
-                strcat(functionName, className);
+                strcat(functionName, className); // TODO i think this is only for functions, not methods
                 strcat(functionName, ".");
                 strcat(functionName, current_token->item);
                 write_function(writer, functionName, var_count("argument", subroutine_symbol_table));
@@ -368,7 +368,7 @@ bool compileParameterList() {
         check_token("type", "identifier", "define");
         advance_token();
 
-        define_row(name, type, "ARG", subroutine_symbol_table);
+        define_row(name, type, "argument", subroutine_symbol_table);
 
         // (',' varName)*
         while(check_for_one_or_more_parameters()) {
@@ -464,6 +464,12 @@ bool compileDo() {
     // subroutineName | className | varName
     check_token("type", "identifier", "use");
     char *subroutineName = current_token->item;
+    if(find_by_name(subroutineName, subroutine_symbol_table) || find_by_name(subroutineName, class_symbol_table)) {
+        subroutineKind = "method";
+        write_push(writer, current_token);
+    } else {
+        subroutineKind = "function";
+    }
     advance_token();
 
     // subroutineCall
@@ -499,8 +505,8 @@ bool compileSubroutineCall(char *subroutineName) {
 
     // expressionList
     int arg_count = 0;
-    while (compileExpressionList()) {
-        arg_count += 1;
+    while (compileExpressionList(&arg_count)) {
+        printf("arg_count: %d\n", arg_count);
         continue;
     }
 
@@ -508,6 +514,8 @@ bool compileSubroutineCall(char *subroutineName) {
     check_token("token", ")", "misc");
     advance_token();
 
+    // do statements aren't making an assignment so we're assuming it's calling a function, not a method --> void and no this arg
+    printf("arg_count: %d\n", arg_count);
     write_call(writer, subroutineName, arg_count);
     write_pop(writer, "temp", 0);
 
@@ -778,8 +786,7 @@ bool compileTerm() {
     char *subroutineName = current_token->item;
     advance_token();
 
-    // TWO AHEAD - TODO check if this is right
-    // advance_token();
+    // TWO AHEAD - TODO check if this is right + maybe make cleaner
 
     // varName '[' expression ']'
     if (!strcmp(current_token->item, "[")) {
@@ -789,6 +796,13 @@ bool compileTerm() {
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
     else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
         compileSubroutineCall(subroutineName);
+    }
+    else { // identifier by itself
+        //go back one token
+        compiler->tokenizer->next_index--;
+        current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+        write_push(writer, current_token);
+        advance_token();
     }
 
   } else {
@@ -817,12 +831,13 @@ bool check_for_one_or_more_expressions() {
     return true;
 }
 
-bool compileExpressionList() {
+bool compileExpressionList(int* arg_count) {
     // (expression (',' expression)*)?
 
     // expression = term (op term)*
     if (compileTerm()) {
 
+        *arg_count += 1;
         // (op term)*
         while (compileOpTerm()) {
             // print(tokenizer.get_current_token().get_token())
@@ -831,6 +846,7 @@ bool compileExpressionList() {
 
         // (',' expression)*
         while (check_for_one_or_more_expressions()) {
+            *arg_count += 1;
             continue;
         }
 

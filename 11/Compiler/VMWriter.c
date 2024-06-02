@@ -70,6 +70,9 @@ void write_push(vm_writer *writer, token *token) {
         fprintf(writer->out_file, "push constant %s\n", token->item);
 
     } else if (!strcmp(token->type, "stringConstant")) {
+        // TODO call String.appendChar 1
+        //or call String.new 1 ?
+    } else if (!strcmp(token->type, "identifier")) {
 
         char *segment;
         int index;
@@ -88,7 +91,8 @@ void write_push(vm_writer *writer, token *token) {
 
     } else if (!strcmp(token->type, "keyword")) { // true false null this
         int value = translate_keywords(token->item);
-        fprintf(writer->out_file, "push %d\n", value);
+        fprintf(writer->out_file, "push constant %d\n", value);
+        // TODO i think 'this' probably needs to be handled differently here
     }
 }
 

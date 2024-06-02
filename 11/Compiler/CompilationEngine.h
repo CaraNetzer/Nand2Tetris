@@ -27,7 +27,7 @@ bool compileWhile();
 bool compileDo();
 bool compileReturn();
 bool compileSubroutineCall();
-bool compileExpressionList();
+bool compileExpressionList(int * arg_count);
 bool compileExpression();
 bool compileElseStatement();
 bool compileTerm();
