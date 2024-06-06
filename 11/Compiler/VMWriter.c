@@ -18,7 +18,7 @@ char *op_to_str(char *op) {
     if (!strcmp(op, "+")) {
         return "add";
     } else if (!strcmp(op, "-")) {
-        return "add";
+        return "sub";
     } else if (!strcmp(op, "=")) {
         return "eq";
     } else if (!strcmp(op, ">")) {
@@ -50,14 +50,14 @@ char *unary_op_to_str(char *op) {
 
 int translate_keywords(char *word) {
     if (!strcmp(word, "true")) {
-        return -1;
+        return 1;
     } else if (!strcmp(word, "false")) {
         return 0;
     } else if (!strcmp(word, "null")) {
         return 0;
     } else {
         printf("unrecognized keyword: %s\n", word);
-        return 1;
+        return 2;
     }
 }
 
@@ -92,6 +92,9 @@ void write_push(vm_writer *writer, token *token) {
     } else if (!strcmp(token->type, "keyword")) { // true false null this
         int value = translate_keywords(token->item);
         fprintf(writer->out_file, "push constant %d\n", value);
+        if (!strcmp(token->item, "true")) {
+            write_arithmetic(writer, "-", true);
+        }
         // TODO i think 'this' probably needs to be handled differently here
     }
 }
@@ -111,7 +114,7 @@ void write_arithmetic(vm_writer *writer, char *command, bool unary) {
 }
 
 void write_label(vm_writer *writer, char *label, int num) {
-    fprintf(writer->out_file, "(%s%d)\n", label, num);
+    fprintf(writer->out_file, "label %s%d\n", label, num);
 }
 
 void write_goto(vm_writer *writer, char *label, int num) {

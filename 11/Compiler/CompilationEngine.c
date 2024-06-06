@@ -76,13 +76,13 @@ void check_token(char* item, char* match, char *action) {
 
     if(!strcmp(item, "type")) {
         if(!strcmp(token_list[i]->type, match)) {
-          emit(token_list[i], action);
+          /* emit(token_list[i], action); */
         } else {
           syntax_error(token_list[i]->item, match);
         }
     } else if (!strcmp(item, "token")) {
         if(!strcmp(token_list[i]->item, match)) {
-          emit(token_list[i], action);
+          /* emit(token_list[i], action); */
         } else {
           syntax_error(token_list[i]->item, match);
         }
@@ -183,7 +183,7 @@ bool check_for_one_or_more_parameters() {
     }
 }
 
-bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope) {
+bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int *var_count) {
 
     if (!strcmp(",", current_token->item)) {
         advance_token();
@@ -205,6 +205,7 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope) {
         else {
             define_row(name, type, kind, subroutine_symbol_table);
         }
+        *var_count += 1;
 
         return true;
     } else {
@@ -225,7 +226,6 @@ bool compileClassVarDec() {
 
         char *kind = current_token->item;
         advance_token();
-        // emit(current_token);
 
         char *type;
         // type { 'int' | 'char' | 'boolean' | varName }
@@ -234,7 +234,6 @@ bool compileClassVarDec() {
             // printf("%s\n", current_token->item);
             type = current_token->item;
             advance_token();
-            // self.emit()
         }
 
         // varName
@@ -245,7 +244,7 @@ bool compileClassVarDec() {
         define_row(name, type, kind, class_symbol_table);
 
         // (',' varName)*
-        while (check_for_one_or_more_identifiers(type, kind, "class")) {
+        while (check_for_one_or_more_identifiers(type, kind, "class", 0)) {
             continue;
         }
 
@@ -286,13 +285,12 @@ bool compileSubroutine() {
             advance_token();
 
             // subroutineName
+            char functionName[BUFSIZ] = "";
             check_token("type", "identifier", "misc");
             if (!strcmp(subroutineKind, "function")) {
-                char functionName[BUFSIZ] = "";
                 strcat(functionName, className); // TODO i think this is only for functions, not methods
                 strcat(functionName, ".");
                 strcat(functionName, current_token->item);
-                write_function(writer, functionName, var_count("argument", subroutine_symbol_table));
             }
             advance_token();
 
@@ -302,7 +300,7 @@ bool compileSubroutine() {
 
             // parameterList
             while (compileParameterList()) {
-              continue;
+                continue;
             }
 
             // ')'
@@ -315,10 +313,12 @@ bool compileSubroutine() {
             advance_token();
 
             // varDec*
-            while (compileVarDec()) {
+            int local_var_count = 0;
+            while (compileVarDec(&local_var_count)) {
                 continue;
             }
 
+            write_function(writer, functionName, local_var_count);
             if (!strcmp(subroutineKind, "method")) {
                 write_push_specific(writer, "argument", 0);
                 write_pop(writer, "pointer", 0);
@@ -381,7 +381,7 @@ bool compileParameterList() {
     }
 }
 
-bool compileVarDec() {
+bool compileVarDec(int *var_count) {
     // 'var' type varName (',' varName)* ';'
 
     // 'var'
@@ -403,10 +403,11 @@ bool compileVarDec() {
         char *name = current_token->item;
         advance_token();
 
+        *var_count += 1;
         define_row(name, type, "local", subroutine_symbol_table);
 
         // (',' varName)*
-        while(check_for_one_or_more_identifiers(type, "local", "subroutine")) {
+        while(check_for_one_or_more_identifiers(type, "local", "subroutine", var_count)) {
             continue;
         }
 
@@ -473,7 +474,7 @@ bool compileDo() {
     advance_token();
 
     // subroutineCall
-    compileSubroutineCall(subroutineName);
+    compileSubroutineCall(subroutineName, true, NULL);
 
     //';'
     check_token("token", ";", "misc");
@@ -482,7 +483,7 @@ bool compileDo() {
     return true;
 }
 
-bool compileSubroutineCall(char *subroutineName) {
+bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *object) {
     // subroutineName                           '(' expressionList ')' |
     // (className | varName) '.' subroutineName '(' expressionList ')'
 
@@ -506,7 +507,6 @@ bool compileSubroutineCall(char *subroutineName) {
     // expressionList
     int arg_count = 0;
     while (compileExpressionList(&arg_count)) {
-        printf("arg_count: %d\n", arg_count);
         continue;
     }
 
@@ -515,9 +515,13 @@ bool compileSubroutineCall(char *subroutineName) {
     advance_token();
 
     // do statements aren't making an assignment so we're assuming it's calling a function, not a method --> void and no this arg
-    printf("arg_count: %d\n", arg_count);
+    if(!voidFunction) {
+        write_push(writer, object);
+    }
     write_call(writer, subroutineName, arg_count);
-    write_pop(writer, "temp", 0);
+    if(voidFunction) {
+        write_pop(writer, "temp", 0);
+    }
 
     return true;
 }
@@ -548,10 +552,21 @@ bool compileLet() {
 
     // varName
     check_token("type", "identifier", "use");
+    char *popVar = current_token->item;
+    char *segment;
+    int index;
+    if(find_by_name(popVar, subroutine_symbol_table)) {
+        segment = kind_of(popVar, subroutine_symbol_table);
+        index = index_of(popVar, subroutine_symbol_table);
+    } else if(find_by_name(popVar, class_symbol_table)) {
+        segment = kind_of(popVar, class_symbol_table);
+        index = index_of(popVar, class_symbol_table);
+    }
     advance_token();
 
     // '[' expression ']'
     while (compileIndexedExpression()) {
+        popVar = ""; // TODO handle arrays here
         continue;
     }
 
@@ -561,6 +576,8 @@ bool compileLet() {
 
     // expression
     compileExpression();
+
+    write_pop(writer, segment, index);
 
     // ';'
     check_token("token", ";", "misc");
@@ -601,7 +618,7 @@ bool compileWhile() {
     check_token("token", "}", "misc");
     advance_token();
 
-    write_goto(writer, "ENDWHILE", whileId);
+    write_label(writer, "ENDWHILE", whileId);
 
     return true;
 }
@@ -783,7 +800,7 @@ bool compileTerm() {
 
     // varName
     check_token("type", "identifier", "use");
-    char *subroutineName = current_token->item;
+    token *object = current_token;
     advance_token();
 
     // TWO AHEAD - TODO check if this is right + maybe make cleaner
@@ -795,7 +812,11 @@ bool compileTerm() {
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
     else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
-        compileSubroutineCall(subroutineName);
+        if(find_by_name(object->item, subroutine_symbol_table) || find_by_name(object->item, class_symbol_table)) {
+        } else {
+            syntax_error(object->item, "object not found in symbol tables");
+        }
+        compileSubroutineCall(object->item, false, object);
     }
     else { // identifier by itself
         //go back one token

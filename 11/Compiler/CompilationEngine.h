@@ -26,7 +26,7 @@ bool compileIf();
 bool compileWhile();
 bool compileDo();
 bool compileReturn();
-bool compileSubroutineCall();
+bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *object);
 bool compileExpressionList(int * arg_count);
 bool compileExpression();
 bool compileElseStatement();
