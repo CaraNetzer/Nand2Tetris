@@ -31,6 +31,8 @@ char *op_to_str(char *op) {
         return "or";
     } else if (!strcmp(op, "*")) {
         return "call Math.multiply 2";
+    } else if (!strcmp(op, "/")) {
+        return "call Math.divide 2";
     } else {
         printf("unrecognized symbol: %s\n", op);
         return "error";
@@ -72,6 +74,10 @@ void write_push(vm_writer *writer, token *token) {
     } else if (!strcmp(token->type, "stringConstant")) {
         // TODO call String.appendChar 1
         //or call String.new 1 ?
+        for (char *character = token->item; *character != '\0'; character++) {
+            fprintf(writer->out_file, "%s\n", character);
+        }
+        fprintf(writer->out_file, "call String.new %ld\n", strlen(token->item));
     } else if (!strcmp(token->type, "identifier")) {
 
         char *segment;
