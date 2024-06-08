@@ -566,8 +566,14 @@ bool compileLet() {
 
     // '[' expression ']'
     while (compileIndexedExpression()) {
-        popVar = ""; // TODO handle arrays here
+        write_push(writer, popVar);
+        write_arithmetic("+", false);
         continue;
+    }
+    if (!strcmp(current_token->item, "[")) {
+        write_push(writer, object);
+        compileIndexedExpression();
+        write_arithmetic("+", false);
     }
 
     // '='
@@ -807,7 +813,9 @@ bool compileTerm() {
 
     // varName '[' expression ']'
     if (!strcmp(current_token->item, "[")) {
+        write_push(writer, object);
         compileIndexedExpression();
+        write_arithmetic("+", false);
     }
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...

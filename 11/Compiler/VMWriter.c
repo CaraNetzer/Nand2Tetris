@@ -74,10 +74,14 @@ void write_push(vm_writer *writer, token *token) {
     } else if (!strcmp(token->type, "stringConstant")) {
         // TODO call String.appendChar 1
         //or call String.new 1 ?
+        int length = strlen(token->item);
+        fprintf(writer->out_file, "push constant %d\n", length);
+        fprintf(writer->out_file, "call String.new 1\n");
         for (char *character = token->item; *character != '\0'; character++) {
-            fprintf(writer->out_file, "%s\n", character);
+            fprintf(writer->out_file, "push constant %1$3d //'%1$c'\n", *character);
+            fprintf(writer->out_file, "call String.appendChar 1\n");
         }
-        fprintf(writer->out_file, "call String.new %ld\n", strlen(token->item));
+        // TODO if there's an assignment, pop segment index --> maybe add to write_push_specific
     } else if (!strcmp(token->type, "identifier")) {
 
         char *segment;
