@@ -537,6 +537,8 @@ bool compileIndexedExpression() {
         check_token("token", "]", "misc");
         advance_token();
 
+        write_arithmetic(writer, "+", false);
+
         return true;
     } else {
         return false;
@@ -545,6 +547,7 @@ bool compileIndexedExpression() {
 
 bool compileLet() {
     // 'let' varName ('[' expression ']')? '=' expression ';'
+    bool array_assignment = false;
 
     // 'let'
     check_token("token", "let", "misc");
@@ -552,28 +555,25 @@ bool compileLet() {
 
     // varName
     check_token("type", "identifier", "use");
-    char *popVar = current_token->item;
+    token *popVar = current_token;
     char *segment;
     int index;
-    if(find_by_name(popVar, subroutine_symbol_table)) {
-        segment = kind_of(popVar, subroutine_symbol_table);
-        index = index_of(popVar, subroutine_symbol_table);
-    } else if(find_by_name(popVar, class_symbol_table)) {
-        segment = kind_of(popVar, class_symbol_table);
-        index = index_of(popVar, class_symbol_table);
+    if(find_by_name(popVar->item, subroutine_symbol_table)) {
+        segment = kind_of(popVar->item, subroutine_symbol_table);
+        index = index_of(popVar->item, subroutine_symbol_table);
+    } else if(find_by_name(popVar->item, class_symbol_table)) {
+        segment = kind_of(popVar->item, class_symbol_table);
+        index = index_of(popVar->item, class_symbol_table);
     }
     advance_token();
+    if(!strcmp(current_token->item, "[")) {
+        write_push(writer, popVar);
+    }
 
     // '[' expression ']'
-    while (compileIndexedExpression()) {
-        write_push(writer, popVar);
-        write_arithmetic("+", false);
-        continue;
-    }
-    if (!strcmp(current_token->item, "[")) {
-        write_push(writer, object);
-        compileIndexedExpression();
-        write_arithmetic("+", false);
+    if (compileIndexedExpression()) {
+        write_pop(writer, "pointer", 1);
+        array_assignment = true;
     }
 
     // '='
@@ -583,7 +583,12 @@ bool compileLet() {
     // expression
     compileExpression();
 
-    write_pop(writer, segment, index);
+    if(array_assignment) {
+        write_push_specific(writer, "temp", 0);
+        write_pop(writer, "that", 0);
+    } else {
+        write_pop(writer, segment, index);
+    }
 
     // ';'
     check_token("token", ";", "misc");
@@ -815,7 +820,9 @@ bool compileTerm() {
     if (!strcmp(current_token->item, "[")) {
         write_push(writer, object);
         compileIndexedExpression();
-        write_arithmetic("+", false);
+        write_pop(writer, "pointer", 1);
+        write_push_specific(writer, "that", 0);
+        write_pop(writer, "temp", 0);
     }
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
