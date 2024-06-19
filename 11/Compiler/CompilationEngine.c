@@ -572,7 +572,6 @@ bool compileLet() {
 
     // '[' expression ']'
     if (compileIndexedExpression()) {
-        write_pop(writer, "pointer", 1);
         array_assignment = true;
     }
 
@@ -584,6 +583,8 @@ bool compileLet() {
     compileExpression();
 
     if(array_assignment) {
+        write_pop(writer, "temp", 0);
+        write_pop(writer, "pointer", 1);
         write_push_specific(writer, "temp", 0);
         write_pop(writer, "that", 0);
     } else {
@@ -822,7 +823,7 @@ bool compileTerm() {
         compileIndexedExpression();
         write_pop(writer, "pointer", 1);
         write_push_specific(writer, "that", 0);
-        write_pop(writer, "temp", 0);
+        /* /\* write_pop(writer, "temp", 0); *\/ */
     }
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...

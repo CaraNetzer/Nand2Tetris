@@ -79,7 +79,7 @@ void write_push(vm_writer *writer, token *token) {
         fprintf(writer->out_file, "call String.new 1\n");
         for (char *character = ++token->item; *(character + 1) != '\0'; character++) {
             fprintf(writer->out_file, "push constant %1$3d //'%1$c'\n", *character);
-            fprintf(writer->out_file, "call String.appendChar 1\n");
+            fprintf(writer->out_file, "call String.appendChar 2\n");
         }
         // TODO if there's an assignment, pop segment index --> maybe add to write_push_specific
     } else if (!strcmp(token->type, "identifier")) {
@@ -90,11 +90,11 @@ void write_push(vm_writer *writer, token *token) {
         if (find_by_name(token->item, subroutine_symbol_table)) {
             segment = kind_of(token->item, subroutine_symbol_table);
             index = index_of(token->item, subroutine_symbol_table);
-            fprintf(writer->out_file, "push %s %d\n", segment, index);
+            fprintf(writer->out_file, "push %s %d // %s\n", segment, index, token->item);
         } else if (find_by_name(token->item, class_symbol_table)) {
             segment = kind_of(token->item, class_symbol_table);
             index = index_of(token->item, class_symbol_table);
-            fprintf(writer->out_file, "push %s %d\n", segment, index);
+            fprintf(writer->out_file, "push %s %d // %s\n", segment, index, token->item);
         } else {
             syntax_error("identifier not found in either symbol table", "");
         }
