@@ -72,8 +72,6 @@ void write_push(vm_writer *writer, token *token) {
         fprintf(writer->out_file, "push constant %s\n", token->item);
 
     } else if (!strcmp(token->type, "stringConstant")) {
-        // TODO call String.appendChar 1
-        //or call String.new 1 ?
         int length = strlen(token->item) - 2; // minus the quotation marks
         fprintf(writer->out_file, "push constant %d\n", length);
         fprintf(writer->out_file, "call String.new 1\n");
@@ -100,12 +98,13 @@ void write_push(vm_writer *writer, token *token) {
         }
 
     } else if (!strcmp(token->type, "keyword")) { // true false null this
-        int value = translate_keywords(token->item);
-        fprintf(writer->out_file, "push constant %d\n", value);
-        if (!strcmp(token->item, "true")) {
-            write_arithmetic(writer, "-", true);
+        if(strcmp(token->item, "this") != 0) {
+            int value = translate_keywords(token->item);
+            fprintf(writer->out_file, "push constant %d\n", value);
+            if (!strcmp(token->item, "true")) {
+                write_arithmetic(writer, "-", true);
+            }
         }
-        // TODO i think 'this' probably needs to be handled differently here
     }
 }
 

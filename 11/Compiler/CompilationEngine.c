@@ -185,6 +185,8 @@ bool check_for_one_or_more_parameters() {
 
 bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int *var_count) {
 
+    // TODO do we need var_count in here?
+
     if (!strcmp(",", current_token->item)) {
         advance_token();
     } else {
@@ -205,7 +207,7 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int 
         else {
             define_row(name, type, kind, subroutine_symbol_table);
         }
-        *var_count += 1;
+        var_count += 1;
 
         return true;
     } else {
@@ -273,8 +275,10 @@ bool compileSubroutine() {
             subroutineKind = "method";
         } else if (!strcmp(current_token->item, "function")) {
             subroutineKind = "function";
+        } else if (!strcmp(current_token->item, "constructor")) {
+            subroutineKind = "constructor";
+            printf("kind: %s\n", subroutineKind);
         }
-        // check_token("token", current_token->item);
         advance_token();
 
         // ('void' | type)
@@ -287,11 +291,9 @@ bool compileSubroutine() {
             // subroutineName
             char functionName[BUFSIZ] = "";
             check_token("type", "identifier", "misc");
-            if (!strcmp(subroutineKind, "function")) {
-                strcat(functionName, className); // TODO i think this is only for functions, not methods
-                strcat(functionName, ".");
-                strcat(functionName, current_token->item);
-            }
+            strcat(functionName, className); 
+            strcat(functionName, ".");
+            strcat(functionName, current_token->item);
             advance_token();
 
             // '('
@@ -321,6 +323,10 @@ bool compileSubroutine() {
             write_function(writer, functionName, local_var_count);
             if (!strcmp(subroutineKind, "method")) {
                 write_push_specific(writer, "argument", 0);
+                write_pop(writer, "pointer", 0);
+            } else if (!strcmp(subroutineKind, "constructor")) {
+                write_push_specific(writer, "constant", var_count("field", class_symbol_table) + var_count("static", class_symbol_table));
+                write_call(writer, "Memory.alloc", 1);
                 write_pop(writer, "pointer", 0);
             }
 
@@ -466,10 +472,10 @@ bool compileDo() {
     check_token("type", "identifier", "use");
     char *subroutineName = current_token->item;
     if(find_by_name(subroutineName, subroutine_symbol_table) || find_by_name(subroutineName, class_symbol_table)) {
-        subroutineKind = "method";
+        /* subroutineKind = "method"; */
         write_push(writer, current_token);
     } else {
-        subroutineKind = "function";
+        /* subroutineKind = "function"; */
     }
     advance_token();
 
@@ -498,6 +504,12 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *objec
         strcat(subroutineName, ".");
         strcat(subroutineName, current_token->item);
         advance_token();
+    }
+    else {
+        char *class = strdup(className);
+        strcat(class, ".");
+        strcat(class, subroutineName);
+        subroutineName = class;
     }
 
     // '(' expressionList ')'
@@ -647,9 +659,14 @@ bool compileReturn() {
     check_token("token", ";", "misc");
     advance_token();
 
-    if (!strcmp(subroutineType, "void")) {
+    printf("%s %s\n", subroutineKind, subroutineType);
+    if(!strcmp(subroutineKind, "constructor")) {
+        write_push_specific(writer, "pointer", 0);
+    }
+    else if (!strcmp(subroutineType, "void")) {
         write_push_specific(writer, "constant", 0);
     }
+
     write_return(writer);
 
     return true;
