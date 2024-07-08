@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     stat(filename, &file_info);
 
     if(S_ISDIR(file_info.st_mode)) {
-        printf("dir: %s\n", filename);
+        // printf("dir: %s\n", filename);
         struct dirent *dir;
         DIR *d = opendir(filename);
 
@@ -79,7 +79,7 @@ void process_file(char* in_file_name, char* in_dirname) {
     strcat(out_file_path, "vm");
     // printf("without .jack: %s\n", out_file_path);
 
-    printf("%s\n", out_file_path);
+    // printf("%s\n", out_file_path);
 
     char *in_file_path = malloc(file_path_size + 2);
     strcpy(in_file_path, in_dirname);

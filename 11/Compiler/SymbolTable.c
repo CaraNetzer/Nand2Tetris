@@ -101,6 +101,10 @@ char* kind_of(char *name, symbol_table *table) {
 
     find_property(name, table, kind);
 
+    if(!strcmp(kind, "field")) {
+        kind = "this";
+    }
+
     return kind;
 
 }
