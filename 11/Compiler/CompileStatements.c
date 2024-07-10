@@ -1,5 +1,6 @@
 #include "CompileStatements.h"
 #include "CompilationEngine.h"
+#include "CompilationIntestines.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,14 +51,21 @@ bool compileDo() {
     char *methodOrObject = current_token->item;
 
     //varName (ie square1.draw())
-    if(find_by_name(methodOrObject, subroutine_symbol_table)
-    || find_by_name(methodOrObject, class_symbol_table)) {
+    bool in_sub = find_by_name(methodOrObject, subroutine_symbol_table);
+    bool in_class = find_by_name(methodOrObject, class_symbol_table);
+    if(in_sub || in_class) {
         write_push(writer, current_token);
         advance_token();
+        if (in_sub) {
+          methodOrObject = type_of(methodOrObject, subroutine_symbol_table);
+        } else {
+          methodOrObject = type_of(methodOrObject, class_symbol_table);
+        }
     }
 
     // subroutineCall
     // subroutineName (ie draw()) and className (ie Square.new()) handled in here
+    printf("68: methodOrObject - %s, current_token - %s\n", methodOrObject, current_token->item);
     compileSubroutineCall(methodOrObject, true, NULL);
 
     //';'
@@ -171,7 +179,9 @@ bool compileReturn() {
 
     // printf("%s %s\n", subroutineKind, subroutineType);
     if(!strcmp(subroutineKind, "constructor")) {
-        write_push_specific(writer, "pointer", 0);
+        // this is handled in write_push for keywords now
+        // constructors are expected to explicitly return 'this'
+        // write_push_specific(writer, "pointer", 0);
     }
     else if (!strcmp(subroutineType, "void")) {
         write_push_specific(writer, "constant", 0);

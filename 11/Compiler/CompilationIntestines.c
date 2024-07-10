@@ -41,11 +41,11 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int 
     }
 }
 
-bool compileParameterOrVar(char *varType, char *compileType) {
+bool compileParameterOrVar(char **varType, char *compileType) {
 
   if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
 
-    varType = current_token->item;
+    *varType = current_token->item;
     advance_token();
 
     // varname
@@ -54,15 +54,18 @@ bool compileParameterOrVar(char *varType, char *compileType) {
     advance_token();
 
     if(!strcmp(compileType, "param")) {
-      define_row(name, varType, "argument", subroutine_symbol_table);
+      define_row(name, *varType, "argument", subroutine_symbol_table);
     } else if(!strcmp(compileType, "var")) {
-      define_row(name, varType, "local", subroutine_symbol_table);
+      define_row(name, *varType, "local", subroutine_symbol_table);
     }
 
-    printf("in type: '%s'\n", varType);
+    printf("in type: '%s'\n", *varType);
     return true;
   } else {
-    syntax_error(current_token->item, "type");
+    // if we're compiling an empty parameter list, no syntax error
+    if(!(!strcmp(compileType, "param") && !strcmp(current_token->item, ")"))) {
+      syntax_error(current_token->item, "type");
+    }
     return false;
   }
 }
@@ -70,13 +73,14 @@ bool compileParameterOrVar(char *varType, char *compileType) {
 void compileParameterList() {
   // ((type varName) (',' type varName)*)?
 
-  char *type = "";
-  bool output = compileParameterOrVar(type, "param");
+  char *type;
+  bool output = compileParameterOrVar(&type, "param");
 
   // (',' varName)*
   do {
     if(check_for_comma()) {
-      output = compileParameterOrVar(type, "param");
+      printf("after comma - current token: %s, type: %s\n", current_token->item, current_token->type);
+      output = compileParameterOrVar(&type, "param");
     } else {
       output = false;
     }
@@ -163,4 +167,12 @@ bool compileOpTerm() {
   } else {
       return false;
   }
+}
+
+char* combineSubroutineName(char* objectOrClass, char* method) {
+  char buffer[BUFSIZ];
+  strcpy(buffer, objectOrClass);
+  strcat(buffer, ".");
+  strcat(buffer, method);
+  return strdup(buffer);
 }

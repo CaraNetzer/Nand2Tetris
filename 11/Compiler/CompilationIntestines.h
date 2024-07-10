@@ -6,8 +6,9 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int 
 bool check_for_one_or_more_expressions();
 bool compileExpressionList(int* arg_count);
 void compileParameterList();
-bool compileParameterOrVar(char *varType, char *compileType);
+bool compileParameterOrVar(char **varType, char *compileType);
 bool compileOpTerm();
 bool compileIndexedExpression();
+char* combineSubroutineName(char* objectOrClass, char* method);
 
 #endif //_CompilationIntestines_H

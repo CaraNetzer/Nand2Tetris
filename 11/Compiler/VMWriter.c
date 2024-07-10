@@ -104,6 +104,8 @@ void write_push(vm_writer *writer, token *token) {
             if (!strcmp(token->item, "true")) {
                 write_arithmetic(writer, "-", true);
             }
+        } else {
+            write_push_specific(writer, "pointer", 0);
         }
     }
 }

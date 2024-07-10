@@ -1,13 +1,16 @@
 #ifndef _VMWriter_H
 #define _VMWriter_H true
 
-#include "SymbolTable.h"
-#include "CompilationEngine.h"
 #include <stdio.h>
 
+// this needs to be up here bc of circular includes
 typedef struct {
   FILE *out_file;
 } vm_writer;
+
+#include "SymbolTable.h"
+#include "CompilationEngine.h"
+
 
 vm_writer *create_vm_writer(char *file_path);
 void write_push(vm_writer * writer, token * token);

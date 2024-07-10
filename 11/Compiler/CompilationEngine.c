@@ -2,7 +2,7 @@
 #include <string.h>
 #include "CompilationEngine.h"
 #include "CompilationIntestines.h"
-#include "CompileStatements.c"
+#include "CompileStatements.h"
 
 int ifCounter = 0;
 int whileCounter = 0;
@@ -48,10 +48,17 @@ void check_token(char* item, char* match, char *action) {
     }
 }
 
+token* _reset_token() {
+  return current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+}
+
 token* advance_token() {
-  compiler->tokenizer->next_index++;
-  current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
-  return compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+    compiler->tokenizer->next_index++;
+    return _reset_token();
+}
+token* rewind_token() {
+    compiler->tokenizer->next_index--;
+    return _reset_token();
 }
 
 FILE *compileClass(compilation_engine *compiler) {
@@ -225,10 +232,8 @@ bool compileVarDec(int *var_count) {
 
         advance_token();
 
-        // QUESTION - why does type behave differently from var_count here? and why does var_count get referenced
-        // with and without an *
-        char *type = "";
-        compileParameterOrVar(type, "var");
+        char *type;
+        compileParameterOrVar(&type, "var");
         *var_count += 1;
 
         // (',' varName)*
@@ -249,11 +254,11 @@ bool compileVarDec(int *var_count) {
 }
 
 
-bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *object) {
+bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previous_token) {
     // subroutineName                           '(' expressionList ')' |
     // (className | varName) '.' subroutineName '(' expressionList ')'
 
-    char *subroutineFullName = strdup(subroutineName);
+    char *subroutineFullName = subroutineName;
 
     bool pushed_this = false;
 
@@ -262,18 +267,12 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *objec
     if (!strcmp(current_token->item, ".")) {
 
         // '.'
-        strcat(subroutineFullName, ".");
         advance_token();
-
-        if(object != NULL) {
-            printf("object present token: %s\n", current_token->item);
-        }
 
         // subroutineName
         check_token("type", "identifier", "misc");
-        strcat(subroutineFullName, current_token->item);
+        subroutineFullName = combineSubroutineName(subroutineName, current_token->item);
         advance_token();
-        pushed_this = true;
 
     } else {
 
@@ -282,26 +281,19 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *objec
 
         //ClassName.method()
         if (!strcmp(current_token->item, ".")) {
-            //go back one token
-            // compiler->tokenizer->next_index--;
-            // current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
 
-            printf("token: %s\n", current_token->item);
-            strcat(subroutineFullName, ".");
             //to get past the '.'
             advance_token();
-            printf("token: %s\n", current_token->item);
 
             check_token("type", "identifier", "misc");
-            strcat(subroutineFullName, current_token->item);
+            subroutineFullName = combineSubroutineName(subroutineName, current_token->item);
 
 
         // subroutineName (ie draw())
         } else {
-            char *class = strdup(className);
-            strcat(class, ".");
-            strcat(class, subroutineFullName);
-            subroutineFullName = class;
+            rewind_token();
+
+            subroutineFullName = combineSubroutineName(className, subroutineName);
 
             write_push_specific(writer, "pointer", 0);
             pushed_this = true;
@@ -325,10 +317,9 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *objec
     advance_token();
 
 
-    if(object != NULL) {
-        printf("DEBUG: object - %s\n", object->item);
-        write_push(writer, object); // this, unless construction
-        // this_on_stack = true;
+    if(previous_token != NULL) {
+        write_push(writer, previous_token); // this, unless constructor
+        pushed_this = true;
     }
     if(pushed_this) {
         arg_count++;
@@ -375,6 +366,7 @@ bool compileTerm() {
       !strcmp(current_token->type, "stringConstant") ||
       !strcmp(current_token->type, "keyword")) {
 
+    printf("DEBUG: current_token (keyword?): %s, type: %s\n", current_token->item, current_token->type);
     check_token("token", current_token->item, "misc");
     write_push(writer, current_token);
     advance_token();
@@ -408,14 +400,14 @@ bool compileTerm() {
 
     // varName
     check_token("type", "identifier", "use");
-    token *object = current_token;
+    token *previous_token = current_token;
     advance_token();
 
     // TWO AHEAD - TODO check if this is right + maybe make cleaner
 
     // varName '[' expression ']'
     if (!strcmp(current_token->item, "[")) {
-        write_push(writer, object);
+        write_push(writer, previous_token);
         compileIndexedExpression();
         write_pop(writer, "pointer", 1);
         write_push_specific(writer, "that", 0);
@@ -424,16 +416,18 @@ bool compileTerm() {
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
     else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
-        if(find_by_name(object->item, subroutine_symbol_table) || find_by_name(object->item, class_symbol_table)) {
+        if(find_by_name(previous_token->item, subroutine_symbol_table) || find_by_name(previous_token->item, class_symbol_table)) {
+            compileSubroutineCall(previous_token->item, false, previous_token);
         } else {
-            printf("class name encountered or object not found in symbol tables: %s\n", object->item);
+            printf("class name encountered or previous_token not found in symbol tables: %s\n", previous_token->item);
+            compileSubroutineCall(previous_token->item, false, NULL);
         }
-        compileSubroutineCall(object->item, false, object);
+        printf("432: previous_token - %s, current_token - %s\n", previous_token->item, current_token->item);
     }
     else { // identifier by itself
         //go back one token
-        compiler->tokenizer->next_index--;
-        current_token = compiler->tokenizer->tokenized_tokens[compiler->tokenizer->next_index];
+        rewind_token();
+
         write_push(writer, current_token);
         advance_token();
     }

@@ -27,7 +27,8 @@ compilation_engine *CompilationEngine(jack_tokenizer *in_tokenizer, char *out_fi
 
 void syntax_error(char *actual, char *expected);
 void check_token(char *item, char *match, char *action);
-token *advance_token();
+token* advance_token();
+token* rewind_token();
 
 FILE *compileClass(compilation_engine *compiler);
 

@@ -9,7 +9,8 @@ tests = \
 
 CFLAGS = -Wall -Werror
 
-OBJS = JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o VMWriter.o CompilationIntestines.o
+# OBJS = JackCompiler.o JackTokenizer.o CompilationEngine.o SymbolTable.o Token.o VMWriter.o CompilationIntestines.o CompileStatements.o
+OBJS = $(patsubst %.c,%.o,$(wildcard *.c))
 
 default: test
 
