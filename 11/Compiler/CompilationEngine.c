@@ -229,6 +229,8 @@ bool compileSubroutine() {
 bool compileVarDec(int *var_count) {
     // 'var' type varName (',' varName)* ';'
 
+    int n_locals = *var_count;
+
     // 'var'
     if (equal(current_token->item, "var")) {
 
@@ -236,12 +238,14 @@ bool compileVarDec(int *var_count) {
 
         char *type;
         compileParameterOrVar(&type, "var");
-        *var_count += 1;
+        n_locals += 1;
 
         // (',' varName)*
-        while(check_for_one_or_more_identifiers(type, "local", "subroutine", var_count)) {
+        while(check_for_one_or_more_identifiers(type, "local", "subroutine", &n_locals)) {
             continue;
         }
+
+        *var_count = n_locals;
 
         // ';'
         check_token("token", ";", "misc");
@@ -418,8 +422,19 @@ bool compileTerm() {
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
     else if (equal(current_token->item, "(") || equal(current_token->item, ".")) {
-        if(find_by_name(previous_token->item, subroutine_symbol_table) || find_by_name(previous_token->item, class_symbol_table)) {
-            compileSubroutineCall(previous_token->item, false, previous_token, false);
+
+        bool in_sub = find_by_name(previous_token->item, subroutine_symbol_table);
+        bool in_class = find_by_name(previous_token->item, class_symbol_table);
+
+        if(in_sub || in_class) {
+            char *objectType;
+            if (in_sub) {
+                objectType = type_of(previous_token->item, subroutine_symbol_table);
+            } else {
+                objectType = type_of(previous_token->item, class_symbol_table);
+            }
+            compileSubroutineCall(objectType, false, previous_token, false);
+
         } else {
             printf("class name encountered or previous_token not found in symbol tables: %s\n", previous_token->item);
             compileSubroutineCall(previous_token->item, false, NULL, false);

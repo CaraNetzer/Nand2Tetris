@@ -1,6 +1,6 @@
 tests = \
-	Square	\
-	# Pong	\
+	Pong	\
+	# Square	\
 	# ComplexArrays	\
 	# Seven	\
 	# ConvertToBin	\

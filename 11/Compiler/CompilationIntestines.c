@@ -14,6 +14,12 @@ bool check_for_comma() {
 
 bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int *var_count) {
 
+
+    int n_locals;
+    if(var_count != NULL) {
+      n_locals = *var_count;
+    }
+
     if(!check_for_comma()) {
       return false;
     }
@@ -28,11 +34,14 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int 
 
         if(equal(scope, "class")) {
             define_row(name, type, kind, class_symbol_table);
-        }
-        else {
+        } else {
             define_row(name, type, kind, subroutine_symbol_table);
         }
-        var_count += 1;
+
+        if(var_count != NULL) {
+          n_locals += 1;
+          *var_count = n_locals;
+        }
 
         return true;
     } else {
