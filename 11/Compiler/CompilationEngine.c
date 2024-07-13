@@ -254,7 +254,7 @@ bool compileVarDec(int *var_count) {
 }
 
 
-bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previous_token) {
+bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previous_token, bool objPushedInDo) {
     // subroutineName                           '(' expressionList ')' |
     // (className | varName) '.' subroutineName '(' expressionList ')'
 
@@ -273,6 +273,8 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previ
         check_token("type", "identifier", "misc");
         subroutineFullName = combineSubroutineName(subroutineName, current_token->item);
         advance_token();
+
+        pushed_this = objPushedInDo ? true : false;
 
     } else {
 
@@ -317,6 +319,7 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previ
     advance_token();
 
 
+    //objPushedInLet (not Do)
     if(previous_token != NULL) {
         write_push(writer, previous_token); // this, unless constructor
         pushed_this = true;
@@ -403,7 +406,7 @@ bool compileTerm() {
     token *previous_token = current_token;
     advance_token();
 
-    // TWO AHEAD - TODO check if this is right + maybe make cleaner
+    // TWO AHEAD/haven't processed prev token
 
     // varName '[' expression ']'
     if (!strcmp(current_token->item, "[")) {
@@ -417,10 +420,10 @@ bool compileTerm() {
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
     else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
         if(find_by_name(previous_token->item, subroutine_symbol_table) || find_by_name(previous_token->item, class_symbol_table)) {
-            compileSubroutineCall(previous_token->item, false, previous_token);
+            compileSubroutineCall(previous_token->item, false, previous_token, false);
         } else {
             printf("class name encountered or previous_token not found in symbol tables: %s\n", previous_token->item);
-            compileSubroutineCall(previous_token->item, false, NULL);
+            compileSubroutineCall(previous_token->item, false, NULL, false);
         }
         printf("432: previous_token - %s, current_token - %s\n", previous_token->item, current_token->item);
     }

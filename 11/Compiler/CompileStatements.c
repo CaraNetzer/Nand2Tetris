@@ -46,27 +46,28 @@ bool compileDo() {
     advance_token();
 
     // subroutineName | className | varName
-
     check_token("type", "identifier", "use");
-    char *methodOrObject = current_token->item;
+    char *methodObjectOrClass = current_token->item;
 
     //varName (ie square1.draw())
-    bool in_sub = find_by_name(methodOrObject, subroutine_symbol_table);
-    bool in_class = find_by_name(methodOrObject, class_symbol_table);
+    bool in_sub = find_by_name(methodObjectOrClass, subroutine_symbol_table);
+    bool in_class = find_by_name(methodObjectOrClass, class_symbol_table);
+
     if(in_sub || in_class) {
         write_push(writer, current_token);
         advance_token();
+
+        // for combining the className with the subroutineName in compileSubroutineCall
         if (in_sub) {
-          methodOrObject = type_of(methodOrObject, subroutine_symbol_table);
+          methodObjectOrClass = type_of(methodObjectOrClass, subroutine_symbol_table);
         } else {
-          methodOrObject = type_of(methodOrObject, class_symbol_table);
+          methodObjectOrClass = type_of(methodObjectOrClass, class_symbol_table);
         }
     }
 
     // subroutineCall
     // subroutineName (ie draw()) and className (ie Square.new()) handled in here
-    printf("68: methodOrObject - %s, current_token - %s\n", methodOrObject, current_token->item);
-    compileSubroutineCall(methodOrObject, true, NULL);
+    compileSubroutineCall(methodObjectOrClass, true, NULL, true);
 
     //';'
     check_token("token", ";", "misc");

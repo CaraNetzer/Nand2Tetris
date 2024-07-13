@@ -35,7 +35,7 @@ FILE *compileClass(compilation_engine *compiler);
 bool compileClassVarDec();
 bool compileSubroutine();
 bool compileVarDec();
-bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *object);
+bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *object, bool objPushedInDo);
 bool compileExpression();
 bool compileTerm();
 
