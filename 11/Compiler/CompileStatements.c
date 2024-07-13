@@ -9,23 +9,23 @@ bool compileStatements() {
     // (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
     if (array_contains(statement_types, 6, current_token->item)) {
 
-        if(!strcmp(current_token->item, "let")) {
+        if(equal(current_token->item, "let")) {
             compileLet();
         }
 
-        if (!strcmp(current_token->item, "if")) {
+        if (equal(current_token->item, "if")) {
             compileIf();
         }
 
-        if (!strcmp(current_token->item, "while")) {
+        if (equal(current_token->item, "while")) {
             compileWhile();
         }
 
-        if (!strcmp(current_token->item, "do")) {
+        if (equal(current_token->item, "do")) {
             compileDo();
         }
 
-        if (!strcmp(current_token->item, "return")) {
+        if (equal(current_token->item, "return")) {
             compileReturn();
         }
 
@@ -38,7 +38,6 @@ bool compileStatements() {
 bool compileDo() {
 
     // 'do' subroutineCall = subroutineName '(' expressionList ')' | (className | varName) '.'
-
     // subroutineName '(' expressionList ')' ';'
 
     // 'do'
@@ -97,7 +96,7 @@ bool compileLet() {
         index = index_of(popVar->item, class_symbol_table);
     }
     advance_token();
-    if(!strcmp(current_token->item, "[")) {
+    if(equal(current_token->item, "[")) {
         write_push(writer, popVar);
     }
 
@@ -178,13 +177,12 @@ bool compileReturn() {
     check_token("token", ";", "misc");
     advance_token();
 
-    // printf("%s %s\n", subroutineKind, subroutineType);
-    if(!strcmp(subroutineKind, "constructor")) {
+    if(equal(subroutineKind, "constructor")) {
         // this is handled in write_push for keywords now
         // constructors are expected to explicitly return 'this'
         // write_push_specific(writer, "pointer", 0);
     }
-    else if (!strcmp(subroutineType, "void")) {
+    else if (equal(subroutineType, "void")) {
         write_push_specific(writer, "constant", 0);
     }
 
@@ -195,7 +193,7 @@ bool compileReturn() {
 
 bool compileElse() {
     // 'else' '{' statements '}'
-    if (!strcmp(current_token->item, "else")) {
+    if (equal(current_token->item, "else")) {
         // 'else'
         advance_token();
 

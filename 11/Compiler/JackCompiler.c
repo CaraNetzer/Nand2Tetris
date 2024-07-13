@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
     stat(filename, &file_info);
 
     if(S_ISDIR(file_info.st_mode)) {
-        // printf("dir: %s\n", filename);
         struct dirent *dir;
         DIR *d = opendir(filename);
 
@@ -40,14 +39,14 @@ int main(int argc, char *argv[])
         while ((dir = readdir(d)) != NULL)
         {
             if (strstr(dir->d_name, ".jack") != NULL) {
-                printf("file: %s\n", dir->d_name);
+                printf("processing file: %s\n", dir->d_name);
                 process_file(dir->d_name, filename);
             }
 
         }
     } else {
         if(S_ISREG(file_info.st_mode)) {
-            printf("file: %s\n", filename);
+            printf("processing file: %s\n", filename);
             process_file(basename(filename), dirname(filename));
         } else {
             fprintf(stderr, "Invalid file name: %s\n", filename);
@@ -62,7 +61,6 @@ int main(int argc, char *argv[])
 
 void process_file(char* in_file_name, char* in_dirname) {
 
-    // printf("%s: %zu\n", in_file_name, strlen(in_file_name));
     // declare out file path with enough space for .vm
     int file_path_size = strlen(in_dirname) + strlen(in_file_name); //jack --> /vm\0
     char *out_file_path = malloc(file_path_size);
@@ -77,9 +75,6 @@ void process_file(char* in_file_name, char* in_dirname) {
 
     //concatonate vm to the out file path
     strcat(out_file_path, "vm");
-    // printf("without .jack: %s\n", out_file_path);
-
-    // printf("%s\n", out_file_path);
 
     char *in_file_path = malloc(file_path_size + 2);
     strcpy(in_file_path, in_dirname);

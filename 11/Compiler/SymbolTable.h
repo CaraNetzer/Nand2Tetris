@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include "Token.h"
 
 typedef struct {
     char *name;

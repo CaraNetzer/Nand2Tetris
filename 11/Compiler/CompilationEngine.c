@@ -42,8 +42,8 @@ void check_token(char* item, char* match, char *action) {
     token** token_list = compiler->tokenizer->tokenized_tokens;
     int i = compiler->tokenizer->next_index;
 
-    if((!strcmp(item, "type")  && strcmp(token_list[i]->type, match))
-    || (!strcmp(item, "token") && strcmp(token_list[i]->item, match))) {
+    if((equal(item, "type")  && not_equal(token_list[i]->type, match))
+    || (equal(item, "token") && not_equal(token_list[i]->item, match))) {
         syntax_error(token_list[i]->item, match);
     }
 }
@@ -102,14 +102,16 @@ bool compileClassVarDec() {
     // ('static' | 'field') type varName (',' varName)* ';'
 
     // ('static' | 'field')
-    if (!strcmp(current_token->item, "static") || !strcmp(current_token->item, "field")) {
+    if (equal(current_token->item, "static") || equal(current_token->item, "field")) {
 
         char *kind = current_token->item;
         advance_token();
 
         char *type;
         // type { 'int' | 'char' | 'boolean' | varName }
-        if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
+        if (array_contains(var_types, 4, current_token->item)
+         || equal(current_token->type, "identifier")) {
+
             type = current_token->item;
             advance_token();
         }
@@ -146,19 +148,19 @@ bool compileSubroutine() {
     // ('constructor' | 'function' | 'method')
     if(array_contains(function_types, 3, current_token->item)) {
 
-        if (!strcmp(current_token->item, "method")) {
+        if (equal(current_token->item, "method")) {
             define_row("this", className, "argument", subroutine_symbol_table);
             subroutineKind = "method";
-        } else if (!strcmp(current_token->item, "function")) {
+        } else if (equal(current_token->item, "function")) {
             subroutineKind = "function";
-        } else if (!strcmp(current_token->item, "constructor")) {
+        } else if (equal(current_token->item, "constructor")) {
             subroutineKind = "constructor";
         }
         advance_token();
 
         // ('void' | type)
         if (array_contains(var_types, 4, current_token->item)
-         || !strcmp(current_token->type, "identifier")) {
+         || equal(current_token->type, "identifier")) {
 
             subroutineType = current_token->item;
             advance_token();
@@ -194,10 +196,10 @@ bool compileSubroutine() {
             }
 
             write_function(writer, functionName, local_var_count);
-            if (!strcmp(subroutineKind, "method")) {
+            if (equal(subroutineKind, "method")) {
                 write_push_specific(writer, "argument", 0);
                 write_pop(writer, "pointer", 0);
-            } else if (!strcmp(subroutineKind, "constructor")) {
+            } else if (equal(subroutineKind, "constructor")) {
                 write_push_specific(writer, "constant", var_count("field", class_symbol_table) + var_count("static", class_symbol_table));
                 write_call(writer, "Memory.alloc", 1);
                 write_pop(writer, "pointer", 0);
@@ -228,7 +230,7 @@ bool compileVarDec(int *var_count) {
     // 'var' type varName (',' varName)* ';'
 
     // 'var'
-    if (!strcmp(current_token->item, "var")) {
+    if (equal(current_token->item, "var")) {
 
         advance_token();
 
@@ -237,7 +239,6 @@ bool compileVarDec(int *var_count) {
         *var_count += 1;
 
         // (',' varName)*
-        printf("type: '%s'\n", type);
         while(check_for_one_or_more_identifiers(type, "local", "subroutine", var_count)) {
             continue;
         }
@@ -264,7 +265,7 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previ
 
     //varName preceded
     // '.' subroutineName
-    if (!strcmp(current_token->item, ".")) {
+    if (equal(current_token->item, ".")) {
 
         // '.'
         advance_token();
@@ -282,7 +283,7 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previ
         advance_token();
 
         //ClassName.method()
-        if (!strcmp(current_token->item, ".")) {
+        if (equal(current_token->item, ".")) {
 
             //to get past the '.'
             advance_token();
@@ -339,9 +340,9 @@ bool compileSubroutineCall(char *subroutineName, bool voidFunction, token *previ
 bool compileExpression() {
 
     // term (op term)*
-    if (strcmp(current_token->type, "symbol") != 0
+    if (not_equal(current_token->type, "symbol")
         || array_contains(unary_operators, 2, current_token->item)
-        || !strcmp(current_token->item, "(")) {
+        || equal(current_token->item, "(")) {
 
         // term
         compileTerm();
@@ -362,14 +363,14 @@ bool compileTerm() {
   // integerConstant | stringConstant | keywordConstant | varName |
   // varName '[' expression ']' | subroutineCall |'(' expression ')' | unaryOp term
 
-  // if token is an identifer, need to look at the next token to distinguish between varName, varName[], and subroutineCall
+  // if token is an identifer, need to look at the next token to distinguish between varName,
+  // varName[], and subroutineCall
 
   // integerConstant | stringConstant | keywordConstant
-  if (!strcmp(current_token->type, "integerConstant") ||
-      !strcmp(current_token->type, "stringConstant") ||
-      !strcmp(current_token->type, "keyword")) {
+  if (equal(current_token->type, "integerConstant") ||
+      equal(current_token->type, "stringConstant") ||
+      equal(current_token->type, "keyword")) {
 
-    printf("DEBUG: current_token (keyword?): %s, type: %s\n", current_token->item, current_token->type);
     check_token("token", current_token->item, "misc");
     write_push(writer, current_token);
     advance_token();
@@ -381,14 +382,13 @@ bool compileTerm() {
     check_token("type", "symbol", "misc");
     char *op = current_token->item;
     advance_token();
-    /* printf("about to eat ( after unary\n"); */
     compileTerm();
 
     write_arithmetic(writer, op, true);
   }
 
   // '(' expression ')'
-  else if(!strcmp(current_token->item, "(")) {
+  else if(equal(current_token->item, "(")) {
     check_token("token", "(", "misc");
     advance_token();
 
@@ -398,7 +398,7 @@ bool compileTerm() {
     advance_token();
   }
 
-  else if (!strcmp(current_token->type, "identifier")) {
+  else if (equal(current_token->type, "identifier")) {
     // this is where we need to look two ahead
 
     // varName
@@ -409,28 +409,25 @@ bool compileTerm() {
     // TWO AHEAD/haven't processed prev token
 
     // varName '[' expression ']'
-    if (!strcmp(current_token->item, "[")) {
+    if (equal(current_token->item, "[")) {
         write_push(writer, previous_token);
         compileIndexedExpression();
         write_pop(writer, "pointer", 1);
         write_push_specific(writer, "that", 0);
-        /* /\* write_pop(writer, "temp", 0); *\/ */
     }
 
     // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName ...
-    else if (strcmp(current_token->item, "(") == 0 || strcmp(current_token->item, ".") == 0) {
+    else if (equal(current_token->item, "(") || equal(current_token->item, ".")) {
         if(find_by_name(previous_token->item, subroutine_symbol_table) || find_by_name(previous_token->item, class_symbol_table)) {
             compileSubroutineCall(previous_token->item, false, previous_token, false);
         } else {
             printf("class name encountered or previous_token not found in symbol tables: %s\n", previous_token->item);
             compileSubroutineCall(previous_token->item, false, NULL, false);
         }
-        printf("432: previous_token - %s, current_token - %s\n", previous_token->item, current_token->item);
     }
-    else { // identifier by itself
-        //go back one token
-        rewind_token();
 
+    else { // identifier by itself - process prev token
+        rewind_token();
         write_push(writer, current_token);
         advance_token();
     }

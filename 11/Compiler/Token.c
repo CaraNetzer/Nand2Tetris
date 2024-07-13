@@ -14,6 +14,14 @@ char *other_keywords[] = { "class", "void", "true", "false", "null", "this" }; /
 char *variable_declarations[] = { "field", "static", "var" }; //.union(var_types).union(function_types).union(statement_types);
 char *symbols[] = { "{", "}", "(", ")", "[", "]", ".", ",", ";" }; //.union(operators)
 
+// this is in the token class so it gets included in all the other files
+bool equal(char *first_item, char *second_item) {
+  return !strcmp(first_item, second_item);
+}
+bool not_equal(char *first_item, char *second_item) {
+  return strcmp(first_item, second_item);
+}
+
 token *create_token(char *in_token) {
     token *new_token = malloc(sizeof(token));
 
@@ -30,7 +38,7 @@ token *create_token(char *in_token) {
 
 bool array_contains(char **array, int size, char *item) {
     for(int i = 0; i < size; i++) {
-        if (!strcmp(array[i], item)) {
+        if (equal(array[i], item)) {
             return true;
         }
     }
@@ -39,14 +47,17 @@ bool array_contains(char **array, int size, char *item) {
 
 
 char* token_type(char *token) {
-    if(array_contains(other_keywords, 9, token) || array_contains(var_types, 3, token) || array_contains(function_types, 3, token) || array_contains(statement_types, 6, token) || array_contains(variable_declarations, 3, token)) {
+    if(array_contains(other_keywords, 9, token)
+    || array_contains(var_types, 3, token)
+    || array_contains(function_types, 3, token)
+    || array_contains(statement_types, 6, token)
+    || array_contains(variable_declarations, 3, token)) {
         return "keyword";
     } else if (array_contains(symbols, 9, token) || array_contains(operators, 10, token)) {
         return "symbol";
     } else if (isdigit(token[0])) {
         return "integerConstant";
     } else if (!strncmp("\"", token, 1)) {
-        printf("%s\n", token);
         return "stringConstant";
     } else if (!isdigit(token[0])) {
         return "identifier";

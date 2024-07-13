@@ -4,7 +4,7 @@
 #include <string.h>
 
 bool check_for_comma() {
-  if (!strcmp(current_token->item, ",")) {
+  if (equal(current_token->item, ",")) {
       advance_token();
       return true;
   } else {
@@ -19,14 +19,14 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int 
     }
 
     // identifier
-    if (!strcmp(current_token->type, "identifier")) {
+    if (equal(current_token->type, "identifier")) {
 
         // varname
         char *name = current_token->item;
         check_token("type", "identifier", "define");
         advance_token();
 
-        if(!strcmp(scope, "class")) {
+        if(equal(scope, "class")) {
             define_row(name, type, kind, class_symbol_table);
         }
         else {
@@ -43,7 +43,7 @@ bool check_for_one_or_more_identifiers(char *type, char *kind, char *scope, int 
 
 bool compileParameterOrVar(char **varType, char *compileType) {
 
-  if (array_contains(var_types, 4, current_token->item) || !strcmp(current_token->type, "identifier")) {
+  if (array_contains(var_types, 4, current_token->item) || equal(current_token->type, "identifier")) {
 
     *varType = current_token->item;
     advance_token();
@@ -53,17 +53,16 @@ bool compileParameterOrVar(char **varType, char *compileType) {
     check_token("type", "identifier", "define");
     advance_token();
 
-    if(!strcmp(compileType, "param")) {
+    if(equal(compileType, "param")) {
       define_row(name, *varType, "argument", subroutine_symbol_table);
-    } else if(!strcmp(compileType, "var")) {
+    } else if(equal(compileType, "var")) {
       define_row(name, *varType, "local", subroutine_symbol_table);
     }
 
-    printf("in type: '%s'\n", *varType);
     return true;
   } else {
     // if we're compiling an empty parameter list, no syntax error
-    if(!(!strcmp(compileType, "param") && !strcmp(current_token->item, ")"))) {
+    if(!(equal(compileType, "param") && equal(current_token->item, ")"))) {
       syntax_error(current_token->item, "type");
     }
     return false;
@@ -79,7 +78,6 @@ void compileParameterList() {
   // (',' varName)*
   do {
     if(check_for_comma()) {
-      printf("after comma - current token: %s, type: %s\n", current_token->item, current_token->type);
       output = compileParameterOrVar(&type, "param");
     } else {
       output = false;
@@ -133,7 +131,7 @@ bool compileExpressionList(int* arg_count) {
 
 bool compileIndexedExpression() {
     // '[' expression ']'
-    if (!strcmp(current_token->item, "[")) {
+    if (equal(current_token->item, "[")) {
 
         advance_token();
 

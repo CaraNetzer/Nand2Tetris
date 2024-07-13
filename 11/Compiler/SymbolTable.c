@@ -37,7 +37,7 @@ symbol_table_row* alloc_new_row(symbol_table *table) {
 
 void define_row(char *name, char *type, char *kind, symbol_table *table) {
 
-    if (0 != strcmp(name, "")) {
+    if (not_equal(name, "")) {
         symbol_table_row *row;
         row = alloc_new_row(table);
         row->name = strdup(name);
@@ -66,7 +66,7 @@ int var_count(char *kind, symbol_table *table) {
     int count = 0;
 
     for (int i = 0; i < table->next_index; i++) {
-        if (!strcmp(table->rows[i]->kind, kind)) {
+        if (equal(table->rows[i]->kind, kind)) {
             count++;
         }
     }
@@ -78,7 +78,7 @@ int var_count(char *kind, symbol_table *table) {
 bool find_by_name(char *name, symbol_table *table) {
 
   for (int i = 0; i < table->next_index; i++) {
-    if (!strcmp(table->rows[i]->name, name)) {
+    if (equal(table->rows[i]->name, name)) {
       return true;
     }
   }
@@ -89,7 +89,7 @@ bool find_by_name(char *name, symbol_table *table) {
 #define find_property(name, table, property) {                  \
                                                                 \
     for (int i = 0; i < table->next_index; i++) {               \
-      if (!strcmp(table->rows[i]->name, name)) {                \
+      if (equal(table->rows[i]->name, name)) {                  \
           property = table->rows[i]->property;                  \
         }                                                       \
     }                                                           \
@@ -101,7 +101,7 @@ char* kind_of(char *name, symbol_table *table) {
 
     find_property(name, table, kind);
 
-    if(!strcmp(kind, "field")) {
+    if(equal(kind, "field")) {
         kind = "this";
     }
 

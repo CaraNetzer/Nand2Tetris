@@ -15,23 +15,23 @@ vm_writer *create_vm_writer(char *file_path) {
 }
 
 char *op_to_str(char *op) {
-    if (!strcmp(op, "+")) {
+    if (equal(op, "+")) {
         return "add";
-    } else if (!strcmp(op, "-")) {
+    } else if (equal(op, "-")) {
         return "sub";
-    } else if (!strcmp(op, "=")) {
+    } else if (equal(op, "=")) {
         return "eq";
-    } else if (!strcmp(op, ">")) {
+    } else if (equal(op, ">")) {
         return "gt";
-    } else if (!strcmp(op, "<")) {
+    } else if (equal(op, "<")) {
         return "lt";
-    } else if (!strcmp(op, "&")) {
+    } else if (equal(op, "&")) {
         return "and";
-    } else if (!strcmp(op, "|")) {
+    } else if (equal(op, "|")) {
         return "or";
-    } else if (!strcmp(op, "*")) {
+    } else if (equal(op, "*")) {
         return "call Math.multiply 2";
-    } else if (!strcmp(op, "/")) {
+    } else if (equal(op, "/")) {
         return "call Math.divide 2";
     } else {
         printf("unrecognized symbol: %s\n", op);
@@ -40,9 +40,9 @@ char *op_to_str(char *op) {
 }
 
 char *unary_op_to_str(char *op) {
-    if (!strcmp(op, "-")) {
+    if (equal(op, "-")) {
         return "neg";
-    } else if (!strcmp(op, "~")) {
+    } else if (equal(op, "~")) {
         return "not";
     } else {
         printf("unrecognized symbol: %s\n", op);
@@ -51,11 +51,11 @@ char *unary_op_to_str(char *op) {
 }
 
 int translate_keywords(char *word) {
-    if (!strcmp(word, "true")) {
+    if (equal(word, "true")) {
         return 1;
-    } else if (!strcmp(word, "false")) {
+    } else if (equal(word, "false")) {
         return 0;
-    } else if (!strcmp(word, "null")) {
+    } else if (equal(word, "null")) {
         return 0;
     } else {
         printf("unrecognized keyword: %s\n", word);
@@ -68,10 +68,10 @@ void write_push_specific(vm_writer *writer, char *segment, int index) {
 }
 
 void write_push(vm_writer *writer, token *token) {
-    if (!strcmp(token->type, "integerConstant")) {
+    if (equal(token->type, "integerConstant")) {
         fprintf(writer->out_file, "push constant %s\n", token->item);
 
-    } else if (!strcmp(token->type, "stringConstant")) {
+    } else if (equal(token->type, "stringConstant")) {
         int length = strlen(token->item) - 2; // minus the quotation marks
         fprintf(writer->out_file, "push constant %d\n", length);
         fprintf(writer->out_file, "call String.new 1\n");
@@ -79,8 +79,7 @@ void write_push(vm_writer *writer, token *token) {
             fprintf(writer->out_file, "push constant %1$3d //'%1$c'\n", *character);
             fprintf(writer->out_file, "call String.appendChar 2\n");
         }
-        // TODO if there's an assignment, pop segment index --> maybe add to write_push_specific
-    } else if (!strcmp(token->type, "identifier")) {
+    } else if (equal(token->type, "identifier")) {
 
         char *segment;
         int index;
@@ -97,11 +96,11 @@ void write_push(vm_writer *writer, token *token) {
             syntax_error("identifier not found in either symbol table", "");
         }
 
-    } else if (!strcmp(token->type, "keyword")) { // true false null this
-        if(strcmp(token->item, "this") != 0) {
+    } else if (equal(token->type, "keyword")) { // true false null this
+        if(not_equal(token->item, "this")) {
             int value = translate_keywords(token->item);
             fprintf(writer->out_file, "push constant %d\n", value);
-            if (!strcmp(token->item, "true")) {
+            if (equal(token->item, "true")) {
                 write_arithmetic(writer, "-", true);
             }
         } else {

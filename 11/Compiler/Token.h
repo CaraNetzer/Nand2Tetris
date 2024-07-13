@@ -15,9 +15,11 @@ extern char *statement_types[];
 extern char *operators[];
 extern char *unary_operators[];
 
+bool equal(char *first_item, char *second_item);
+bool not_equal(char *first_item, char *second_item);
 token* create_token(char *in_token);
 char* to_str(token *token);
-char* token_type(char *token); 
+char* token_type(char *token);
 bool array_contains(char **array, int size, char *item);
 
 #endif //_Token_H
