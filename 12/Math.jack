@@ -1,0 +1,120 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/** A library of commonly used mathematical functions.
+ *  All functions runs in O(n), where n is the number of bits used
+ *  for representing a two's complement integer value (16 in the Hack computer).
+ *  Note: Jack compilers implement multiplication and division
+ *  using calls to OS functions in this class.
+ */
+class Math {
+    static int n;             // Number of bits used for representing a two's complement integer
+    static Array powersOfTwo; // Stores 2^0, 2^1, 2^2,..., 2^(n-1)
+
+    // Initializes the Math library.
+    function void init() {
+        n = 16;
+        powersOfTwo = Array.new(n);
+        powersOfTwo = [ 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768 ];
+    }
+
+    /** Returns the product of x and y.
+     *  When a Jack compiler detects the multiplication operator '*'
+     *  in an expression, it handles it by invoking this method.
+     *  Thus, in Jack, x * y and Math.multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+        var int sum, shiftedX, j;
+        let sum = 0, j = 0;
+        let shiftedX = x;
+
+        while (j <= n - 1) {
+            if (bit(x, j)) {
+                let sum = sum + shiftedX;
+            }
+            shiftedX = shiftedX + shiftedX;
+            j = j + 1;
+        }
+
+        return sum;
+    }
+
+    function boolean bit(int x, int j) {
+        return x & powersOfTwo[j];
+    }
+
+    /** Returns the integer part of x / y.
+     *  When a Jack compiler detects the division operator '/'
+     *  an an expression, it handles it by invoking this method.
+     *  Thus, x/y and Math.divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
+        var q;
+
+        if (y > x) {
+            return 0;
+        }
+
+        // TODO not sure if this is supposed to return 0 or not
+        // also wouldn't this mean we can't multiply negative numbers?
+        if (y < 0) {
+            return 0;
+        }
+
+        let q = divide(x, y+y);
+
+        // TODO didn't figure out how to do this without any multiplication
+        if (x - ((q + q) * y) < y) {
+            return q + q;
+        } else {
+            return (q + q) + 1;
+        }
+    }
+
+    /** Returns the integer part of the square root of x.
+    */
+    function int sqrt(int x) {
+        var y, i;
+        let y = 0
+        let i = (n/2) - 1;
+        while (i >= 0) {
+            if (y + (j*j) < x) {
+                y = y + (j*j);
+            }
+            i = i + 1;
+        }
+        return y;
+    }
+
+    /** Returns the greater value.
+    */
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    /** Returns the smaller value.
+    */
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    /** Returns the absolute value of x
+    */
+    function int abs(int x) {
+        if (x >= 0) {
+            return x;
+        } else {
+            return 0 - x;
+        }
+    }
+}
