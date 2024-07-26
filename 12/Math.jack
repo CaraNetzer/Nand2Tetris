@@ -51,39 +51,62 @@ class Math {
      *  Thus, x/y and Math.divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
-        var q;
+        var int quotient;
+        var boolean negResult;
+
+        if ((x < 0 & y < 0) | (x > 0 & y > 0)) {
+            negResult = false;
+        } else {
+            negResult = true;
+        }
+
+        let x = Math.abs(x);
+        let y = Math.abs(y);
 
         if (y > x) {
             return 0;
         }
 
+        // handling overflow
         // TODO not sure if this is supposed to return 0 or not
-        // also wouldn't this mean we can't multiply negative numbers?
         if (y < 0) {
             return 0;
         }
 
-        let q = divide(x, y+y);
+        let quotient = divide(x, y+y);
+
+        quotient = quotient + quotient;
 
         // TODO didn't figure out how to do this without any multiplication
-        if (x - ((q + q) * y) < y) {
-            return q + q;
+        if (x - ((quotient + quotient) * y) > y) {
+            quotient = (quotient + quotient) + 1;
+        }
+
+        if (negResult) {
+            return -quotient;
         } else {
-            return (q + q) + 1;
+            return quotient
         }
     }
 
     /** Returns the integer part of the square root of x.
     */
     function int sqrt(int x) {
-        var y, i;
-        let y = 0
+        var int y, i, j, s;
+        let y = 0;
+        let s = 1;
         let i = (n/2) - 1;
+
         while (i >= 0) {
-            if (y + (j*j) < x) {
-                y = y + (j*j);
+            j = i;
+            while (j > 0) {
+                s = s*2;
+                j = j - 1;
             }
-            i = i + 1;
+            if ((y + s)*(y + s) <= x & (y + s)*(y + s) > 0) {
+                y = y + s;
+            }
+            i = i - 1;
         }
         return y;
     }
