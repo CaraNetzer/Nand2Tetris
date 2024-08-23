@@ -17,7 +17,13 @@ class Array {
     field int length;
 
     /** Constructs a new Array of the given size. */
-    constructor Array new(int size) {
+    function Array new(int size) {
+        var Array arr;
+        let arr = Array.create(size);
+        return arr;
+    }
+
+    constructor Array create(int size) {
         let length = size;
         let base = Memory.alloc(size);
         return this;
