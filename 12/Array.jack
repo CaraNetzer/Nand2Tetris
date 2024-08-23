@@ -33,6 +33,10 @@ class Array {
         return length;
     }
 
+    method int getBase() {
+        return base;
+    }
+
     /** Disposes this array. */
     method void dispose() {
         do Memory.deAlloc(this);
