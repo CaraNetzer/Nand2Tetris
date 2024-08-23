@@ -13,20 +13,23 @@
  */
 class Array {
 
+    field int base;
     field int length;
 
     /** Constructs a new Array of the given size. */
-    function Array new(int size) {
+    constructor Array new(int size) {
         let length = size;
-        return Memory.alloc(size);
+        let base = Memory.alloc(size);
+        return this;
     }
 
     method int getLength() {
-        return this.length;
+        return length;
     }
 
     /** Disposes this array. */
     method void dispose() {
-        Memory.deAlloc(this);
+        do Memory.deAlloc(this);
+        return;
     }
 }
