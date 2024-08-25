@@ -39,6 +39,14 @@ class String {
         return currentLength;
     }
 
+    method int getMaxLength() {
+        return maximumLength;
+    }
+
+    method Array getArr() {
+        return arr;
+    }
+
     /** Returns the character at the j-th location of this string. */
     method char charAt(int j) {
         return arr[j];
@@ -63,19 +71,21 @@ class String {
 
     /** Erases the last character from this string. */
     method void eraseLastChar() {
-        let arr[currentLength] = null;
+        let arr[currentLength - 1] = null;
+        let currentLength = currentLength - 1;
         return;
     }
 
     /** Returns the integer value of this string,
      *  until a non-digit character is detected. */
     method int intValue() {
+        // TODO handle negative numbers
+
         var int value, i, digit;
         let value = 0;
         let i = 0;
 
         while (i < currentLength) {
-            //let digit = String.getDigitFromAscii(arr[i]);
             let digit = arr[i] - 48;
             let value = ((value*10) + digit);
         }
@@ -83,99 +93,52 @@ class String {
         return value;
     }
 
-    function int getDigitFromAscii(char c) {
-        // TODO unsure if handling chars correctly here
-        if (c = 0) {
-            return 48;
-        } else {
-            if (c = 1) {
-                return 49;
-        } else {
-            if (c = 2) {
-                return 50;
-        } else {
-            if (c = 3) {
-                return 51;
-        } else {
-            if (c = 4) {
-                return 52;
-        } else {
-            if (c = 5) {
-                return 53;
-        } else {
-            if (c = 6) {
-                return 54;
-        } else {
-            if (c = 7) {
-                return 55;
-        } else {
-            if (c = 8) {
-                return 56;
-        } else {
-            if (c = 9) {
-                return 57;
-            }
-        }}}}}}}}}
-        // TODO unsure about default value
-        return 0;
-    }
-
     /** Sets this string to hold a representation of the given value. */
     method void setInt(int val) {
-        // TODO need to rework this method
-       //var int lastDigit, val;
-       //var char c;
-       //var String val;
-       //let lastDigit = (val - ((val/10)*10));
-       //let val = lastDigit + 48;
-       //let c = val;
-       ////let c = String.getAsciiFromDigit(lastDigit);
+        var String str;
+        var boolean neg;
 
-       //if (val < 10) {
-       //    //return c;
-       //} else {
-       //    let val = setInt(val/10);
-       //    let val = val.appendChar(c);
-       //    //return val;
-       //    // TODO does splitting that up onto multiple lines make it non-recursive?
-       //}
+        let neg = false;
+        if(val < 0) {
+            let neg = true;
+            let val = Math.abs(val);
+        }
+
+        let str = String.int2String(val, neg);
+
+        let maximumLength= str.getMaxLength();
+        let currentLength = str.length();
+        let arr = str.getArr();
+        let base = arr.getBase();
         return;
     }
 
-    function int getAsciiFromDigit(int n) {
-        if (n = 48) {
-            return "0";
-        } else {
-            if (n = 49) {
-                return "1";
-        } else {
-            if (n = 50) {
-                return "2";
-        } else {
-            if (n = 51) {
-                return "3";
-        } else {
-            if (n = 52) {
-                return "4";
-        } else {
-            if (n = 53) {
-                return "5";
-        } else {
-            if (n = 54) {
-                return "6";
-        } else {
-            if (n = 55) {
-                return "7";
-        } else {
-            if (n = 56) {
-                return "8";
-        } else {
-            if (n = 57) {
-                return "9";
+    function char int2Char(int n) {
+        return n + 48;
+    }
+
+    function String int2String(int n, boolean neg) {
+        var int lastDigit, val, digits, num;
+        var char c;
+        var String val;
+
+        let lastDigit = (n - ((n/10)*10));
+
+        let c = String.int2Char(lastDigit);
+
+        if (n < 10) {
+            let val = String.new(6); // max digits for max int 32767, plus space for a negative sign
+            if(neg) {
+                do val.appendChar(45); // -
             }
-        }}}}}}}}}
-        // TODO unsure about default value
-        return "0";
+            do val.appendChar(c);
+            return val;
+        }
+        else {
+            let val = String.int2String(n/10, neg);
+            let val = val.appendChar(c);
+            return val;
+        }
     }
 
     /** Returns the new line character. */
