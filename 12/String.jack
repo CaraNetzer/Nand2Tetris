@@ -39,10 +39,12 @@ class String {
         return currentLength;
     }
 
+    /** Returns the maximum length of this string. */
     method int getMaxLength() {
         return maximumLength;
     }
 
+    /** Returns this string's array object */
     method Array getArr() {
         return arr;
     }
@@ -61,7 +63,6 @@ class String {
     /** Appends c to this string's end and returns this string. */
     method String appendChar(char c) {
 
-        // no plus one and no <=
         if(currentLength < maximumLength) {
             let arr[currentLength] = c;
             let currentLength = currentLength + 1;
@@ -79,18 +80,35 @@ class String {
     /** Returns the integer value of this string,
      *  until a non-digit character is detected. */
     method int intValue() {
-        // TODO handle negative numbers
 
         var int value, i, digit;
+        var boolean neg;
+        let neg = false;
         let value = 0;
         let i = 0;
 
-        while (i < currentLength) {
-            let digit = arr[i] - 48;
-            let value = ((value*10) + digit);
+        if (arr[0] = 45) { // negative sign
+            let neg = true;
         }
 
-        return value;
+        while (i < currentLength) {
+            if (~neg | (i > 0)) {
+                let digit = String.char2Int(arr[i]);
+                let value = ((value*10) + digit);
+            }
+
+            let i = i + 1;
+        }
+
+        if(neg) {
+            return 0 - value;
+        } else  {
+            return value;
+        }
+    }
+
+    function char char2Int(char c) {
+        return c - 48;
     }
 
     /** Sets this string to hold a representation of the given value. */
@@ -118,18 +136,22 @@ class String {
     }
 
     function String int2String(int n, boolean neg) {
-        var int lastDigit, val, digits, num;
+
+        var int lastDigit, num;
         var char c;
         var String val;
 
+        // n % 10
         let lastDigit = (n - ((n/10)*10));
 
         let c = String.int2Char(lastDigit);
 
         if (n < 10) {
-            let val = String.new(6); // max digits for max int 32767, plus space for a negative sign
+            // max digits for max int 32767, plus space for a negative sign
+            let val = String.new(6);
             if(neg) {
-                do val.appendChar(45); // -
+                // append negative sign
+                do val.appendChar(45);
             }
             do val.appendChar(c);
             return val;
