@@ -107,8 +107,16 @@ class String {
         }
     }
 
-    function char char2Int(char c) {
+    function int char2Int(char c) {
         return c - 48;
+    }
+
+    function boolean isDigit(char c) {
+        if ((c < 48) | (c > 57)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /** Sets this string to hold a representation of the given value. */

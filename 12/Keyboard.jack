@@ -10,6 +10,7 @@ class Keyboard {
 
     /** Initializes the keyboard. */
     function void init() {
+        return;
     }
 
     /**
@@ -32,8 +33,9 @@ class Keyboard {
      * ESC = 140
      * F1 - F12 = 141 - 152
      */
+
     function char keyPressed() {
-        if(Memory.peek(24576) ~= 0) {
+        if(~(Memory.peek(24576) = 0)) {
             return Memory.peek(24576);
         } else {
             return 0;
@@ -46,6 +48,17 @@ class Keyboard {
      * of the pressed key.
      */
     function char readChar() {
+        var char key, output;
+        let key = Keyboard.keyPressed();
+        while (key = 0) {
+            let key = Keyboard.keyPressed();
+        }
+        let output = key;
+        while (~(key = 0)) {
+            let key = Keyboard.keyPressed();
+        }
+        do Output.printChar(output); // handles backspace
+        return output;
     }
 
     /**
@@ -54,6 +67,33 @@ class Keyboard {
      * and returns its value. Also handles user backspaces.
      */
     function String readLine(String message) {
+        var String str;
+        var char c;
+
+        do Output.printString(message);
+
+        let str = String.new(80); // historical single line
+        while(true) {
+            let c = Keyboard.readChar();
+            if(c = String.newLine()) {
+                do Output.println();
+                return str;
+            } else {
+                if(c = String.backSpace()) {
+                    if(str.length() > 0) {
+                        // Output.backSpace handled in readChar
+                        do str.eraseLastChar();
+                    }
+                } else {
+                    if(str.getMaxLength() = str.length()) {
+                        do Output.backSpace();
+                    } else {
+                        let str = str.appendChar(c);
+                    }
+                }
+            }
+        }
+        return str; // will not reach here
     }
 
     /**
@@ -63,5 +103,27 @@ class Keyboard {
      * entered text is detected). Also handles user backspaces.
      */
     function int readInt(String message) {
+        var String str;
+        var char c;
+        var int num;
+
+        let str = String.new(80); // historical single line
+
+        do Output.printString(message);
+        while(true) {
+            let c = Keyboard.readChar();
+            if(c = String.backSpace()) {
+                // Output.backSpace handled in readChar
+                do str.eraseLastChar();
+            } else {
+                if((~String.isDigit(c)) & ~(c = 45)) { // 45 --> -
+                    do Output.println();
+                    return str.intValue();
+                } else {
+                    let str = str.appendChar(c);
+                }
+            }
+        }
+        return -1; // will not reach here
     }
 }

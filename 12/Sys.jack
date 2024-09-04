@@ -15,6 +15,7 @@ class Sys {
         do Screen.init();
         do Keyboard.init();
         do Memory.init();
+        // TODO make sure everything that is needed is here
 
         do Main.main();
 
@@ -63,6 +64,7 @@ class Sys {
     /** Displays the given error code in the form "ERR<errorCode>",
      *  and halts the program's execution. */
     function void error(int errorCode) {
+        // TODO test this
         do Output.printString("Error code: ");
         do Output.printInt(errorCode);
         do Output.println();
