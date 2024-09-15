@@ -147,21 +147,24 @@ class Math {
     /** Returns the integer part of the square root of x.
     */
     function int sqrt(int x) {
-        var int y, i, j, s;
+        var int y, i, j, exp;
         let y = 0;
-        let i = (n/2) - 1;
+        // n = 16
+        let j = (16/2) - 1;
 
-        while (i > 0 | i = 0) {
-            let j = i;
-            let s = 1;
-            while (j > 0) {
-                let s = s*2;
-                let j = j - 1;
+        while ((j > 0) | (j = 0)) {
+            // calculate 2^j
+            let i = j;
+            let exp = 1;
+            while (i > 0) {
+                let exp = 2*exp;
+                let i = i - 1;
             }
-            if ((((y + s)*(y + s) < x) | ((y + s)*(y + s) = x)) & (y + s)*(y + s) > 0) {
-                let y = y + s;
+            //if (((((y + exp)*(y + exp)) < x) | (((y + exp)*(y + exp)) = x)) & (y + exp)*(y + exp) > 0)
+            if ((((y + exp)*(y + exp)) < x) | (((y + exp)*(y + exp)) = x)) {
+                let y = y + exp;
             }
-            let i = i - 1;
+            let j = j - 1;
         }
         return y;
     }
