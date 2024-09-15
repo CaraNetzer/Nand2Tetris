@@ -1,0 +1,139 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Screen.jack
+
+/**
+ * A library of functions for displaying graphics on the screen.
+ * The Hack physical screen consists of 512 rows (indexed 0..511, top to bottom)
+ * of 256 pixels each (indexed 0..255, left to right). The top left pixel on
+ * the screen is indexed (0,0).
+ */
+class Screen {
+    static boolean color;
+
+    /** Initializes the Screen. */
+    function void init() {
+        let color = true;
+        return;
+    }
+
+    /** Erases the entire screen. */
+    function void clearScreen() {
+        var int minAddr, maxAddr, i;
+        let minAddr = 16384;
+        let maxAddr = 24575;
+
+        let i = minAddr;
+        while(i < maxAddr) {
+            //if(Memory.peek(i) ~= 0) {
+                do Memory.poke(i, 0);
+            //}
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Sets the current color, to be used for all subsequent drawXXX commands.
+     *  Black is represented by true, white by false. */
+    function void setColor(boolean b) {
+        let color = b;
+        return;
+    }
+
+    function boolean getColor() {
+        return color;
+    }
+
+    /** Draws the (x,y) pixel, using the current color. */
+    function void drawPixel(int x, int y) {
+        var int targetWord, targetWordLocation;
+        var int bit, editedWord;
+        var Array arr;
+
+        // determine the word in memory to poke
+        // screen base = 16384
+        let targetWordLocation = 16384 + (y*32) + (x/16);
+        let targetWord = Memory.peek(targetWordLocation);
+
+        // isolate the bit in that word to poke
+        let arr = Math.getPowersOfTwoArray();
+        let bit = arr[x - 16*(x/16)];
+
+        // & or | based on if we're coloring or erasing
+        if(color) {
+            let editedWord = bit | targetWord;
+        } else {
+            let editedWord = ~bit & targetWord;
+        }
+        //do Memory.poke(targetWordLocation, editedWord);
+        do Memory.poke(targetWordLocation, -1);
+        return;
+    }
+
+    /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+        var int a, b, da, db, dx, dy;
+        var int adyMinusbdx;
+        let adyMinusbdx = 0;
+        let da = 1;
+        let db = 1;
+
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+
+        if(x1 > x2) {
+            //let a = x1;
+            //let x1 = x2;
+            //let x2 = a;
+            let da = -1;
+        }
+        if(y1 > y2) {
+            //let a = y1;
+            //let y1 = y2;
+            //let y2 = a;
+            let db = -1;
+        }
+
+        let a = 0;
+        let b = 0;
+
+        while(((a < dx) | (a = dx)) & ((b < dy) | (b = dy))) {
+            do Screen.drawPixel(x1 + a, y1 + b);
+
+            if(adyMinusbdx < 0) {
+                let a = a + da;
+                let adyMinusbdx = adyMinusbdx + dy;
+            } else {
+                let b = b + db;
+                let adyMinusbdx = adyMinusbdx - dx;
+            }
+        }
+
+        return;
+    }
+
+    /** Draws a filled rectangle whose top left corner is (x1, y1)
+     * and bottom right corner is (x2,y2), using the current color. */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int y;
+        let y = y1;
+        while(y < (y2 + 1)) {
+            do Screen.drawLine(x1, y, x2, y);
+            let y = y + 1;
+        }
+        return;
+    }
+
+    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
+    function void drawCircle(int x, int y, int r) {
+        var int dy, dx;
+        let dy = -r;
+        while ((dy < r) | (dy = r)) {
+            let dx = Math.sqrt((r*r) - (dy*dy));
+            do Screen.drawLine(x - dx, y + dy, x + dx, y + dy);
+            let dy = dy + 1;
+        }
+        return;
+    }
+}
