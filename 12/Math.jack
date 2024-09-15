@@ -15,9 +15,41 @@ class Math {
 
     // Initializes the Math library.
     function void init() {
-        n = 16;
-        powersOfTwo = Array.new(n);
-        powersOfTwo = [ 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768 ];
+        let n = 16;
+        let powersOfTwo = Array.new(n);
+        let powersOfTwo[0] = 1;
+        let powersOfTwo[1] = 2;
+        let powersOfTwo[2] = 4;
+        let powersOfTwo[3] = 8;
+        let powersOfTwo[4] = 16;
+        let powersOfTwo[5] = 32;
+        let powersOfTwo[6] = 64;
+        let powersOfTwo[7] = 128;
+        let powersOfTwo[8] = 256;
+        let powersOfTwo[9] = 512;
+        let powersOfTwo[10] = 1024;
+        let powersOfTwo[11] = 2048;
+        let powersOfTwo[12] = 4096;
+        let powersOfTwo[13] = 8192;
+        let powersOfTwo[14] = 16384;
+        let powersOfTwo[15] = 32767 + 1;
+        return;
+    }
+
+    function Array getPowersOfTwoArray() {
+        return powersOfTwo;
+    }
+
+    function boolean negResult(int x, int y) {
+        var boolean negResult;
+
+        if (((x < 0) & (y < 0)) | ((x > 0) & (y > 0))) {
+            let negResult = false;
+        } else {
+            let negResult = true;
+        }
+
+        return negResult;
     }
 
     /** Returns the product of x and y.
@@ -27,22 +59,41 @@ class Math {
      */
     function int multiply(int x, int y) {
         var int sum, shiftedX, j;
-        let sum = 0, j = 0;
+        var boolean negResult;
+        let sum = 0;
+        let j = 0;
+
+        let negResult = Math.negResult(x, y);
+
+        let x = Math.abs(x);
+        let y = Math.abs(y);
+
         let shiftedX = x;
 
-        while (j <= n - 1) {
-            if (bit(x, j)) {
+
+        while (j < n) {
+            if (Math.bit(y, j)) {
                 let sum = sum + shiftedX;
             }
-            shiftedX = shiftedX + shiftedX;
-            j = j + 1;
+            let shiftedX = shiftedX + shiftedX;
+            let j = j + 1;
         }
 
-        return sum;
+        if (negResult) {
+            return -sum;
+        } else {
+            return sum;
+        }
     }
 
     function boolean bit(int x, int j) {
-        return x & powersOfTwo[j];
+        var int bit;
+        let bit = powersOfTwo[j];
+        if ((x & bit) > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /** Returns the integer part of x / y.
@@ -51,14 +102,10 @@ class Math {
      *  Thus, x/y and Math.divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
-        var int quotient;
+        var int quotient, calc;
         var boolean negResult;
 
-        if ((x < 0 & y < 0) | (x > 0 & y > 0)) {
-            negResult = false;
-        } else {
-            negResult = true;
-        }
+        let negResult = Math.negResult(x, y);
 
         let x = Math.abs(x);
         let y = Math.abs(y);
@@ -70,22 +117,30 @@ class Math {
         // handling overflow
         // TODO not sure if this is supposed to return 0 or not
         if (y < 0) {
-            return 0;
+            //return 0;
         }
 
-        let quotient = divide(x, y+y);
+        let quotient = Math.divide(x, y+y);
 
-        quotient = quotient + quotient;
+        let quotient = quotient + quotient;
 
         // TODO didn't figure out how to do this without any multiplication
-        if (x - ((quotient + quotient) * y) > y) {
-            quotient = (quotient + quotient) + 1;
+        let calc = x - (quotient * y);
+        if ((calc > y) | (calc = y)) {
+            let quotient = quotient + 1;
         }
+
+        /*if(calc < y) {
+            return 2*q;
+        }
+        else {
+            return 2*q + 1;
+        }*/
 
         if (negResult) {
             return -quotient;
         } else {
-            return quotient
+            return quotient;
         }
     }
 
@@ -94,19 +149,19 @@ class Math {
     function int sqrt(int x) {
         var int y, i, j, s;
         let y = 0;
-        let s = 1;
         let i = (n/2) - 1;
 
-        while (i >= 0) {
-            j = i;
+        while (i > 0 | i = 0) {
+            let j = i;
+            let s = 1;
             while (j > 0) {
-                s = s*2;
-                j = j - 1;
+                let s = s*2;
+                let j = j - 1;
             }
-            if ((y + s)*(y + s) <= x & (y + s)*(y + s) > 0) {
-                y = y + s;
+            if ((((y + s)*(y + s) < x) | ((y + s)*(y + s) = x)) & (y + s)*(y + s) > 0) {
+                let y = y + s;
             }
-            i = i - 1;
+            let i = i - 1;
         }
         return y;
     }
@@ -134,7 +189,7 @@ class Math {
     /** Returns the absolute value of x
     */
     function int abs(int x) {
-        if (x >= 0) {
+        if ((x > 0) | (x = 0)) {
             return x;
         } else {
             return 0 - x;
