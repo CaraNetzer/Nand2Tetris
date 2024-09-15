@@ -160,8 +160,7 @@ class Math {
                 let exp = 2*exp;
                 let i = i - 1;
             }
-            //if (((((y + exp)*(y + exp)) < x) | (((y + exp)*(y + exp)) = x)) & (y + exp)*(y + exp) > 0)
-            if ((((y + exp)*(y + exp)) < x) | (((y + exp)*(y + exp)) = x)) {
+            if (((((y + exp)*(y + exp)) < x) | (((y + exp)*(y + exp)) = x)) & ((y + exp)*(y + exp) > 0)) {
                 let y = y + exp;
             }
             let j = j - 1;
