@@ -147,7 +147,7 @@ class Math {
     /** Returns the integer part of the square root of x.
     */
     function int sqrt(int x) {
-        var int y, i, j, exp;
+        var int y, i, j, exp, square;
         let y = 0;
         // n = 16
         let j = (16/2) - 1;
@@ -160,7 +160,11 @@ class Math {
                 let exp = 2*exp;
                 let i = i - 1;
             }
-            if (((((y + exp)*(y + exp)) < x) | (((y + exp)*(y + exp)) = x)) & ((y + exp)*(y + exp) > 0)) {
+
+            let square = (y + exp)*(y + exp);
+
+            // gt 0 to account for overflow of (y+exp)^2
+            if (((square < x) | (square = x)) & (square > 0)) {
                 let y = y + exp;
             }
             let j = j - 1;
