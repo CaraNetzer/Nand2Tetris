@@ -58,7 +58,7 @@ class Screen {
 
         // isolate the bit in that word to poke
         let arr = Math.getPowersOfTwoArray();
-        let bit = arr[x - 16*(x/16)];
+        let bit = arr[x - (16*(x/16))];
 
         // & or | based on if we're coloring or erasing
         if(color) {
@@ -66,48 +66,154 @@ class Screen {
         } else {
             let editedWord = ~bit & targetWord;
         }
-        //do Memory.poke(targetWordLocation, editedWord);
-        do Memory.poke(targetWordLocation, -1);
+        do Memory.poke(targetWordLocation, editedWord);
+        //do Memory.poke(targetWordLocation, -1);
         return;
     }
 
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
-    function void drawLine(int x1, int y1, int x2, int y2) {
-        var int a, b, da, db, dx, dy;
-        var int adyMinusbdx;
-        let adyMinusbdx = 0;
-        let da = 1;
-        let db = 1;
+    function void drawLine(int x1, int y1, int x2, int y2)
+    {
+        var Array arr;
+        var int targetWord, targetWordLocation, mod, bit, x, y;
+        var int a, b, dx, dy, i;
+        var int diff;
+        let diff = 0;
 
         let dx = x2 - x1;
         let dy = y2 - y1;
 
-        if(x1 > x2) {
-            //let a = x1;
-            //let x1 = x2;
-            //let x2 = a;
-            let da = -1;
-        }
-        if(y1 > y2) {
-            //let a = y1;
-            //let y1 = y2;
-            //let y2 = a;
-            let db = -1;
-        }
-
         let a = 0;
         let b = 0;
 
-        while(((a < dx) | (a = dx)) & ((b < dy) | (b = dy))) {
-            do Screen.drawPixel(x1 + a, y1 + b);
+        // +dx, +dy --> down/right
+        if((dx > 0) & (dy > 0))  {
+            while(((a < dx) | (a = dx)) & ((b < dy) | (b = dy))) {
+                do Screen.drawPixel(x1 + a, y1 + b);
 
-            if(adyMinusbdx < 0) {
-                let a = a + da;
-                let adyMinusbdx = adyMinusbdx + dy;
-            } else {
-                let b = b + db;
-                let adyMinusbdx = adyMinusbdx - dx;
+                if(diff < 0) {
+                    let a = a + 1;
+                    let diff = diff + dy;
+                } else {
+                    let b = b + 1;
+                    let diff = diff - dx;
+                }
             }
+        }
+
+        // +dx, -dy --> up/right
+        if ((dx > 0) & (dy < 0)) {
+            while(((a < dx) | (a = dx)) & ((b > dy) | (b = dy))) {
+                do Screen.drawPixel(x1 + a, y1 + b);
+
+                if(diff < 0) {
+                    let a = a + 1;
+                    let diff = diff - dy; // minus a negative
+                } else {
+                    let b = b - 1;
+                    let diff = diff - dx;
+                }
+            }
+        }
+
+        // -dx, -dy --> up/left
+        if ((dx < 0) & (dy < 0)) {
+            while(((a > dx) | (a = dx)) & ((b > dy) | (b = dy))) {
+                do Screen.drawPixel(x1 + a, y1 + b);
+
+                if(diff < 0) {
+                    let a = a - 1;
+                    let diff = diff - dy; // minus a negative
+                } else {
+                    let b = b - 1;
+                    let diff = diff + dx; // adding a negative
+                }
+            }
+        }
+
+        // -dx, +dy --> down/left
+        if ((dx < 0) & (dy > 0)) {
+            while(((a > dx) | (a = dx)) & ((b < dy) | (b = dy))) {
+                do Screen.drawPixel(x1 + a, y1 + b);
+
+                if(diff < 0) {
+                    let a = a - 1;
+                    let diff = diff + dy;
+                } else {
+                    let b = b + 1;
+                    let diff = diff + dx; // adding a negative
+                }
+            }
+        }
+
+        // vertical
+        if(dx = 0) {
+            let i = 0;
+
+            if(dy > 0) {
+                while ((i < dy) | (i = dy)) {
+                    do Screen.drawPixel(x1, y1 + i);
+                    let i = i + 1;
+                }
+            } else {
+                while ((i > dy) | (i = dy)) {
+                    do Screen.drawPixel(x1, y1 + i);
+                    let i = i - 1;
+                }
+            }
+
+        }
+
+        // horizontal
+        if(dy = 0) {
+            if(x1 < x2) {
+                let x = x1;
+            } else {
+                let x = x2;
+                let dx = -dx; // instead of Math.abs later
+            }
+            let y = y1;
+
+            let targetWordLocation = 16384 + (y*32) + (x/16);
+            let targetWord = Memory.peek(targetWordLocation);
+            let arr = Math.getPowersOfTwoArray();
+
+            let i = 0;
+            while (i < dx) {
+
+
+                // isolate the bit in that word to poke
+                let mod = (x+i) - (16*((x+i)/16));
+
+                // fill full word at a time when possible
+                if ((mod = 0) & ((dx - i) > 15)) {
+                    do Memory.poke(targetWordLocation, color);
+                    let i = i + 16;
+                    let targetWordLocation = targetWordLocation + 1;
+
+                } else {
+
+                    let bit = arr[mod];
+
+                    // & or | based on if we're coloring or erasing
+                    if(color) {
+                        let targetWord = bit | targetWord;
+                    } else {
+                        let targetWord = ~bit & targetWord;
+                    }
+
+                    if(mod = 15) {
+                        do Memory.poke(targetWordLocation, targetWord);
+                        let targetWordLocation = targetWordLocation + 1;
+
+                        // TODO do we need to handle out of bounds
+                        let targetWord = Memory.peek(targetWordLocation);
+                    }
+
+                    let i = i + 1;
+                }
+            }
+            do Memory.poke(targetWordLocation, targetWord);
         }
 
         return;
@@ -118,7 +224,7 @@ class Screen {
     function void drawRectangle(int x1, int y1, int x2, int y2) {
         var int y;
         let y = y1;
-        while(y < (y2 + 1)) {
+        while((y < y2) | (y = y2)) {
             do Screen.drawLine(x1, y, x2, y);
             let y = y + 1;
         }
@@ -128,6 +234,10 @@ class Screen {
     /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
     function void drawCircle(int x, int y, int r) {
         var int dy, dx;
+        if(r > 181) {
+            let r = 181;
+        }
+
         let dy = -r;
         while ((dy < r) | (dy = r)) {
             let dx = Math.sqrt((r*r) - (dy*dy));
