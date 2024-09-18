@@ -45,6 +45,7 @@ class Memory {
         let free = free + size;
         return pointer;
         // TODO implement the more complex version in the future?
+        // TODO keep track of open segments instead of this
     }
 
     /** De-allocates the given object (cast as an array) by making

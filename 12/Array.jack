@@ -29,10 +29,6 @@ class Array {
         return this;
     }
 
-    method int getLength() {
-        return length;
-    }
-
     method int getBase() {
         return base;
     }
