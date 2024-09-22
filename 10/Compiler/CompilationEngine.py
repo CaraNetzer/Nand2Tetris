@@ -26,7 +26,7 @@ class CompilationEngine:
         self.tokenizer.advance()
 
     def eat(self, item, match):
-        print("eat: " + match)
+        # print("eat: " + match)
         current_token = self.tokenizer.get_current_token().get_token()
 
         if item == "token":

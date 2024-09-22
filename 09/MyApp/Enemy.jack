@@ -4,7 +4,7 @@ class Enemy {
   field int startingX, startingY;
   field int length;
   field int direction;
-  field in slope;
+  field int slope;
   field int randDirectionSeed;
   field int relativeMemAddress;
   field boolean outOfBounds;
