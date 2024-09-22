@@ -179,7 +179,7 @@ class Screen {
             let arr = Math.getPowersOfTwoArray();
 
             let i = 0;
-            while (i < dx) {
+            while ((i < dx) | (i = dx)) {
 
 
                 // isolate the bit in that word to poke
