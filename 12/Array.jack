@@ -14,22 +14,20 @@
 class Array {
 
     field int base;
-    field int length;
 
     /** Constructs a new Array of the given size. */
     function Array new(int size) {
         var Array arr;
-        let arr = Array.create(size);
-        return arr;
+        let arr = Array._create(size);
+        return arr._getBase();
     }
 
-    constructor Array create(int size) {
-        let length = size;
+    constructor Array _create(int size) {
         let base = Memory.alloc(size);
         return this;
     }
 
-    method int getBase() {
+    method int _getBase() {
         return base;
     }
 

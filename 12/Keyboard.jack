@@ -69,10 +69,12 @@ class Keyboard {
     function String readLine(String message) {
         var String str;
         var char c;
+        var int strMaxLength;
+        let strMaxLength = 80;
 
         do Output.printString(message);
 
-        let str = String.new(80); // historical single line
+        let str = String.new(strMaxLength); // historical single line
         while(true) {
             let c = Keyboard.readChar();
             if(c = String.newLine()) {
@@ -85,7 +87,7 @@ class Keyboard {
                         do str.eraseLastChar();
                     }
                 } else {
-                    if(str.getMaxLength() = str.length()) {
+                    if(strMaxLength = str.length()) {
                         do Output.backSpace();
                     } else {
                         let str = str.appendChar(c);
@@ -94,6 +96,14 @@ class Keyboard {
             }
         }
         return str; // will not reach here
+    }
+
+    function boolean isDigit(char c) {
+        if ((c < 48) | (c > 57)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -116,7 +126,7 @@ class Keyboard {
                 // Output.backSpace handled in readChar
                 do str.eraseLastChar();
             } else {
-                if((~String.isDigit(c)) & ~(c = 45)) { // 45 --> -
+                if((~Keyboard.isDigit(c)) & ~(c = 45)) { // 45 --> -
                     do Output.println();
                     return str.intValue();
                 } else {

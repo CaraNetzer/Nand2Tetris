@@ -11,10 +11,21 @@
  */
 class Screen {
     static boolean color;
+    static Array powersOfTwo; // Stores 2^0, 2^1, 2^2,..., 2^(n-1)
 
     /** Initializes the Screen. */
     function void init() {
+        var int i, v;
         let color = true;
+
+        let powersOfTwo = Array.new(16);
+        let i = 0;
+        let v = 1;
+        while (i < 16) {
+            let powersOfTwo[i] = v;
+            let v = v+v;
+            let i = i + 1;
+        }
         return;
     }
 
@@ -49,7 +60,6 @@ class Screen {
     function void drawPixel(int x, int y) {
         var int targetWord, targetWordLocation;
         var int bit, editedWord;
-        var Array arr;
 
         // determine the word in memory to poke
         // screen base = 16384
@@ -57,8 +67,7 @@ class Screen {
         let targetWord = Memory.peek(targetWordLocation);
 
         // isolate the bit in that word to poke
-        let arr = Math.getPowersOfTwoArray();
-        let bit = arr[x - (16*(x/16))];
+        let bit = powersOfTwo[x - (16*(x/16))];
 
         // & or | based on if we're coloring or erasing
         if(color) {
@@ -74,7 +83,6 @@ class Screen {
     /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
     function void drawLine(int x1, int y1, int x2, int y2)
     {
-        var Array arr;
         var int targetWord, targetWordLocation, mod, bit, x, y;
         var int a, b, dx, dy, i;
         var int diff;
@@ -176,11 +184,9 @@ class Screen {
 
             let targetWordLocation = 16384 + (y*32) + (x/16);
             let targetWord = Memory.peek(targetWordLocation);
-            let arr = Math.getPowersOfTwoArray();
 
             let i = 0;
             while ((i < dx) | (i = dx)) {
-
 
                 // isolate the bit in that word to poke
                 let mod = (x+i) - (16*((x+i)/16));
@@ -193,7 +199,7 @@ class Screen {
 
                 } else {
 
-                    let bit = arr[mod];
+                    let bit = powersOfTwo[mod];
 
                     // & or | based on if we're coloring or erasing
                     if(color) {

@@ -14,7 +14,6 @@ class String {
 
     field int maximumLength;
     field int currentLength;
-    field int base;
     field Array arr;
 
     /** constructs a new empty string with a maximum length of maxLength
@@ -22,15 +21,18 @@ class String {
     constructor String new(int maxLength) {
         let maximumLength= maxLength;
         let currentLength = 0;
-        let arr = Array.new(maxLength);
-        let base = arr.getBase();
+        if(maxLength > 0) {
+            let arr = Array.new(maxLength);
+        }
 
         return this;
     }
 
     /** Disposes this string. */
     method void dispose() {
-        do arr.dispose();
+        if(maximumLength > 0) {
+            do arr.dispose();
+        }
         return;
     }
 
@@ -111,14 +113,6 @@ class String {
         return c - 48;
     }
 
-    function boolean isDigit(char c) {
-        if ((c < 48) | (c > 57)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     /** Sets this string to hold a representation of the given value. */
     method void setInt(int val) {
         var String str;
@@ -135,7 +129,6 @@ class String {
         let maximumLength= str.getMaxLength();
         let currentLength = str.length();
         let arr = str.getArr();
-        let base = arr.getBase();
         return;
     }
 
